@@ -162,6 +162,8 @@ enum ProgressionMethodChoice: String, Codable, CaseIterable, Identifiable {
     case durationCycle
     /// Increase planned set count after successful completion.
     case setsProgression
+    /// Increase planned distance after successful completion.
+    case distanceProgression
     /// User manages everything manually.
     case manual
 
@@ -173,6 +175,7 @@ enum ProgressionMethodChoice: String, Codable, CaseIterable, Identifiable {
         case .repsOnly: return "Increase repetitions"
         case .durationCycle: return "Increase duration"
         case .setsProgression: return "Increase sets"
+        case .distanceProgression: return "Increase distance"
         case .manual: return "Manual / custom"
         }
     }
@@ -214,7 +217,8 @@ struct ExerciseProgressionRule: Codable, Equatable, Hashable {
     var weightIncrementKg: Double
     /// Ordered duration targets in seconds, e.g. [30, 45, 60].
     var durationSteps: [Int]
-    /// For weight+duration: after final duration step, increase weight and reset duration.
+    /// Legacy: for weight+duration after final duration step, increase weight and reset duration.
+    /// Prefer `multiMetricMode == .both` for simultaneous advances.
     var increaseWeightAfterDurationCycle: Bool
     /// When > 0 and no higher ladder step remains, advance by this many reps (e.g. push-ups +2).
     var repIncrement: Int
@@ -222,59 +226,132 @@ struct ExerciseProgressionRule: Codable, Equatable, Hashable {
     var durationIncrementSeconds: Int
     /// For sets progression: how many sets to add after a successful session.
     var setIncrement: Int
+    /// Distance step in meters for distance-based progression.
+    var distanceIncrementMeters: Double
+    /// For multi-metric exercises: which configured metrics advance after success.
+    var multiMetricMode: MultiMetricProgressionMode
 
     var automaticProgression: Bool { method != .manual }
 
     var startingReps: Int { repSteps.first ?? 8 }
     var maximumReps: Int { repSteps.last ?? 15 }
 
+    func activeProgressionIncludesWeight(for exercise: Exercise) -> Bool {
+        if method == .doubleProgression { return true }
+        if increaseWeightAfterDurationCycle { return true }
+        if multiMetricMode == .both, exercise.trackingProfile.supports(.weight) { return true }
+        if multiMetricMode == .secondary, exercise.trackingProfile.secondaryProgressionMetric == .weight {
+            return true
+        }
+        return method == .durationCycle && exercise.trackingProfile.supports(.weight) && weightIncrementKg > 0
+            && multiMetricMode != .primary
+    }
+
     static func recommended(
         for exercise: Exercise,
         weightIncrementKg: Double
     ) -> ExerciseProgressionRule {
-        let increment = max(weightIncrementKg, EquipmentDefaults.defaultIncrementKg(for: exercise.equipment))
-        switch exercise.measurementUnit {
-        case .weight, .repsWithOptionalWeight:
-            return .preset(.double815, sets: 3, weightIncrementKg: increment, method: .doubleProgression)
-        case .reps, .bodyweight:
-            return ExerciseProgressionRule(
+        let profile = exercise.trackingProfile
+        let increment = max(
+            profile.defaultWeightIncrementKg ?? weightIncrementKg,
+            EquipmentDefaults.defaultIncrementKg(for: exercise.equipment)
+        )
+        let durationInc = profile.defaultDurationIncrementSeconds ?? 5
+        let distanceInc = profile.defaultDistanceIncrementMeters ?? 5
+        let repInc = profile.defaultRepIncrement ?? 2
+        let setInc = profile.defaultSetIncrement ?? 1
+
+        let active = profile.activeProgressionMetrics
+        let primary = active.first ?? profile.primaryProgressionMetric
+
+        var rule: ExerciseProgressionRule
+        switch primary {
+        case .weight:
+            rule = .preset(.double815, sets: 3, weightIncrementKg: increment, method: .doubleProgression)
+        case .reps:
+            rule = ExerciseProgressionRule(
                 method: .repsOnly,
                 targetSets: 3,
                 repSteps: [8],
                 weightIncrementKg: 0,
                 durationSteps: [30, 45, 60],
                 increaseWeightAfterDurationCycle: false,
-                repIncrement: 2,
+                repIncrement: repInc,
                 durationIncrementSeconds: 0,
-                setIncrement: 1
+                setIncrement: setInc
             )
         case .time:
-            return ExerciseProgressionRule(
-                method: .durationCycle,
-                targetSets: 3,
-                repSteps: [8, 12, 15],
-                weightIncrementKg: 0,
-                durationSteps: [30, 45, 60],
-                increaseWeightAfterDurationCycle: false,
-                repIncrement: 0,
-                durationIncrementSeconds: 15,
-                setIncrement: 1
-            )
-        case .weightAndTime:
-            return ExerciseProgressionRule(
+            rule = ExerciseProgressionRule(
                 method: .durationCycle,
                 targetSets: 3,
                 repSteps: [8, 12, 15],
                 weightIncrementKg: increment,
                 durationSteps: [30, 45, 60],
-                increaseWeightAfterDurationCycle: true,
+                increaseWeightAfterDurationCycle: false,
+                repIncrement: 0,
+                durationIncrementSeconds: durationInc,
+                setIncrement: setInc
+            )
+        case .sets:
+            rule = ExerciseProgressionRule(
+                method: .setsProgression,
+                targetSets: 3,
+                repSteps: [8],
+                weightIncrementKg: 0,
+                durationSteps: [30, 45, 60],
+                increaseWeightAfterDurationCycle: false,
                 repIncrement: 0,
                 durationIncrementSeconds: 0,
-                setIncrement: 1
+                setIncrement: setInc
             )
         case .distance:
-            return .manualDefault(sets: 3)
+            rule = ExerciseProgressionRule(
+                method: .distanceProgression,
+                targetSets: 3,
+                repSteps: [8],
+                weightIncrementKg: increment,
+                durationSteps: [30, 45, 60],
+                increaseWeightAfterDurationCycle: false,
+                repIncrement: 0,
+                durationIncrementSeconds: 0,
+                setIncrement: setInc,
+                distanceIncrementMeters: distanceInc
+            )
         }
+
+        rule.multiMetricMode = profile.progressionMode
+        rule.weightIncrementKg = max(rule.weightIncrementKg, active.contains(.weight) ? increment : rule.weightIncrementKg)
+        if active.contains(.time) {
+            rule.durationIncrementSeconds = max(rule.durationIncrementSeconds, durationInc)
+        }
+        if active.contains(.distance) {
+            rule.distanceIncrementMeters = max(rule.distanceIncrementMeters, distanceInc)
+        }
+        if active.contains(.reps) {
+            rule.repIncrement = max(rule.repIncrement, repInc)
+        }
+
+        // Simultaneous multi-metric progress (e.g. Farmer's Carry "Progress both").
+        if profile.progressionMode == .both,
+           active.contains(.weight),
+           active.contains(.time) {
+            rule.method = .durationCycle
+            rule.increaseWeightAfterDurationCycle = false
+            rule.durationIncrementSeconds = max(1, durationInc)
+            rule.weightIncrementKg = increment
+        }
+
+        // Secondary-only weight while tracking time: bump weight, keep duration.
+        if profile.progressionMode == .secondary,
+           profile.secondaryProgressionMetric == .weight,
+           profile.supports(.time) {
+            rule.method = .durationCycle
+            rule.increaseWeightAfterDurationCycle = true
+            rule.durationIncrementSeconds = 0
+            rule.weightIncrementKg = increment
+        }
+
+        return rule
     }
 
     static func preset(
@@ -375,6 +452,8 @@ struct ExerciseProgressionRule: Codable, Equatable, Hashable {
             return "\(targetSets) sets · \(ladder)"
         case .setsProgression:
             return "Start at \(targetSets) sets · +\(max(1, setIncrement)) set after success"
+        case .distanceProgression:
+            return "\(targetSets) sets · +\(String(format: "%g", distanceIncrementMeters)) m after success"
         }
     }
 
@@ -459,6 +538,14 @@ struct ExerciseProgressionRule: Codable, Equatable, Hashable {
                 sets += max(1, setIncrement)
             }
             return lines
+        case .distanceProgression:
+            var lines: [String] = []
+            var meters = 40.0
+            for _ in 0..<min(maxLines, 5) {
+                lines.append("\(targetSets) × \(ExerciseTrackingFormatter.formatDistance(meters: meters, unit: .kilograms))")
+                meters += max(1, distanceIncrementMeters)
+            }
+            return lines
         }
     }
 
@@ -467,6 +554,7 @@ struct ExerciseProgressionRule: Codable, Equatable, Hashable {
     private enum CodingKeys: String, CodingKey {
         case method, targetSets, repSteps, weightIncrementKg, durationSteps, increaseWeightAfterDurationCycle
         case startingReps, targetReps, repIncrement, targetDurationSeconds, durationIncrementSeconds, setIncrement
+        case distanceIncrementMeters, multiMetricMode
         case successfulWorkoutsRequired, automaticRecommendations, primaryAction
     }
 
@@ -479,7 +567,9 @@ struct ExerciseProgressionRule: Codable, Equatable, Hashable {
         increaseWeightAfterDurationCycle: Bool,
         repIncrement: Int = 0,
         durationIncrementSeconds: Int = 0,
-        setIncrement: Int = 1
+        setIncrement: Int = 1,
+        distanceIncrementMeters: Double = 0,
+        multiMetricMode: MultiMetricProgressionMode = .primary
     ) {
         self.method = method
         self.targetSets = max(1, targetSets)
@@ -490,6 +580,8 @@ struct ExerciseProgressionRule: Codable, Equatable, Hashable {
         self.repIncrement = max(0, repIncrement)
         self.durationIncrementSeconds = max(0, durationIncrementSeconds)
         self.setIncrement = max(1, setIncrement)
+        self.distanceIncrementMeters = max(0, distanceIncrementMeters)
+        self.multiMetricMode = multiMetricMode
     }
 
     init(from decoder: Decoder) throws {
@@ -498,6 +590,8 @@ struct ExerciseProgressionRule: Codable, Equatable, Hashable {
         repIncrement = try container.decodeIfPresent(Int.self, forKey: .repIncrement) ?? 0
         durationIncrementSeconds = try container.decodeIfPresent(Int.self, forKey: .durationIncrementSeconds) ?? 0
         setIncrement = max(1, try container.decodeIfPresent(Int.self, forKey: .setIncrement) ?? 1)
+        distanceIncrementMeters = max(0, try container.decodeIfPresent(Double.self, forKey: .distanceIncrementMeters) ?? 0)
+        multiMetricMode = try container.decodeIfPresent(MultiMetricProgressionMode.self, forKey: .multiMetricMode) ?? .primary
 
         if let steps = try container.decodeIfPresent([Int].self, forKey: .repSteps), !steps.isEmpty {
             repSteps = steps
@@ -547,6 +641,8 @@ struct ExerciseProgressionRule: Codable, Equatable, Hashable {
         try container.encode(repIncrement, forKey: .repIncrement)
         try container.encode(durationIncrementSeconds, forKey: .durationIncrementSeconds)
         try container.encode(setIncrement, forKey: .setIncrement)
+        try container.encode(distanceIncrementMeters, forKey: .distanceIncrementMeters)
+        try container.encode(multiMetricMode, forKey: .multiMetricMode)
     }
 
     private static func mapLegacyMethod(_ raw: String) -> ProgressionMethodChoice {
@@ -559,6 +655,8 @@ struct ExerciseProgressionRule: Codable, Equatable, Hashable {
             return .durationCycle
         case "setsProgression", "increaseSets":
             return .setsProgression
+        case "distanceProgression", "increaseDistance", "addDistance":
+            return .distanceProgression
         case "manual":
             return .manual
         default:
@@ -608,6 +706,8 @@ struct AppliedProgressionUpdate: Equatable {
         case repCycleRestart
         case durationCycleRestart
         case nextSetTarget
+        case nextDistanceTarget
+        case multiMetricAdvance
     }
 
     let kind: Kind
@@ -618,13 +718,45 @@ struct AppliedProgressionUpdate: Equatable {
     let nextWeightKg: Double?
     let nextReps: Int?
     let nextDurationSeconds: Int?
+    let nextDistanceMeters: Double?
     let previousWeightKg: Double?
     let previousReps: Int?
     let previousDurationSeconds: Int?
+    let previousDistanceMeters: Double?
+
+    init(
+        kind: Kind,
+        exerciseId: String,
+        exerciseName: String,
+        targetSets: Int,
+        completedTargetLabel: String,
+        nextWeightKg: Double?,
+        nextReps: Int?,
+        nextDurationSeconds: Int?,
+        nextDistanceMeters: Double? = nil,
+        previousWeightKg: Double?,
+        previousReps: Int?,
+        previousDurationSeconds: Int?,
+        previousDistanceMeters: Double? = nil
+    ) {
+        self.kind = kind
+        self.exerciseId = exerciseId
+        self.exerciseName = exerciseName
+        self.targetSets = targetSets
+        self.completedTargetLabel = completedTargetLabel
+        self.nextWeightKg = nextWeightKg
+        self.nextReps = nextReps
+        self.nextDurationSeconds = nextDurationSeconds
+        self.nextDistanceMeters = nextDistanceMeters
+        self.previousWeightKg = previousWeightKg
+        self.previousReps = previousReps
+        self.previousDurationSeconds = previousDurationSeconds
+        self.previousDistanceMeters = previousDistanceMeters
+    }
 
     var headline: String {
         switch kind {
-        case .nextRepTarget, .nextDurationTarget, .nextSetTarget:
+        case .nextRepTarget, .nextDurationTarget, .nextSetTarget, .nextDistanceTarget, .multiMetricAdvance:
             return "Target complete."
         case .weightIncreaseAndRepReset, .weightIncreaseAndDurationReset:
             return "You've reached your target."
@@ -644,9 +776,33 @@ struct ProgressionSessionResult: Equatable {
     let currentWeightKg: Double
     let currentPlannedReps: Int
     let plannedDurationSeconds: Int
+    let plannedDistanceMeters: Double
     let completedSetReps: [Int]
     let completedSetDurations: [Int]
+    let completedSetDistances: [Double]
     let allPlannedSetsCompleted: Bool
+
+    init(
+        exerciseId: String,
+        currentWeightKg: Double,
+        currentPlannedReps: Int,
+        plannedDurationSeconds: Int,
+        plannedDistanceMeters: Double = 0,
+        completedSetReps: [Int],
+        completedSetDurations: [Int],
+        completedSetDistances: [Double] = [],
+        allPlannedSetsCompleted: Bool
+    ) {
+        self.exerciseId = exerciseId
+        self.currentWeightKg = currentWeightKg
+        self.currentPlannedReps = currentPlannedReps
+        self.plannedDurationSeconds = plannedDurationSeconds
+        self.plannedDistanceMeters = plannedDistanceMeters
+        self.completedSetReps = completedSetReps
+        self.completedSetDurations = completedSetDurations
+        self.completedSetDistances = completedSetDistances
+        self.allPlannedSetsCompleted = allPlannedSetsCompleted
+    }
 
     func met(sets requiredSets: Int, reps requiredReps: Int) -> Bool {
         guard completedSetReps.count >= requiredSets else { return false }
@@ -656,6 +812,11 @@ struct ProgressionSessionResult: Equatable {
     func met(sets requiredSets: Int, durationSeconds requiredDuration: Int) -> Bool {
         guard completedSetDurations.count >= requiredSets, requiredDuration > 0 else { return false }
         return completedSetDurations.prefix(requiredSets).allSatisfy { $0 >= requiredDuration }
+    }
+
+    func met(sets requiredSets: Int, distanceMeters requiredDistance: Double) -> Bool {
+        guard completedSetDistances.count >= requiredSets, requiredDistance > 0 else { return false }
+        return completedSetDistances.prefix(requiredSets).allSatisfy { $0 >= requiredDistance }
     }
 }
 
@@ -684,6 +845,8 @@ enum ProgressionEngine {
             return evaluateDurationCycle(session: session, exercise: exercise, rule: rule, state: &state)
         case .setsProgression:
             return evaluateSetsProgression(session: session, exercise: exercise, rule: rule, state: &state)
+        case .distanceProgression:
+            return evaluateDistanceProgression(session: session, exercise: exercise, rule: rule, state: &state)
         }
     }
 
@@ -797,6 +960,29 @@ enum ProgressionEngine {
             return (.noChange, state)
         }
 
+        // Progress both weight and time on every successful completion.
+        if rule.multiMetricMode == .both,
+           rule.weightIncrementKg > 0,
+           rule.durationIncrementSeconds > 0 {
+            state.consecutiveSuccesses = 0
+            let nextDuration = currentTarget + rule.durationIncrementSeconds
+            let nextWeight = session.currentWeightKg + rule.weightIncrementKg
+            let update = AppliedProgressionUpdate(
+                kind: .multiMetricAdvance,
+                exerciseId: exercise.id,
+                exerciseName: exercise.name,
+                targetSets: rule.targetSets,
+                completedTargetLabel: "\(rule.targetSets) × \(ExerciseTrackingFormatter.formatDuration(seconds: currentTarget))",
+                nextWeightKg: nextWeight,
+                nextReps: nil,
+                nextDurationSeconds: nextDuration,
+                previousWeightKg: session.currentWeightKg,
+                previousReps: nil,
+                previousDurationSeconds: currentTarget
+            )
+            return (.applied(update), state)
+        }
+
         if let next = steps.first(where: { $0 > currentTarget }) {
             state.consecutiveSuccesses = 0
             let update = AppliedProgressionUpdate(
@@ -839,6 +1025,7 @@ enum ProgressionEngine {
 
         if rule.increaseWeightAfterDurationCycle, rule.weightIncrementKg > 0 {
             let newWeight = session.currentWeightKg + rule.weightIncrementKg
+            let keepDuration = rule.multiMetricMode == .secondary
             let update = AppliedProgressionUpdate(
                 kind: .weightIncreaseAndDurationReset,
                 exerciseId: exercise.id,
@@ -847,7 +1034,7 @@ enum ProgressionEngine {
                 completedTargetLabel: "\(rule.targetSets) × \(ExerciseTrackingFormatter.formatDuration(seconds: currentTarget))",
                 nextWeightKg: newWeight,
                 nextReps: nil,
-                nextDurationSeconds: resetDuration,
+                nextDurationSeconds: keepDuration ? currentTarget : resetDuration,
                 previousWeightKg: session.currentWeightKg,
                 previousReps: nil,
                 previousDurationSeconds: currentTarget
@@ -867,6 +1054,53 @@ enum ProgressionEngine {
             previousWeightKg: session.currentWeightKg > 0 ? session.currentWeightKg : nil,
             previousReps: nil,
             previousDurationSeconds: currentTarget
+        )
+        return (.applied(update), state)
+    }
+
+    private static func evaluateDistanceProgression(
+        session: ProgressionSessionResult,
+        exercise: Exercise,
+        rule: ExerciseProgressionRule,
+        state: inout ExerciseProgressionState
+    ) -> (ProgressionOutcome, ExerciseProgressionState) {
+        let currentTarget = max(session.plannedDistanceMeters, 1)
+        let metDistance = session.met(sets: rule.targetSets, distanceMeters: currentTarget)
+            || (session.allPlannedSetsCompleted && session.plannedDistanceMeters > 0)
+
+        guard metDistance || session.allPlannedSetsCompleted else {
+            state.consecutiveSuccesses = 0
+            return (.noChange, state)
+        }
+
+        state.consecutiveSuccesses = 0
+        let increment = max(1, rule.distanceIncrementMeters)
+        var nextDistance = currentTarget + increment
+        var nextWeight: Double? = session.currentWeightKg > 0 ? session.currentWeightKg : nil
+
+        if rule.multiMetricMode == .both, rule.weightIncrementKg > 0 {
+            nextWeight = session.currentWeightKg + rule.weightIncrementKg
+        } else if rule.multiMetricMode == .secondary,
+                  exercise.trackingProfile.secondaryProgressionMetric == .weight,
+                  rule.weightIncrementKg > 0 {
+            nextWeight = session.currentWeightKg + rule.weightIncrementKg
+            nextDistance = currentTarget
+        }
+
+        let update = AppliedProgressionUpdate(
+            kind: rule.multiMetricMode == .both ? .multiMetricAdvance : .nextDistanceTarget,
+            exerciseId: exercise.id,
+            exerciseName: exercise.name,
+            targetSets: rule.targetSets,
+            completedTargetLabel: "\(rule.targetSets) × \(String(format: "%.0f m", currentTarget))",
+            nextWeightKg: nextWeight,
+            nextReps: nil,
+            nextDurationSeconds: nil,
+            nextDistanceMeters: nextDistance,
+            previousWeightKg: session.currentWeightKg > 0 ? session.currentWeightKg : nil,
+            previousReps: nil,
+            previousDurationSeconds: nil,
+            previousDistanceMeters: currentTarget
         )
         return (.applied(update), state)
     }
@@ -948,6 +1182,9 @@ enum ProgressionTargetProgress {
         case .setsProgression:
             let meeting = state.completedSetFlags.filter(\.self).count
             return "Target: \(rule.targetSets) sets — \(meeting) of \(rule.targetSets) completed"
+        case .distanceProgression:
+            let meeting = state.completedSetFlags.filter(\.self).count
+            return "Target: \(rule.targetSets) sets · +\(String(format: "%g", rule.distanceIncrementMeters)) m — \(meeting) of \(rule.targetSets) completed"
         }
     }
 
@@ -960,7 +1197,7 @@ enum ProgressionTargetProgress {
         guard rule.automaticProgression else { return nil }
 
         switch rule.method {
-        case .manual, .setsProgression:
+        case .manual, .setsProgression, .distanceProgression:
             return nil
         case .doubleProgression, .repsOnly:
             if rule.repIncrement > 0 {

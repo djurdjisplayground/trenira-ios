@@ -98,8 +98,6 @@ struct GenerateWorkoutView: View {
                 .font(SheLiftsFont.caption)
                 .foregroundStyle(IronHerTheme.secondaryText)
 
-            GymProfilePickerRow(selection: $request.availableEquipment)
-
             GymEquipmentPicker(selection: Binding(
                 get: { request.availableEquipment },
                 set: {
@@ -237,7 +235,7 @@ struct GenerateWorkoutView: View {
     }
 
     private func saveWorkout(_ workout: Workout) {
-        guard subscriptionStore.canCreateWorkoutPlan(currentCount: workoutStore.workouts.count) else {
+        guard subscriptionStore.canCreateWorkoutPlan(currentCount: workoutStore.savedWorkoutCount) else {
             showPremiumUpgrade = true
             return
         }

@@ -171,19 +171,17 @@ enum GymEquipmentPreset: String, CaseIterable, Identifiable {
     case fullGym
     case dumbbellsOnly
     case machinesOnly
-    case hotelGym
-    case homeGym
+    case bandsAndBodyweight
     case bodyweightOnly
 
     var id: String { rawValue }
 
     var label: String {
         switch self {
-        case .fullGym: return "Full gym"
+        case .fullGym: return "Full equipment"
         case .dumbbellsOnly: return "Dumbbells only"
         case .machinesOnly: return "Machines only"
-        case .hotelGym: return "Hotel gym"
-        case .homeGym: return "Home gym"
+        case .bandsAndBodyweight: return "Bands + bodyweight"
         case .bodyweightOnly: return "Bodyweight only"
         }
     }
@@ -193,22 +191,14 @@ enum GymEquipmentPreset: String, CaseIterable, Identifiable {
         case .fullGym:
             return Set(GymEquipmentKind.allCases)
         case .dumbbellsOnly:
-            return [.dumbbells, .flatBench, .adjustableBench, .bodyweight]
+            return [.dumbbells, .flatBench, .adjustableBench, .pullUpBar, .bodyweight]
         case .machinesOnly:
-            return Set(GymEquipmentCategory.machines.kinds + [.bodyweight, .pullUpBar, .dipStation])
-        case .hotelGym:
-            return [
-                .dumbbells, .adjustableBench, .cableStation, .highPulley, .lowPulley,
-                .latPulldownMachine, .seatedRowMachine, .chestPressMachine, .legPress,
-                .legExtension, .seatedLegCurl, .shoulderPressMachine, .pullUpBar, .bodyweight
-            ]
-        case .homeGym:
-            return [
-                .dumbbells, .kettlebells, .resistanceBands, .adjustableBench,
-                .pullUpBar, .bodyweight, .stabilityBall
-            ]
+            return Set(GymEquipmentKind.allCases.filter { $0.category == .machines })
+                .union([.cableStation, .pullUpBar, .bodyweight])
+        case .bandsAndBodyweight:
+            return [.resistanceBands, .pullUpBar, .flatBench, .bodyweight]
         case .bodyweightOnly:
-            return [.bodyweight, .pullUpBar, .dipStation]
+            return [.bodyweight, .pullUpBar]
         }
     }
 }

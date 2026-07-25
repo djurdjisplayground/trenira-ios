@@ -7,9 +7,10 @@ struct HomeView: View {
     @Environment(WorkoutSessionStore.self) private var sessionStore
     @Environment(LocalizationStore.self) private var l10n
     @Environment(TestingTimeStore.self) private var testingTimeStore
+    @Environment(UserDataCoordinator.self) private var dataCoordinator
 
     private var startableWorkouts: [Workout] {
-        workoutStore.workouts.filter { !$0.exercises.isEmpty }
+        workoutStore.workouts.filter { !$0.isDraft && !$0.exercises.isEmpty }
     }
 
     private var hasWorkouts: Bool {
@@ -138,13 +139,13 @@ struct HomeView: View {
     private var authToolbarButton: some View {
         if authManager.authState.isGuest {
             Button(l10n.t(.sign_in_title)) {
-                authManager.signOut()
+                authManager.signOut(preparing: dataCoordinator)
             }
             .font(SheLiftsFont.subheadline)
             .foregroundStyle(IronHerTheme.secondaryText)
         } else if authManager.authState != .signedOut {
             Button(l10n.t(.sign_out)) {
-                authManager.signOut()
+                authManager.signOut(preparing: dataCoordinator)
             }
             .font(SheLiftsFont.subheadline)
             .foregroundStyle(IronHerTheme.secondaryText)
@@ -161,5 +162,16 @@ struct HomeView: View {
             .environment(WorkoutSessionStore())
             .environment(LocalizationStore())
             .environment(TestingTimeStore())
+            .environment(
+                UserDataCoordinator(
+                    workoutStore: WorkoutStore(),
+                    historyStore: WeightHistoryStore(),
+                    sessionStore: WorkoutSessionStore(),
+                    customExerciseStore: CustomExerciseStore(),
+                    progressionStore: ExerciseProgressionStore(),
+                    globalProgressStore: GlobalExerciseProgressStore(),
+                    settingsStore: UserSettingsStore()
+                )
+            )
     }
 }

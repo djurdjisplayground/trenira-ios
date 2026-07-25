@@ -173,10 +173,23 @@ enum ExerciseDatabase {
     // MARK: - Core
 
     private static let coreExercises: [Exercise] = [
-        ex("plank", "Plank", .core, .bodyweight, .core, .core, measurement: .time, overload: false),
-        ex("side-plank", "Side Plank", .core, .bodyweight, .core, .core, laterality: .unilateral, measurement: .time, overload: false),
+        ex("plank", "Plank", .core, .bodyweight, .core, .core, measurement: .time, overload: false, tracking: .timeSets(seconds: 5)),
+        ex("side-plank", "Side Plank", .core, .bodyweight, .core, .core, laterality: .unilateral, measurement: .time, overload: false, tracking: .timeSets(seconds: 5)),
+        ex(
+            "weighted-plank",
+            "Weighted Plank",
+            .core,
+            .dumbbell,
+            .core,
+            .core,
+            secondary: [],
+            measurement: .weightAndTime,
+            progression: .addDuration,
+            overload: true,
+            tracking: .weightTimeSets(primary: .time, mode: .primary, weightKg: 2.5, seconds: 5)
+        ),
         ex("hollow-hold", "Hollow Hold", .core, .bodyweight, .core, .core, measurement: .time, overload: false),
-        ex("dead-hang", "Dead Hang", .back, .bodyweight, .pull, .verticalPull, measurement: .time, overload: false),
+        ex("dead-hang", "Dead Hang", .back, .bodyweight, .pull, .verticalPull, measurement: .time, overload: false, tracking: .timeSets(seconds: 5)),
         ex("crunch", "Crunch", .core, .bodyweight, .core, .core, measurement: .repsWithOptionalWeight, overload: false),
         ex("bicycle-crunch", "Bicycle Crunch", .core, .bodyweight, .core, .rotation, measurement: .reps, overload: false),
         ex("mountain-climber", "Mountain Climber", .core, .bodyweight, .conditioning, .conditioning, secondary: [.quads], measurement: .reps, overload: false),
@@ -211,15 +224,15 @@ enum ExerciseDatabase {
         ex("clean-and-press", "Clean and Press", .fullBody, .barbell, .olympic, .olympic, secondary: [.shoulders]),
         ex("power-clean", "Power Clean", .fullBody, .barbell, .olympic, .olympic, secondary: [.back, .glutes]),
         ex("thruster", "Thruster", .fullBody, .barbell, .olympic, .olympic, secondary: [.quads, .shoulders]),
-        ex("farmer-carry", "Farmer's Carry", .fullBody, .dumbbell, .carry, .carry, secondary: [.core, .back], measurement: .weightAndTime, progression: .addDuration, overload: false),
-        ex("suitcase-carry", "Suitcase Carry", .fullBody, .dumbbell, .carry, .carry, secondary: [.core], laterality: .unilateral, measurement: .distance, overload: false),
+        ex("farmer-carry", "Farmer's Carry", .fullBody, .dumbbell, .carry, .carry, secondary: [.core, .back], measurement: .weightAndTime, progression: .addDuration, overload: true, tracking: .weightTimeSets(primary: .time, mode: .primary, weightKg: 2.5, seconds: 5)),
+        ex("suitcase-carry", "Suitcase Carry", .fullBody, .dumbbell, .carry, .carry, secondary: [.core], laterality: .unilateral, measurement: .weightAndTime, progression: .addDuration, overload: true, tracking: .weightTimeSets(primary: .time, mode: .primary, weightKg: 2.5, seconds: 5)),
         ex("overhead-carry", "Overhead Carry", .fullBody, .dumbbell, .carry, .carry, secondary: [.shoulders, .core], measurement: .distance, overload: false),
-        ex("sled-push", "Sled Push", .fullBody, .machine, .carry, .carry, secondary: [.quads, .glutes], measurement: .distance, overload: false),
+        ex("sled-push", "Sled Push", .fullBody, .machine, .carry, .carry, secondary: [.quads, .glutes], measurement: .weight, progression: .addDistance, overload: true, tracking: .weightDistanceSets(primary: .distance, meters: 5, weightKg: 5)),
         ex("wall-ball", "Wall Ball", .fullBody, .dumbbell, .conditioning, .conditioning, secondary: [.quads, .shoulders]),
         ex("battle-ropes", "Battle Ropes", .fullBody, .bodyweight, .conditioning, .conditioning, secondary: [.shoulders], measurement: .time, overload: false),
         ex("box-jump", "Box Jump", .fullBody, .bodyweight, .conditioning, .conditioning, secondary: [.quads], measurement: .bodyweight, overload: false),
         ex("burpee", "Burpee", .fullBody, .bodyweight, .conditioning, .conditioning, measurement: .bodyweight, overload: false),
-        ex("rower", "Rowing Machine", .fullBody, .machine, .conditioning, .conditioning, secondary: [.back, .quads], measurement: .time, overload: false),
+        ex("rower", "Rowing Machine", .fullBody, .machine, .conditioning, .conditioning, secondary: [.back, .quads], measurement: .distance, progression: .addDistance, overload: true, tracking: .distanceTimeSets(primary: .distance, meters: 100, seconds: 0)),
     ]
 
     // MARK: - Builder
@@ -236,7 +249,8 @@ enum ExerciseDatabase {
         aliases: [String] = [],
         measurement: MeasurementUnit? = nil,
         progression: ProgressionMethod? = nil,
-        overload: Bool? = nil
+        overload: Bool? = nil,
+        tracking: ExerciseTrackingProfile? = nil
     ) -> Exercise {
         Exercise(
             id: id,
@@ -249,6 +263,7 @@ enum ExerciseDatabase {
             movementPattern: pattern,
             laterality: laterality,
             measurementUnit: measurement,
+            trackingProfile: tracking,
             progressionMethod: progression,
             supportsProgressiveOverload: overload
         )

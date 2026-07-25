@@ -4,6 +4,7 @@ import SwiftUI
 struct ExerciseIncrementPromptSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(UserSettingsStore.self) private var settingsStore
+    @Environment(GlobalExerciseProgressStore.self) private var globalProgressStore
     @Environment(LocalizationStore.self) private var l10n
 
     let exercise: Exercise
@@ -14,7 +15,10 @@ struct ExerciseIncrementPromptSheet: View {
     @State private var useCustom = false
 
     private var unit: WeightUnit {
-        settingsStore.weightUnit
+        globalProgressStore.resolvedWeightUnit(
+            for: exercise.id,
+            defaultUnit: settingsStore.weightUnit
+        )
     }
 
     private var presets: [Double] {

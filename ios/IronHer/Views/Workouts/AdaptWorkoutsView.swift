@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Modify existing workouts for different situations — not creation.
+/// Modify existing workouts — one Adapt entry point (no separate Regenerate).
 struct AdaptWorkoutsView: View {
     @Environment(SubscriptionStore.self) private var subscriptionStore
     @Environment(LocalizationStore.self) private var l10n
@@ -10,20 +10,11 @@ struct AdaptWorkoutsView: View {
             Section {
                 PremiumFeatureLink(
                     feature: .adaptWorkout,
-                    title: l10n.t(.adapt_workout_manual),
+                    title: l10n.t(.adapt_workout),
                     subtitle: l10n.t(.adapt_existing_workout_subtitle),
-                    systemImage: "arrow.triangle.swap"
+                    systemImage: "arrow.triangle.branch"
                 ) {
                     AdaptWorkoutView()
-                }
-
-                PremiumFeatureLink(
-                    feature: .regenerateWorkout,
-                    title: l10n.t(.regenerate_workout),
-                    subtitle: l10n.t(.regenerate_workout_ai_subtitle),
-                    systemImage: "arrow.triangle.2.circlepath"
-                ) {
-                    RegenerateWorkoutView()
                 }
             } footer: {
                 Text(l10n.t(.adapt_tab_footer))
@@ -34,7 +25,6 @@ struct AdaptWorkoutsView: View {
         .background(IronHerTheme.groupedBackground)
         .navigationTitle(l10n.t(.adapt_tab))
         .navigationBarTitleDisplayMode(.inline)
-        .id(subscriptionStore.revision)
     }
 }
 

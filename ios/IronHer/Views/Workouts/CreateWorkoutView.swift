@@ -8,17 +8,22 @@ struct CreateWorkoutView: View {
     @Environment(LocalizationStore.self) private var l10n
     @Environment(\.dismiss) private var dismiss
 
+    /// When resuming, load this draft id. Autosave writes into the same id.
+    var resumingDraftId: UUID? = nil
+
+    @State private var draftId: UUID?
     @State private var workoutName = ""
     @State private var draftExercises: [DraftWorkoutExercise] = []
     @State private var showAddExercise = false
     @State private var editingExercise: DraftWorkoutExercise?
     @State private var showPremiumUpgrade = false
+    @State private var didExplicitlySave = false
     @FocusState private var isNameFocused: Bool
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
-                if !subscriptionStore.isPremium {
+                if !subscriptionStore.hasPremiumAccess {
                     planLimitBanner
                 }
                 nameSection
@@ -30,7 +35,7 @@ struct CreateWorkoutView: View {
             .padding(.vertical, 20)
         }
         .background(IronHerTheme.background)
-        .navigationTitle(l10n.t(.create_workout))
+        .navigationTitle(resumingDraftId == nil ? l10n.t(.create_workout) : "Resume Draft")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showAddExercise) {
             AddExerciseSheet { draft in
@@ -45,6 +50,7 @@ struct CreateWorkoutView: View {
                     distanceMeters: draft.distanceMeters,
                     into: workoutStore
                 )
+                autosaveDraft()
             }
         }
         .sheet(item: $editingExercise) { draft in
@@ -82,11 +88,21 @@ struct CreateWorkoutView: View {
                         draftExercises[draftIndex].durationSeconds = record.targetDurationSeconds
                         draftExercises[draftIndex].distanceMeters = record.targetDistanceMeters
                     }
+                    autosaveDraft()
                 }
             }
         }
         .onAppear {
+            loadResumeDraftIfNeeded()
             isNameFocused = true
+        }
+        .onChange(of: workoutName) { _, _ in
+            autosaveDraft()
+        }
+        .onDisappear {
+            if !didExplicitlySave {
+                autosaveDraft()
+            }
         }
         .sheet(isPresented: $showPremiumUpgrade) {
             NavigationStack {
@@ -94,17 +110,18 @@ struct CreateWorkoutView: View {
                     .environment(subscriptionStore)
             }
         }
-        .id(subscriptionStore.revision)
     }
 
     private var planLimitBanner: some View {
-        let remaining = subscriptionStore.remainingFreeWorkoutPlans(currentCount: workoutStore.workouts.count)
+        let remaining = subscriptionStore.remainingFreeWorkoutPlans(
+            currentCount: workoutStore.savedWorkoutCount
+        )
         return VStack(alignment: .leading, spacing: 6) {
             Text("\(remaining) of \(SubscriptionStore.freeWorkoutPlanLimit) workouts remaining")
                 .font(SheLiftsFont.bodyMedium)
                 .foregroundStyle(IronHerTheme.primaryText)
 
-            Text("Free includes everything you need to track up to 3 workouts. Premium goes beyond tracking with unlimited workouts.")
+            Text("Free includes up to 3 saved workouts. Drafts don't count. Premium unlocks unlimited plans.")
                 .font(SheLiftsFont.caption)
                 .foregroundStyle(IronHerTheme.secondaryText)
         }
@@ -157,6 +174,7 @@ struct CreateWorkoutView: View {
                             onTap: { editingExercise = draft },
                             onDelete: {
                                 draftExercises.removeAll { $0.id == draft.id }
+                                autosaveDraft()
                             }
                         )
                     }
@@ -195,14 +213,42 @@ struct CreateWorkoutView: View {
             && !draftExercises.isEmpty
     }
 
-    private func saveWorkoutPlan() {
-        guard subscriptionStore.canCreateWorkoutPlan(currentCount: workoutStore.workouts.count) else {
-            showPremiumUpgrade = true
-            return
-        }
+    private var hasDraftContent: Bool {
+        !workoutName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !draftExercises.isEmpty
+    }
 
-        let entries = draftExercises.enumerated().map { index, draft in
+    private func loadResumeDraftIfNeeded() {
+        guard let resumingDraftId,
+              let draft = workoutStore.workout(id: resumingDraftId),
+              draft.isDraft else { return }
+        draftId = draft.id
+        workoutName = draft.name == "Untitled draft" ? "" : draft.name
+        draftExercises = draft.exercises.compactMap { entry in
+            guard let exercise = ExerciseCatalog.exercise(id: entry.exerciseId) else { return nil }
+            return DraftWorkoutExercise(
+                entryId: entry.id,
+                exercise: exercise,
+                sets: entry.sets,
+                reps: entry.reps,
+                startingWeight: entry.startingWeight,
+                durationSeconds: entry.durationSeconds,
+                distanceMeters: entry.distanceMeters
+            )
+        }
+    }
+
+    private func autosaveDraft() {
+        guard hasDraftContent, !didExplicitlySave else { return }
+        let entries = makeEntries()
+        let saved = workoutStore.upsertDraft(id: draftId, name: workoutName, exercises: entries)
+        draftId = saved.id
+    }
+
+    private func makeEntries() -> [WorkoutExerciseEntry] {
+        draftExercises.enumerated().map { index, draft in
             WorkoutExerciseEntry(
+                id: draft.id,
                 exerciseId: draft.exercise.id,
                 sets: draft.sets,
                 reps: draft.reps,
@@ -212,8 +258,24 @@ struct CreateWorkoutView: View {
                 order: index
             )
         }
+    }
 
-        workoutStore.createWorkout(named: workoutName, exercises: entries)
+    private func saveWorkoutPlan() {
+        guard subscriptionStore.canCreateWorkoutPlan(currentCount: workoutStore.savedWorkoutCount) else {
+            showPremiumUpgrade = true
+            return
+        }
+
+        let entries = makeEntries()
+        let published: Workout?
+        if let draftId {
+            published = workoutStore.publishDraft(id: draftId, name: workoutName, exercises: entries)
+        } else {
+            published = workoutStore.createWorkout(named: workoutName, exercises: entries)
+        }
+        guard published != nil else { return }
+
+        didExplicitlySave = true
         for entry in entries {
             let measurement = ExerciseCatalog.exercise(id: entry.exerciseId)?.measurementUnit ?? .weight
             globalProgressStore.syncFromTemplateEdit(

@@ -34,7 +34,6 @@ struct CreateWorkoutOptionsView: View {
         .background(IronHerTheme.groupedBackground)
         .navigationTitle(l10n.t(.create_workout))
         .navigationBarTitleDisplayMode(.inline)
-        .id(subscriptionStore.revision)
     }
 
     private func optionRow(

@@ -5,17 +5,29 @@ struct WorkoutWeeklyCompletion: Identifiable, Codable, Hashable {
     let workoutId: UUID
     let workoutName: String
     let completedAt: Date
+    var ownerId: String
 
     init(
         id: UUID = UUID(),
         workoutId: UUID,
         workoutName: String,
-        completedAt: Date = .now
+        completedAt: Date = .now,
+        ownerId: String = ""
     ) {
         self.id = id
         self.workoutId = workoutId
         self.workoutName = workoutName
         self.completedAt = completedAt
+        self.ownerId = ownerId
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        workoutId = try container.decode(UUID.self, forKey: .workoutId)
+        workoutName = try container.decode(String.self, forKey: .workoutName)
+        completedAt = try container.decode(Date.self, forKey: .completedAt)
+        ownerId = try container.decodeIfPresent(String.self, forKey: .ownerId) ?? ""
     }
 }
 
@@ -244,19 +256,32 @@ struct LoggedWorkoutPerformance: Identifiable, Codable, Equatable {
     let workoutName: String
     let completedAt: Date
     let exercises: [LoggedExercisePerformance]
+    var ownerId: String
 
     init(
         id: UUID = UUID(),
         workoutId: UUID,
         workoutName: String,
         completedAt: Date = .now,
-        exercises: [LoggedExercisePerformance]
+        exercises: [LoggedExercisePerformance],
+        ownerId: String = ""
     ) {
         self.id = id
         self.workoutId = workoutId
         self.workoutName = workoutName
         self.completedAt = completedAt
         self.exercises = exercises
+        self.ownerId = ownerId
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        workoutId = try container.decode(UUID.self, forKey: .workoutId)
+        workoutName = try container.decode(String.self, forKey: .workoutName)
+        completedAt = try container.decode(Date.self, forKey: .completedAt)
+        exercises = try container.decode([LoggedExercisePerformance].self, forKey: .exercises)
+        ownerId = try container.decodeIfPresent(String.self, forKey: .ownerId) ?? ""
     }
 }
 

@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 struct SettingsView: View {
@@ -5,36 +6,124 @@ struct SettingsView: View {
     @Environment(SubscriptionStore.self) private var subscriptionStore
     @Environment(CustomExerciseStore.self) private var customExerciseStore
     @Environment(LocalizationStore.self) private var l10n
+    @Environment(AuthenticationManager.self) private var authManager
+    @Environment(UserDataCoordinator.self) private var dataCoordinator
+    @State private var showManageSubscriptions = false
 
     var body: some View {
         @Bindable var settings = settingsStore
 
         Form {
-            Section(l10n.t(.membership)) {
-                HStack {
-                    Text(l10n.t(.current_plan))
-                    Spacer()
-                    Text(subscriptionStore.currentTier.label)
-                        .foregroundStyle(IronHerTheme.secondaryText)
-                }
+            Section("Account & backup") {
+                Text(authManager.authState.displayName)
+                    .foregroundStyle(IronHerTheme.primaryText)
 
-                NavigationLink {
-                    PremiumUpgradeView()
-                } label: {
-                    Text(subscriptionStore.isPremium ? l10n.t(.manage_premium) : l10n.t(.view_premium))
-                }
-
-                if subscriptionStore.isPremium {
-                    Button(l10n.t(.switch_to_free)) {
-                        subscriptionStore.downgradeToFree()
-                    }
+                Text(dataCoordinator.currentOwner.displayLabel)
+                    .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
-                }
 
-                if !subscriptionStore.isPremium {
-                    Text(l10n.t(.free_premium_blurb))
+                Button {
+                    Task { await dataCoordinator.retrySync() }
+                } label: {
+                    HStack {
+                        Text(dataCoordinator.syncStatus.settingsLabel)
+                        Spacer()
+                        if case .backingUp = dataCoordinator.syncStatus {
+                            ProgressView()
+                        }
+                    }
+                }
+                .disabled({
+                    if case .failed = dataCoordinator.syncStatus { return false }
+                    return true
+                }())
+                .foregroundStyle(IronHerTheme.secondaryText)
+
+                if authManager.authState.isGuest {
+                    Text("Sign in to back up your workouts and keep your progress across devices.")
                         .font(SheLiftsFont.caption)
                         .foregroundStyle(IronHerTheme.secondaryText)
+                } else if authManager.authState != .signedOut {
+                    Text(
+                        BetaConfig.hidesMonetization
+                            ? "Your workouts and progress stay with this account."
+                            : "Workouts and Premium are separate. Canceling Premium never deletes your training data."
+                    )
+                        .font(SheLiftsFont.caption)
+                        .foregroundStyle(IronHerTheme.secondaryText)
+                }
+            }
+
+            if BetaConfig.isClosedBeta {
+                Section("Beta Version") {
+                    LabeledContent("Version") {
+                        Text(AppVersion.label)
+                            .foregroundStyle(IronHerTheme.secondaryText)
+                    }
+
+                    Text("Thanks for helping test trenira.")
+                        .font(SheLiftsFont.caption)
+                        .foregroundStyle(IronHerTheme.secondaryText)
+                }
+            }
+
+            Section {
+                Link(destination: BetaConfig.feedbackMailtoURL) {
+                    Label("Send Feedback", systemImage: "envelope")
+                }
+            } footer: {
+                Text("Opens Mail with \(BetaConfig.feedbackEmail). Include what you tried and what went wrong.")
+                    .font(SheLiftsFont.caption)
+            }
+
+            if !BetaConfig.hidesMonetization {
+                Section(l10n.t(.membership)) {
+                    Text(subscriptionStore.isPremium ? "Premium Active" : "Free Plan")
+                        .foregroundStyle(IronHerTheme.primaryText)
+
+                    if subscriptionStore.isPremium {
+                        Button("Manage Subscription") {
+                            showManageSubscriptions = true
+                        }
+                    } else {
+                        NavigationLink {
+                            PremiumUpgradeView()
+                        } label: {
+                            Text("Upgrade to Premium")
+                        }
+
+                        Text(l10n.t(.free_premium_blurb))
+                            .font(SheLiftsFont.caption)
+                            .foregroundStyle(IronHerTheme.secondaryText)
+                    }
+
+                    Button {
+                        Task { await subscriptionStore.restorePurchases() }
+                    } label: {
+                        if subscriptionStore.isRestoring {
+                            HStack {
+                                Text("Restore Purchases")
+                                Spacer()
+                                ProgressView()
+                            }
+                        } else {
+                            Text("Restore Purchases")
+                        }
+                    }
+                    .foregroundStyle(IronHerTheme.secondaryText)
+                    .disabled(subscriptionStore.isProcessingPurchase)
+
+                    if let restoreStatusMessage = subscriptionStore.restoreStatusMessage {
+                        Text(restoreStatusMessage)
+                            .font(SheLiftsFont.caption)
+                            .foregroundStyle(IronHerTheme.secondaryText)
+                    }
+
+                    if let purchaseErrorMessage = subscriptionStore.purchaseErrorMessage {
+                        Text(purchaseErrorMessage)
+                            .font(SheLiftsFont.caption)
+                            .foregroundStyle(.red)
+                    }
                 }
             }
 
@@ -44,7 +133,23 @@ struct SettingsView: View {
                         Text(unit.localizedLabel(l10n)).tag(unit)
                     }
                 }
-                Text("Default for new exercises. Each exercise can override this (kg or lb) based on the equipment you use.")
+                Text("Weight and increments always display in this unit. Values are stored in kilograms and convert automatically when you switch.")
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+            }
+
+            Section("Training") {
+                NavigationLink("Progression Rules") {
+                    MyProgressionView()
+                }
+                Text("Define how weighted, bodyweight, and timed exercises progress.")
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+
+                NavigationLink("Equipment Increments") {
+                    EquipmentIncrementsSettingsView()
+                }
+                Text("Default weight steps by equipment, shown in \(settings.weightUnit.shortLabel).")
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
             }
@@ -88,9 +193,16 @@ struct SettingsView: View {
                 }
             }
         }
-        .id(subscriptionStore.revision)
         .navigationTitle(l10n.t(.settings))
         .navigationBarTitleDisplayMode(.inline)
+        .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
+        .onChange(of: showManageSubscriptions) { wasShowing, isShowing in
+            // After the system manage sheet closes, re-check entitlements
+            // (cancel / expire / plan change in StoreKit Testing).
+            if wasShowing && !isShowing {
+                Task { await subscriptionStore.refreshEntitlements() }
+            }
+        }
     }
 }
 
@@ -105,7 +217,7 @@ struct ExerciseMasterView: View {
                 Section("Your exercises") {
                     ForEach(customExerciseStore.exercises) { exercise in
                         NavigationLink {
-                            ExerciseDetailSettingsView(exercise: exercise)
+                            ExerciseDetailsView(exercise: exercise, showsSettingsLink: true)
                         } label: {
                             exerciseLabel(exercise)
                         }
@@ -122,7 +234,7 @@ struct ExerciseMasterView: View {
             Section("Built-in") {
                 ForEach(ExerciseDatabase.all) { exercise in
                     NavigationLink {
-                        ExerciseDetailSettingsView(exercise: exercise)
+                        ExerciseDetailsView(exercise: exercise, showsSettingsLink: true)
                     } label: {
                         exerciseLabel(exercise)
                     }
@@ -286,6 +398,26 @@ struct DeveloperSettingsView: View {
                     .foregroundStyle(IronHerTheme.secondaryText)
             }
 
+            Section("Data safety") {
+                Button("Export local DB backup") {
+                    #if DEBUG
+                    do {
+                        let url = try LocalPersistenceBackup.exportToDocuments(label: "manual")
+                        settingsStore.noteDeveloperAction("Backup saved: \(url.lastPathComponent)")
+                    } catch {
+                        settingsStore.noteDeveloperAction("Backup failed: \(error.localizedDescription)")
+                    }
+                    #endif
+                }
+
+                Button("Run guest migration self-tests") {
+                    #if DEBUG
+                    let outcome = UserDataMigrationSelfTests.runAll()
+                    settingsStore.noteDeveloperAction(outcome.summary)
+                    #endif
+                }
+            }
+
             Section {
                 if let banner = testingTimeStore.testModeBannerText {
                     Text(banner)
@@ -367,7 +499,7 @@ struct DeveloperSettingsView: View {
                     .foregroundStyle(IronHerTheme.secondaryText)
             }
 
-            Section("Membership") {
+            Section("StoreKit") {
                 HStack {
                     Text("Current plan")
                     Spacer()
@@ -375,16 +507,41 @@ struct DeveloperSettingsView: View {
                         .foregroundStyle(IronHerTheme.secondaryText)
                 }
 
-                Button("Unlock Premium") {
-                    subscriptionStore.unlockPremiumForTesting()
-                    settingsStore.noteDeveloperAction("Premium unlocked.")
+                Button("Reload StoreKit products") {
+                    Task {
+                        await subscriptionStore.loadProducts()
+                        settingsStore.noteDeveloperAction(
+                            "Products: \(subscriptionStore.orderedProducts.map(\.id).joined(separator: ", "))"
+                        )
+                    }
                 }
 
-                Button("Reset to Free") {
-                    subscriptionStore.resetToFreeForTesting()
-                    settingsStore.noteDeveloperAction("Plan reset to Free.")
+                Button("Refresh entitlements") {
+                    Task {
+                        await subscriptionStore.refreshEntitlements()
+                        settingsStore.noteDeveloperAction(
+                            subscriptionStore.isPremium ? "Premium active (StoreKit)." : "Free (no StoreKit entitlement)."
+                        )
+                    }
+                }
+
+                Button("Restore Purchases") {
+                    Task {
+                        await subscriptionStore.restorePurchases()
+                        settingsStore.noteDeveloperAction(
+                            subscriptionStore.isPremium ? "Restore: Premium active." : "Restore: no Premium found."
+                        )
+                    }
                 }
                 .foregroundStyle(IronHerTheme.secondaryText)
+
+                Text(
+                    BetaConfig.unlocksPremium
+                        ? "Closed beta: BetaConfig.unlocksPremium grants full access. StoreKit state above is still real. Set BetaConfig.isClosedBeta = false to restore paywalls."
+                        : "Use the scheme’s StoreKit Configuration (trenira.storekit). Premium unlocks only via verified StoreKit purchases — no debug override."
+                )
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
             }
 
             Section("History & progression") {

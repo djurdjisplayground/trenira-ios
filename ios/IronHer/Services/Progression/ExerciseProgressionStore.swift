@@ -73,11 +73,11 @@ final class ExerciseProgressionStore {
         return categoryDefaults.rule(for: ProgressionTrainingCategory.category(for: exercise))
     }
 
-    func setDimension(_ dimension: ProgressionDimension?, for exercise: Exercise) {
+    func setDimension(_ dimension: ProgressionDimension?, for exercise: Exercise, forceOverride: Bool = false) {
         let category = ProgressionTrainingCategory.category(for: exercise)
         if let dimension, category.allowedDimensions.contains(dimension) {
             let defaultRule = categoryDefaults.rule(for: category)
-            if dimension == defaultRule {
+            if !forceOverride && dimension == defaultRule {
                 exerciseDimensionOverrides.removeValue(forKey: exercise.id)
             } else {
                 exerciseDimensionOverrides[exercise.id] = dimension
@@ -95,6 +95,25 @@ final class ExerciseProgressionStore {
 
     func hasDimensionOverride(for exerciseId: String) -> Bool {
         exerciseDimensionOverrides[exerciseId] != nil
+    }
+
+    /// Keeps the legacy default configuration ladder aligned with category defaults.
+    func syncDefaultConfigurationFromCategoryDefaults() {
+        let d = categoryDefaults.normalized
+        let updated = ProgressionConfiguration(
+            id: defaultConfigurationId,
+            name: defaultConfiguration.name,
+            targetSets: d.strengthTargetSets,
+            startingReps: d.strengthStartingReps,
+            thresholdReps: d.strengthThresholdReps,
+            weightIncrementKg: d.defaultWeightIncrementKg
+        )
+        if let index = configurations.firstIndex(where: { $0.id == defaultConfigurationId }) {
+            configurations[index] = updated.normalized
+        } else {
+            configurations.insert(updated.normalized, at: 0)
+        }
+        saveConfigurations()
     }
 
     // MARK: - Configurations CRUD
@@ -372,5 +391,48 @@ final class ExerciseProgressionStore {
     private func saveDimensionOverrides() {
         guard let data = try? JSONEncoder().encode(exerciseDimensionOverrides) else { return }
         UserDefaults.standard.set(data, forKey: dimensionOverridesKey)
+    }
+
+    // MARK: - Sync blobs
+
+    struct SyncBlob: Codable {
+        var states: [String: ExerciseProgressionState]
+        var rules: [String: ExerciseProgressionRule]
+        var configurations: [ProgressionConfiguration]
+        var defaultConfigurationId: UUID
+        var exerciseAssignments: [String: UUID]
+        var categoryDefaults: ProgressionCategoryDefaults
+        var exerciseDimensionOverrides: [String: ProgressionDimension]
+    }
+
+    func exportSyncBlob() -> Data? {
+        let blob = SyncBlob(
+            states: states,
+            rules: rules,
+            configurations: configurations,
+            defaultConfigurationId: defaultConfigurationId,
+            exerciseAssignments: exerciseAssignments,
+            categoryDefaults: categoryDefaults,
+            exerciseDimensionOverrides: exerciseDimensionOverrides
+        )
+        return try? JSONEncoder().encode(blob)
+    }
+
+    func importSyncBlob(_ data: Data) {
+        guard let blob = try? JSONDecoder().decode(SyncBlob.self, from: data) else { return }
+        states = blob.states
+        rules = blob.rules
+        configurations = blob.configurations
+        defaultConfigurationId = blob.defaultConfigurationId
+        exerciseAssignments = blob.exerciseAssignments
+        categoryDefaults = blob.categoryDefaults
+        exerciseDimensionOverrides = blob.exerciseDimensionOverrides
+        saveStates()
+        saveRules()
+        saveConfigurations()
+        saveDefaultConfigurationId()
+        saveAssignments()
+        saveCategoryDefaults()
+        saveDimensionOverrides()
     }
 }

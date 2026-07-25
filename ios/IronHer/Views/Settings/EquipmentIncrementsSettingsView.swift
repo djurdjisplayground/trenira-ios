@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EquipmentIncrementsSettingsView: View {
     @Environment(UserSettingsStore.self) private var settingsStore
+    @Environment(GlobalExerciseProgressStore.self) private var globalProgressStore
     @Environment(LocalizationStore.self) private var l10n
 
     private var standardEquipment: [EquipmentType] {
@@ -55,7 +56,10 @@ struct EquipmentIncrementsSettingsView: View {
                                 Text(
                                     WeightFormatter.format(
                                         kg: item.kg,
-                                        unit: settingsStore.weightUnit
+                                        unit: globalProgressStore.resolvedWeightUnit(
+                                            for: item.exercise.id,
+                                            defaultUnit: settingsStore.weightUnit
+                                        )
                                     )
                                 )
                                 .font(SheLiftsFont.subheadline)
@@ -78,6 +82,7 @@ struct EquipmentIncrementsSettingsView: View {
 
 private struct ExerciseIncrementEditorView: View {
     @Environment(UserSettingsStore.self) private var settingsStore
+    @Environment(GlobalExerciseProgressStore.self) private var globalProgressStore
     @Environment(LocalizationStore.self) private var l10n
 
     let exercise: Exercise
@@ -85,7 +90,12 @@ private struct ExerciseIncrementEditorView: View {
     @State private var displayValue: Double = 0
     @State private var suppressUpdates = false
 
-    private var unit: WeightUnit { settingsStore.weightUnit }
+    private var unit: WeightUnit {
+        globalProgressStore.resolvedWeightUnit(
+            for: exercise.id,
+            defaultUnit: settingsStore.weightUnit
+        )
+    }
 
     private var presets: [Double] {
         WeightFormatter.contextualIncrements(for: exercise.equipment, unit: unit)
@@ -132,6 +142,7 @@ private struct ExerciseIncrementEditorView: View {
             } header: {
                 Text(l10n.t(.increment))
             }
+            .id("equipment-increment-\(exercise.id)-\(unit.rawValue)")
 
             Section {
                 Button(l10n.t(.reset), role: .destructive) {
@@ -147,6 +158,9 @@ private struct ExerciseIncrementEditorView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { syncFromStore() }
         .onChange(of: settingsStore.weightUnit) { _, _ in syncFromStore() }
+        .onChange(of: globalProgressStore.weightUnitPreference(for: exercise.id)) { _, _ in
+            syncFromStore()
+        }
     }
 
     private func syncFromStore() {

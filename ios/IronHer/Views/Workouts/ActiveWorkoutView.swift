@@ -22,6 +22,7 @@ struct ActiveWorkoutView: View {
     @State private var showWorkoutComplete = false
     @State private var showExerciseNavigation = false
     @State private var showLighterStartSheet = false
+    @State private var showExerciseDetails = false
     @State private var didPresentLighterStart = false
     @State private var encouragementMessage: String?
     @State private var celebrationMessage = WorkoutCompletionCopy.randomMessage()
@@ -56,6 +57,28 @@ struct ActiveWorkoutView: View {
         return rotated.first { entry in
             !(session?.state(for: entry.id)?.isFullyCompleted ?? false)
         }
+    }
+
+    private var currentExerciseIndex: Int? {
+        guard let currentId = session?.activeEntryId else { return nil }
+        return exercises.firstIndex(where: { $0.id == currentId })
+    }
+
+    /// Previous exercise in workout order (not wrap-around).
+    private var previousOrderedEntry: WorkoutExerciseEntry? {
+        guard let index = currentExerciseIndex, index > 0 else { return nil }
+        return exercises[index - 1]
+    }
+
+    /// Next exercise in workout order (not wrap-around).
+    private var nextOrderedEntry: WorkoutExerciseEntry? {
+        guard let index = currentExerciseIndex, index + 1 < exercises.count else { return nil }
+        return exercises[index + 1]
+    }
+
+    private var isLastOrderedExercise: Bool {
+        guard let index = currentExerciseIndex else { return false }
+        return index >= exercises.count - 1
     }
 
     var body: some View {
@@ -105,16 +128,19 @@ struct ActiveWorkoutView: View {
         }
         .sheet(isPresented: $showExerciseNavigation) {
             ExerciseNavigationSheet(
-                hasNextExercise: nextIncompleteEntry != nil,
+                hasNextExercise: nextOrderedEntry != nil,
                 nextProgressionSummary: nextProgressionSummary,
                 onNext: {
                     showExerciseNavigation = false
                     nextProgressionSummary = nil
-                    if let next = nextIncompleteEntry {
+                    if let next = nextOrderedEntry {
                         sessionStore.selectExercise(entryId: next.id)
-                    } else {
-                        sessionStore.clearActiveExercise()
                     }
+                },
+                onFinish: {
+                    showExerciseNavigation = false
+                    nextProgressionSummary = nil
+                    finishWorkout()
                 },
                 onChoose: {
                     showExerciseNavigation = false
@@ -122,6 +148,20 @@ struct ActiveWorkoutView: View {
                     sessionStore.clearActiveExercise()
                 }
             )
+        }
+        .sheet(isPresented: $showExerciseDetails) {
+            if let entry = activeEntry, let exercise = ExerciseCatalog.exercise(id: entry.exerciseId) {
+                NavigationStack {
+                    ExerciseDetailsView(exercise: exercise, showsSettingsLink: false)
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button(l10n.t(.ok)) {
+                                    showExerciseDetails = false
+                                }
+                            }
+                        }
+                }
+            }
         }
         .fullScreenCover(isPresented: $showWorkoutComplete) {
             WorkoutCelebrationView(
@@ -281,22 +321,58 @@ struct ActiveWorkoutView: View {
                         .transition(.opacity.combined(with: .move(edge: .top)))
                 }
 
-                Button {
-                    sessionStore.clearActiveExercise()
-                } label: {
-                    Text("Back to exercises")
-                }
-                .buttonStyle(OutlineButtonStyle())
-
-                Button {
-                    finishWorkout()
-                } label: {
-                    Text("Finish workout")
-                }
-                .buttonStyle(PrimaryButtonStyle())
+                exerciseNavigationControls
             }
             .padding(.horizontal, IronHerTheme.screenPadding)
             .padding(.vertical, 24)
+        }
+    }
+
+    private var exerciseNavigationControls: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Button {
+                    if let previous = previousOrderedEntry {
+                        encouragementMessage = nil
+                        sessionStore.selectExercise(entryId: previous.id)
+                    }
+                } label: {
+                    Text("Previous")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(OutlineButtonStyle())
+                .disabled(previousOrderedEntry == nil)
+                .opacity(previousOrderedEntry == nil ? 0.4 : 1)
+
+                if isLastOrderedExercise {
+                    Button {
+                        finishWorkout()
+                    } label: {
+                        Text("Finish Workout")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(PrimaryButtonStyle())
+                } else {
+                    Button {
+                        if let next = nextOrderedEntry {
+                            encouragementMessage = nil
+                            sessionStore.selectExercise(entryId: next.id)
+                        }
+                    } label: {
+                        Text("Next")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(PrimaryButtonStyle())
+                    .disabled(nextOrderedEntry == nil)
+                }
+            }
+
+            Button {
+                sessionStore.clearActiveExercise()
+            } label: {
+                Text("Exercises")
+            }
+            .buttonStyle(OutlineButtonStyle())
         }
     }
 
@@ -321,10 +397,24 @@ struct ActiveWorkoutView: View {
                 ExerciseThumbnailView(exercise: exercise, size: 72)
             }
 
-            Text(exercise.localizedName(using: l10n))
-                .font(SheLiftsFont.title)
-                .foregroundStyle(IronHerTheme.primaryText)
-                .multilineTextAlignment(.center)
+            HStack(spacing: 8) {
+                Text(exercise.localizedName(using: l10n))
+                    .font(SheLiftsFont.title)
+                    .foregroundStyle(IronHerTheme.primaryText)
+                    .multilineTextAlignment(.center)
+
+                if exercise.hasExerciseDetailsContent {
+                    Button {
+                        showExerciseDetails = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundStyle(IronHerTheme.secondaryText)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(l10n.t(.exercise_info_accessibility))
+                }
+            }
 
             Text(exercise.listSubtitle)
                 .font(SheLiftsFont.subheadline)
@@ -409,10 +499,15 @@ struct ActiveWorkoutView: View {
         let showsWeight = exercise.showsWeightDuringSession
         let showsReps = exercise.showsRepsDuringSession
         let showsDuration = exercise.showsDurationDuringSession
+        let showsDistance = exercise.showsDistanceDuringSession
         let unit = weightUnit(for: exercise.id)
         let plannedDuration = globalProgressStore.resolvedDurationSeconds(
             for: entry.exerciseId,
             entryDurationSeconds: entry.durationSeconds
+        )
+        let plannedDistance = globalProgressStore.resolvedDistanceMeters(
+            for: entry.exerciseId,
+            entryDistanceMeters: entry.distanceMeters
         )
         let incrementDisplay = max(
             WeightFormatter.displayValue(
@@ -427,7 +522,12 @@ struct ActiveWorkoutView: View {
                 .font(SheLiftsFont.section)
                 .foregroundStyle(IronHerTheme.primaryText)
 
-            Text(sessionGuidance(showsWeight: showsWeight, showsReps: showsReps, showsDuration: showsDuration))
+            Text(sessionGuidance(
+                showsWeight: showsWeight,
+                showsReps: showsReps,
+                showsDuration: showsDuration,
+                showsDistance: showsDistance
+            ))
                 .font(SheLiftsFont.caption)
                 .foregroundStyle(IronHerTheme.secondaryText)
 
@@ -466,6 +566,7 @@ struct ActiveWorkoutView: View {
                     showsWeight: showsWeight,
                     showsReps: showsReps,
                     showsDuration: showsDuration,
+                    showsDistance: showsDistance,
                     weightLabel: exercise.weightFieldLabel,
                     weightUnitLabel: unit.shortLabel,
                     weightDisplay: WeightFormatter.displayValue(
@@ -478,6 +579,9 @@ struct ActiveWorkoutView: View {
                     durationSeconds: performance.durationSeconds > 0
                         ? performance.durationSeconds
                         : plannedDuration,
+                    distanceMeters: performance.distanceMeters > 0
+                        ? performance.distanceMeters
+                        : plannedDistance,
                     onToggle: {
                         handleSetToggle(entry: entry, setIndex: index, wasComplete: isComplete)
                     },
@@ -493,6 +597,13 @@ struct ActiveWorkoutView: View {
                             entryId: entry.id,
                             setIndex: index,
                             durationSeconds: seconds
+                        )
+                    },
+                    onDistanceChange: { meters in
+                        sessionStore.updateSetDistance(
+                            entryId: entry.id,
+                            setIndex: index,
+                            distanceMeters: meters
                         )
                     }
                 )
@@ -573,17 +684,31 @@ struct ActiveWorkoutView: View {
         }
     }
 
-    private func sessionGuidance(showsWeight: Bool, showsReps: Bool, showsDuration: Bool) -> String {
-        switch (showsWeight, showsReps, showsDuration) {
-        case (_, false, true):
-            return "Use the timer or adjust duration. Tap the circle when the set is done."
-        case (true, false, true):
-            return "Adjust weight per hand and duration. Tap the circle when the set is done."
-        case (true, true, false):
-            return "Adjust weight and reps freely. Tap the circle when a set is done."
-        default:
-            return "Adjust as needed. Tap the circle when a set is done."
+    private func sessionGuidance(
+        showsWeight: Bool,
+        showsReps: Bool,
+        showsDuration: Bool,
+        showsDistance: Bool
+    ) -> String {
+        if showsWeight && showsDuration {
+            return "Adjust weight and duration. Tap the circle when the set is done."
         }
+        if showsWeight && showsDistance {
+            return "Adjust weight and distance. Tap the circle when the set is done."
+        }
+        if showsDistance && showsDuration {
+            return "Adjust distance and duration. Tap the circle when the set is done."
+        }
+        if showsDuration && !showsReps {
+            return "Use the timer or adjust duration. Tap the circle when the set is done."
+        }
+        if showsDistance {
+            return "Adjust distance as needed. Tap the circle when the set is done."
+        }
+        if showsWeight && showsReps {
+            return "Adjust weight and reps freely. Tap the circle when a set is done."
+        }
+        return "Adjust as needed. Tap the circle when a set is done."
     }
 
     private func progressionProgressLine(
@@ -845,6 +970,10 @@ struct ActiveWorkoutView: View {
             guard state.completedSetFlags[index] else { return nil }
             return state.performance(at: index)?.durationSeconds ?? entry.durationSeconds
         }
+        let completedDistances: [Double] = state.completedSetFlags.indices.compactMap { index in
+            guard state.completedSetFlags[index] else { return nil }
+            return state.performance(at: index)?.distanceMeters ?? entry.distanceMeters
+        }
 
         let actualWeight: Double = {
             let completed = zip(state.completedSetFlags, state.setPerformances)
@@ -852,13 +981,20 @@ struct ActiveWorkoutView: View {
             return completed.last ?? plannedWeight
         }()
 
+        let plannedDistance = globalProgressStore.resolvedDistanceMeters(
+            for: entry.exerciseId,
+            entryDistanceMeters: entry.distanceMeters
+        )
+
         let sessionResult = ProgressionSessionResult(
             exerciseId: entry.exerciseId,
             currentWeightKg: exercise.showsWeightDuringSession ? actualWeight : plannedWeight,
             currentPlannedReps: plannedReps,
             plannedDurationSeconds: plannedDuration,
+            plannedDistanceMeters: plannedDistance,
             completedSetReps: completedReps,
             completedSetDurations: completedDurations,
+            completedSetDistances: completedDistances,
             allPlannedSetsCompleted: state.isFullyCompleted
         )
 
@@ -875,6 +1011,9 @@ struct ActiveWorkoutView: View {
         let duration = update.nextDurationSeconds
             ?? globalProgressStore.progress(for: update.exerciseId)?.targetDurationSeconds
             ?? 0
+        let distance = update.nextDistanceMeters
+            ?? globalProgressStore.progress(for: update.exerciseId)?.targetDistanceMeters
+            ?? 0
         let previousSets = globalProgressStore.targetSets(for: update.exerciseId)
 
         globalProgressStore.sync(
@@ -883,6 +1022,7 @@ struct ActiveWorkoutView: View {
             reps: reps,
             sets: update.targetSets,
             durationSeconds: duration,
+            distanceMeters: distance,
             into: workoutStore
         )
 
@@ -975,6 +1115,7 @@ private struct ActiveSetRow: View {
     let showsWeight: Bool
     let showsReps: Bool
     let showsDuration: Bool
+    let showsDistance: Bool
     let weightLabel: String
     let weightUnitLabel: String
     let weightDisplay: Double
@@ -982,14 +1123,17 @@ private struct ActiveSetRow: View {
     let repsLabel: String
     let reps: Int
     let durationSeconds: Int
+    let distanceMeters: Double
     let onToggle: () -> Void
     let onWeightChange: (Double) -> Void
     let onRepsChange: (Int) -> Void
     let onDurationChange: (Int) -> Void
+    let onDistanceChange: (Double) -> Void
 
     @State private var weightInput: Double = 0
     @State private var repsInput: Int = 0
     @State private var durationInput: Int = 0
+    @State private var distanceInput: Double = 0
     @State private var isTimerRunning = false
     @State private var timerElapsed = 0
     @State private var timerStartedAt: Date?
@@ -1037,12 +1181,26 @@ private struct ActiveSetRow: View {
             if showsDuration {
                 durationControls
             }
+
+            if showsDistance {
+                stepperRow(
+                    label: "distance (m)",
+                    valueText: String(format: "%.0f", distanceInput)
+                ) {
+                    distanceInput = max(0, distanceInput - 5)
+                    onDistanceChange(distanceInput)
+                } increment: {
+                    distanceInput += 5
+                    onDistanceChange(distanceInput)
+                }
+            }
         }
         .padding(.vertical, 4)
         .onAppear {
             weightInput = weightDisplay
             repsInput = reps
             durationInput = max(0, durationSeconds)
+            distanceInput = max(0, distanceMeters)
             timerElapsed = 0
             isTimerRunning = false
             timerStartedAt = nil
@@ -1060,6 +1218,11 @@ private struct ActiveSetRow: View {
         .onChange(of: durationSeconds) { _, newValue in
             if !isTimerRunning, newValue != durationInput {
                 durationInput = newValue
+            }
+        }
+        .onChange(of: distanceMeters) { _, newValue in
+            if abs(newValue - distanceInput) > 0.001 {
+                distanceInput = newValue
             }
         }
         .onDisappear {

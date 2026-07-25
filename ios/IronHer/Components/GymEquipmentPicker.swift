@@ -9,7 +9,7 @@ struct GymEquipmentPicker: View {
         VStack(alignment: .leading, spacing: 16) {
             if showsPresets {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Quick presets")
+                    Text("Quick equipment sets")
                         .font(SheLiftsFont.caption)
                         .foregroundStyle(IronHerTheme.secondaryText)
 

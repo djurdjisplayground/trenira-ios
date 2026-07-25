@@ -111,13 +111,13 @@ final class GymEquipmentProfileStore {
     private func seedDefaults() {
         let home = GymEquipmentProfile(
             name: "Home",
-            availableEquipment: GymEquipmentPreset.homeGym.equipment,
+            availableEquipment: GymEquipmentPreset.bandsAndBodyweight.equipment,
             defaultWeightUnit: .kilograms,
             notes: "Default home setup"
         )
         let hotel = GymEquipmentProfile(
             name: "Hotel Gym",
-            availableEquipment: GymEquipmentPreset.hotelGym.equipment,
+            availableEquipment: GymEquipmentPreset.fullGym.equipment,
             defaultWeightUnit: .kilograms,
             notes: "Typical hotel / travel gym"
         )

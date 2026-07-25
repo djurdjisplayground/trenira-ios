@@ -2,7 +2,6 @@ import SwiftUI
 
 /// Home trains today · My Workouts manages · Progress reviews · Adapt modifies · Settings configures.
 struct MainTabView: View {
-    @Environment(SubscriptionStore.self) private var subscriptionStore
     @Environment(TestingTimeStore.self) private var testingTimeStore
     @Environment(LocalizationStore.self) private var l10n
     @Environment(AppTabRouter.self) private var tabRouter
@@ -57,7 +56,7 @@ struct MainTabView: View {
             .tag(AppTab.settings)
         }
         .tint(IronHerTheme.primaryText)
-        .id("\(subscriptionStore.revision)-\(testingTimeStore.revision)")
+        .id(testingTimeStore.revision)
     }
 }
 

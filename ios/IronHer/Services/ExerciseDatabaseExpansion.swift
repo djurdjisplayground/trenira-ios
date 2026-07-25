@@ -81,7 +81,7 @@ enum ExerciseDatabaseExpansion {
         ex("captains-chair-leg-raise", "Captain's Chair Leg Raise", .core, .machine, .core, .core, family: .core, required: [.assistedPullUpMachine], measurement: .reps),
         ex("ab-machine-crunch", "Ab Crunch Machine", .core, .machine, .core, .core, family: .core, required: [.chestPressMachine], weightInterpretation: .machineSetting),
         ex("pallof-press-band", "Band Pallof Press", .core, .bodyweight, .core, .rotation, family: .core, required: [.resistanceBands], measurement: .reps),
-        ex("farmer-carry-kettlebell", "Kettlebell Farmer's Carry", .fullBody, .kettlebell, .carry, .carry, family: .carry, required: [.kettlebells], secondary: [.core, .core], measurement: .weightAndTime, weightInterpretation: .perHand),
+        ex("farmer-carry-kettlebell", "Kettlebell Farmer's Carry", .fullBody, .kettlebell, .carry, .carry, family: .carry, required: [.kettlebells], secondary: [.core, .core], measurement: .weightAndTime, weightInterpretation: .perHand, tracking: .weightTimeSets(primary: .time, mode: .primary, weightKg: 2.5, seconds: 5)),
         ex("front-rack-carry", "Front-Rack Carry", .fullBody, .barbell, .carry, .carry, family: .carry, required: [.barbell], secondary: [.core, .shoulders], measurement: .distance),
         ex("zercher-squat", "Zercher Squat", .quads, .barbell, .squat, .squat, family: .squat, required: [.barbell, .weightPlates], secondary: [.core, .glutes]),
         ex("safety-bar-squat", "Safety-Bar Squat", .quads, .barbell, .squat, .squat, family: .squat, required: [.barbell, .squatRack], secondary: [.glutes]),
@@ -194,7 +194,8 @@ enum ExerciseDatabaseExpansion {
         progression: ProgressionMethod? = nil,
         overload: Bool? = nil,
         weightInterpretation: WeightInterpretation? = nil,
-        suggestedAlternatives: [String] = []
+        suggestedAlternatives: [String] = [],
+        tracking: ExerciseTrackingProfile? = nil
     ) -> Exercise {
         Exercise(
             id: id,
@@ -207,6 +208,7 @@ enum ExerciseDatabaseExpansion {
             movementPattern: pattern,
             laterality: laterality,
             measurementUnit: measurement,
+            trackingProfile: tracking,
             progressionMethod: progression,
             supportsProgressiveOverload: overload,
             movementFamily: family,

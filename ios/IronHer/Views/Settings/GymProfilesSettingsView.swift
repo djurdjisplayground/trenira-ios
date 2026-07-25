@@ -50,7 +50,7 @@ struct GymProfilesSettingsView: View {
                 Button("Add gym profile") {
                     editingProfile = GymEquipmentProfile(
                         name: "New Gym",
-                        availableEquipment: GymEquipmentPreset.hotelGym.equipment,
+                        availableEquipment: GymEquipmentPreset.fullGym.equipment,
                         defaultWeightUnit: settingsStore.weightUnit
                     )
                     showEditor = true

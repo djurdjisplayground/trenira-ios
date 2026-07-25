@@ -15,6 +15,7 @@ enum WorkoutRoute: Hashable {
     case generate
     case regenerate
     case adapt
+    case recentlyDeleted
     case replaceExercise(workoutId: UUID, entryId: UUID)
     case premium(SubscriptionFeature?)
 }
@@ -51,9 +52,12 @@ struct WorkoutRouteDestination: View {
         case .generate:
             gated(.generateWorkout) { GenerateWorkoutView() }
         case .regenerate:
-            gated(.regenerateWorkout) { RegenerateWorkoutView() }
+            // Regenerate is folded into Adapt — keep route for deep links.
+            gated(.adaptWorkout) { AdaptWorkoutView() }
         case .adapt:
             gated(.adaptWorkout) { AdaptWorkoutView() }
+        case .recentlyDeleted:
+            RecentlyDeletedWorkoutsView()
         case .replaceExercise(let workoutId, let entryId):
             if subscriptionStore.hasAccess(to: .replaceExercise) {
                 ReplaceExerciseView(workoutId: workoutId, entryId: entryId)

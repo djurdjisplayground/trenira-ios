@@ -8,6 +8,9 @@ final class WorkoutSessionStore {
     /// Immutable completed-session records — the source of truth for Progress History timelines.
     private(set) var performanceLogs: [LoggedWorkoutPerformance] = []
 
+    var ownershipProvider: (() -> String)?
+    var onMutation: (() -> Void)?
+
     private let completionsKey = "workoutWeeklyCompletions"
     private let activeSessionKey = "activeWorkoutSession"
     private let performanceLogsKey = "workoutPerformanceLogs"
@@ -35,10 +38,15 @@ final class WorkoutSessionStore {
             $0.workoutId == workoutId && WorkoutWeekCalendar.isInCurrentWeek($0.completedAt)
         }
         weeklyCompletions.insert(
-            WorkoutWeeklyCompletion(workoutId: workoutId, workoutName: workoutName),
+            WorkoutWeeklyCompletion(
+                workoutId: workoutId,
+                workoutName: workoutName,
+                ownerId: ownershipProvider?() ?? ""
+            ),
             at: 0
         )
         saveCompletions()
+        onMutation?()
     }
 
     func clearCompletedThisWeek(workoutId: UUID) {
@@ -46,6 +54,7 @@ final class WorkoutSessionStore {
             $0.workoutId == workoutId && WorkoutWeekCalendar.isInCurrentWeek($0.completedAt)
         }
         saveCompletions()
+        onMutation?()
     }
 
     /// Toggles this-week completion for a workout (persists to the same store as session finish).
@@ -60,6 +69,7 @@ final class WorkoutSessionStore {
     func clearAllWeeklyCompletions() {
         weeklyCompletions = []
         saveCompletions()
+        onMutation?()
     }
 
     /// Development helper: keep the same session and set progress, but allow finish/progression again.
@@ -164,6 +174,12 @@ final class WorkoutSessionStore {
         }
     }
 
+    func updateSetDistance(entryId: UUID, setIndex: Int, distanceMeters: Double) {
+        updateSetPerformance(entryId: entryId, setIndex: setIndex) { performance in
+            performance.distanceMeters = max(0, distanceMeters)
+        }
+    }
+
     private func updateSetPerformance(
         entryId: UUID,
         setIndex: Int,
@@ -245,7 +261,8 @@ final class WorkoutSessionStore {
             LoggedWorkoutPerformance(
                 workoutId: workoutId,
                 workoutName: workoutName,
-                exercises: loggedExercises
+                exercises: loggedExercises,
+                ownerId: ownershipProvider?() ?? ""
             ),
             at: 0
         )
@@ -253,6 +270,7 @@ final class WorkoutSessionStore {
             performanceLogs = Array(performanceLogs.prefix(100))
         }
         savePerformanceLogs(performanceLogs)
+        onMutation?()
     }
 
     /// Chronological actual performances for one exercise across all completed sessions.
@@ -314,6 +332,33 @@ final class WorkoutSessionStore {
     func clearAllPerformanceLogs() {
         performanceLogs = []
         savePerformanceLogs([])
+        onMutation?()
+    }
+
+    func replaceAllForSync(
+        weeklyCompletions: [WorkoutWeeklyCompletion],
+        performanceLogs: [LoggedWorkoutPerformance]
+    ) {
+        self.weeklyCompletions = weeklyCompletions
+        self.performanceLogs = performanceLogs
+        saveCompletions()
+        savePerformanceLogs(performanceLogs)
+    }
+
+    func stampMissingOwnership(_ ownerId: String) {
+        var changed = false
+        for index in weeklyCompletions.indices where weeklyCompletions[index].ownerId.isEmpty {
+            weeklyCompletions[index].ownerId = ownerId
+            changed = true
+        }
+        for index in performanceLogs.indices where performanceLogs[index].ownerId.isEmpty {
+            performanceLogs[index].ownerId = ownerId
+            changed = true
+        }
+        if changed {
+            saveCompletions()
+            savePerformanceLogs(performanceLogs)
+        }
     }
 
     func fullyCompletedEntryIds() -> [UUID] {

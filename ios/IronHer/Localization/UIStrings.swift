@@ -117,6 +117,13 @@ enum L10nKey: String, CaseIterable {
     case regenerate_workout_subtitle = "regenerate_workout_subtitle"
     case adapt_existing_workout = "adapt_existing_workout"
     case adapt_existing_workout_subtitle = "adapt_existing_workout_subtitle"
+    case adapt_intro_title = "adapt_intro_title"
+    case adapt_intro_body = "adapt_intro_body"
+    case adapt_what_title = "adapt_what_title"
+    case adapt_workout_picker_title = "adapt_workout_picker_title"
+    case adapt_equipment_title = "adapt_equipment_title"
+    case adapt_no_alternatives = "adapt_no_alternatives"
+    case adapt_save_action = "adapt_save_action"
     case default_progression_subtitle = "default_progression_subtitle"
     case equipment_increments_subtitle = "equipment_increments_subtitle"
     case deload_behaviour = "deload_behaviour"
@@ -214,6 +221,16 @@ enum L10nKey: String, CaseIterable {
     case progress_reminders_coming_soon = "progress_reminders_coming_soon"
     case exercise_library = "exercise_library"
     case browse_exercises = "browse_exercises"
+    case exercise_details_title = "exercise_details_title"
+    case exercise_details_primary_muscle = "exercise_details_primary_muscle"
+    case exercise_details_secondary_muscles = "exercise_details_secondary_muscles"
+    case exercise_details_equipment = "exercise_details_equipment"
+    case exercise_details_tracking = "exercise_details_tracking"
+    case exercise_details_technique = "exercise_details_technique"
+    case exercise_details_common_mistake = "exercise_details_common_mistake"
+    case exercise_details_progression_link = "exercise_details_progression_link"
+    case exercise_info_accessibility = "exercise_info_accessibility"
+    case how_to_perform = "how_to_perform"
 
     // MARK: - Subscription / Premium
     case premium = "premium"
@@ -267,7 +284,7 @@ enum UIStrings {
             .tagline_line2: "on your own terms.",
 
             // Auth / Welcome
-            .welcome_sign_in_prompt: "Sign in to keep your workouts and progress with you.",
+            .welcome_sign_in_prompt: "Sign in to back up your workouts and keep your progress across devices.",
             .continue_with_apple: "Continue with Apple",
             .continue_with_google: "Continue with Google",
             .continue_with_email: "Continue with Email",
@@ -279,7 +296,7 @@ enum UIStrings {
             .cancel: "Cancel",
             .welcome_back: "Welcome Back",
             .create_your_account: "Create Your Account",
-            .save_workouts_progress: "Keep your workouts and progress with you",
+            .save_workouts_progress: "Sign in to back up your workouts and keep your progress across devices.",
 
             // Home
             .good_morning: "Good morning",
@@ -321,7 +338,14 @@ enum UIStrings {
             .regenerate_workout: "Regenerate Workout",
             .regenerate_workout_subtitle: "Fresh exercises, same training intention",
             .adapt_existing_workout: "Adapt Existing Workout",
-            .adapt_existing_workout_subtitle: "Change exercises when equipment or conditions change",
+            .adapt_existing_workout_subtitle: "I already have a workout — help me adapt it",
+            .adapt_intro_title: "I already have a workout.",
+            .adapt_intro_body: "Tell trenira what changed. Progression stays with each exercise whenever it still fits.",
+            .adapt_what_title: "What would you like to adapt?",
+            .adapt_workout_picker_title: "Workout to adapt",
+            .adapt_equipment_title: "Available equipment",
+            .adapt_no_alternatives: "No suitable alternatives found for this workout with the current choices.",
+            .adapt_save_action: "Save adapted workout",
             .default_progression_subtitle: "How weight, reps, sets, or time move forward",
             .equipment_increments_subtitle: "Plate steps and saved machine increments",
             .deload_behaviour: "Deload behaviour",
@@ -405,6 +429,16 @@ enum UIStrings {
             .progress_reminders_coming_soon: "Coming soon",
             .exercise_library: "Exercise Library",
             .browse_exercises: "Browse Exercises",
+            .exercise_details_title: "Exercise",
+            .exercise_details_primary_muscle: "Primary muscle",
+            .exercise_details_secondary_muscles: "Secondary muscles",
+            .exercise_details_equipment: "Equipment",
+            .exercise_details_tracking: "Tracking",
+            .exercise_details_technique: "Technique",
+            .exercise_details_common_mistake: "Common mistake",
+            .exercise_details_progression_link: "Progression & units",
+            .exercise_info_accessibility: "Exercise details",
+            .how_to_perform: "How to perform",
 
             // Subscription / Premium
             .premium: "Premium",
@@ -432,7 +466,7 @@ enum UIStrings {
             .increment: "Increment",
             .reset: "Reset",
             .adapt_tab: "Adapt",
-            .adapt_tab_footer: "Adjust workouts you already have for different situations.",
+            .adapt_tab_footer: "Adapt a workout you already have — equipment, setting, or fresh variety.",
             .adapt_workout: "Adapt Workout",
             .create_manually: "Create Manually",
             .create_manually_subtitle: "Build your plan exercise by exercise",
@@ -440,7 +474,7 @@ enum UIStrings {
             .create_workout_options_footer: "AI is optional — create manually anytime.",
             .home_create_subtitle: "Build a new plan",
             .results_section: "Results",
-            .progress_progression_footer: "Rules for how exercises progress — not the size of each step.",
+            .progress_progression_footer: "Defaults for how exercises move forward when you train.",
             .progress_results_footer: "Recent improvements and long-term progress.",
             .my_workouts_empty_body: "Create your first workout to build your library.",
             .home_track_week_empty: "Complete workouts to see this week’s improvements here.",
@@ -463,11 +497,11 @@ enum UIStrings {
             .exercise_increment_caption: "Used when this exercise progresses. Each exercise can use a different step.",
             .exercise_no_weight_progression: "This exercise does not use automatic weight increases. Progress through reps, sets, or tempo.",
             .progression_rules: "Progression Rules",
-            .progression_rules_subtitle: "How exercises progress by default",
-            .progression_rules_intro: "Progression defines how an exercise moves forward. Increments define by how much.",
-            .progression_strength_footer: "Weighted strength work — progress by weight, reps, or sets.",
-            .progression_bodyweight_footer: "Bodyweight work — progress by reps or sets.",
-            .progression_timed_footer: "Holds and timed efforts — progress by time.",
+            .progression_rules_subtitle: "How you normally progress",
+            .progression_rules_intro: "Define how you normally progress. trenira will automatically apply these rules when tracking your workouts.",
+            .progression_strength_footer: "Used for every weighted exercise unless you override it.",
+            .progression_bodyweight_footer: "Reps, sets, or hold time for bodyweight work.",
+            .progression_timed_footer: "Timer increases for planks, wall sits, and similar holds.",
             .default_increments: "Default Increments",
             .default_increments_footer: "Used unless an exercise overrides them.",
             .rep_increment_value: "+%d reps",

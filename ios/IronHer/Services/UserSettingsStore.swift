@@ -178,6 +178,25 @@ final class UserSettingsStore {
         UserDefaults.standard.set(data, forKey: storageKey)
     }
 
+    func exportSyncBlob() -> Data? {
+        UserDefaults.standard.data(forKey: storageKey)
+    }
+
+    func importSyncBlob(_ data: Data) {
+        guard let payload = try? JSONDecoder().decode(PersistedSettings.self, from: data) else { return }
+        weightUnit = payload.weightUnit
+        appTheme = payload.appTheme
+        coachingMode = payload.coachingMode ?? .minimal
+        progressNotificationsEnabled = payload.progressNotificationsEnabled
+        personalization = payload.personalization ?? PersonalizationContext()
+        equipmentIncrementOverridesKg = payload.equipmentIncrementOverridesKg ?? [:]
+        exerciseIncrementOverridesKg = payload.exerciseIncrementOverridesKg ?? [:]
+        allowReopenCompletedWorkouts = payload.allowReopenCompletedWorkouts ?? true
+        allowManualWorkoutCompletionTesting = payload.allowManualWorkoutCompletionTesting ?? true
+        enableTestNotifications = payload.enableTestNotifications ?? false
+        save()
+    }
+
     private struct PersistedSettings: Codable {
         let weightUnit: WeightUnit
         let appTheme: AppTheme

@@ -11,9 +11,13 @@ struct StartWorkoutView: View {
     @State private var startFlow: WorkoutStartFlow?
     @State private var completedPrompt: CompletedWorkoutPrompt?
 
+    private var startableWorkouts: [Workout] {
+        workoutStore.workouts.filter { !$0.isDraft }
+    }
+
     var body: some View {
         Group {
-            if workoutStore.workouts.isEmpty {
+            if startableWorkouts.isEmpty {
                 ContentUnavailableView(
                     "No workouts yet",
                     systemImage: "dumbbell",
@@ -30,7 +34,7 @@ struct StartWorkoutView: View {
                     }
 
                     Section {
-                        ForEach(workoutStore.workouts) { workout in
+                        ForEach(startableWorkouts) { workout in
                             if workout.exercises.isEmpty {
                                 Text(workout.name)
                                     .font(SheLiftsFont.bodyMedium)

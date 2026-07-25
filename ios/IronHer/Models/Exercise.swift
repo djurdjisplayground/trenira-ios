@@ -10,7 +10,10 @@ struct Exercise: Identifiable, Codable, Hashable {
     let category: ExerciseCategory
     let movementPattern: MovementPattern
     let laterality: Laterality
+    /// Legacy single-unit field. Prefer `trackingProfile` for new logic.
     let measurementUnit: MeasurementUnit
+    /// What is recorded, what progresses, and default increments.
+    let trackingProfile: ExerciseTrackingProfile
     let progressionMethod: ProgressionMethod
     let supportsProgressiveOverload: Bool
     let isCustom: Bool
@@ -23,6 +26,8 @@ struct Exercise: Identifiable, Codable, Hashable {
     /// Related exercise IDs preferred as substitutions.
     let suggestedAlternatives: [String]
     let weightInterpretation: WeightInterpretation
+    /// `guest:…` / `account:…` for custom exercises. Built-ins leave this empty.
+    var ownerId: String
 
     init(
         id: String,
@@ -35,6 +40,7 @@ struct Exercise: Identifiable, Codable, Hashable {
         movementPattern: MovementPattern,
         laterality: Laterality = .bilateral,
         measurementUnit: MeasurementUnit? = nil,
+        trackingProfile: ExerciseTrackingProfile? = nil,
         progressionMethod: ProgressionMethod? = nil,
         supportsProgressiveOverload: Bool? = nil,
         isCustom: Bool = false,
@@ -43,9 +49,13 @@ struct Exercise: Identifiable, Codable, Hashable {
         movementFamily: MovementFamily = .other,
         requiredEquipment: [GymEquipmentKind] = [],
         suggestedAlternatives: [String] = [],
-        weightInterpretation: WeightInterpretation? = nil
+        weightInterpretation: WeightInterpretation? = nil,
+        ownerId: String = ""
     ) {
-        let resolvedMeasurement = measurementUnit ?? EquipmentDefaults.defaultMeasurementUnit(for: equipment)
+        let resolvedMeasurement = measurementUnit
+            ?? trackingProfile?.legacyMeasurementUnit
+            ?? EquipmentDefaults.defaultMeasurementUnit(for: equipment)
+        let resolvedProfile = trackingProfile ?? ExerciseTrackingProfile.migrated(from: resolvedMeasurement)
         self.id = id
         self.name = name
         self.aliases = aliases
@@ -56,6 +66,7 @@ struct Exercise: Identifiable, Codable, Hashable {
         self.movementPattern = movementPattern
         self.laterality = laterality
         self.measurementUnit = resolvedMeasurement
+        self.trackingProfile = resolvedProfile
         self.progressionMethod = progressionMethod
             ?? EquipmentDefaults.defaultProgressionMethod(for: resolvedMeasurement)
         self.supportsProgressiveOverload = supportsProgressiveOverload
@@ -78,6 +89,7 @@ struct Exercise: Identifiable, Codable, Hashable {
                 measurement: resolvedMeasurement,
                 id: id
             )
+        self.ownerId = ownerId
     }
 
     init(from decoder: Decoder) throws {
@@ -92,6 +104,9 @@ struct Exercise: Identifiable, Codable, Hashable {
         movementPattern = try container.decode(MovementPattern.self, forKey: .movementPattern)
         laterality = try container.decodeIfPresent(Laterality.self, forKey: .laterality) ?? .bilateral
         measurementUnit = try container.decode(MeasurementUnit.self, forKey: .measurementUnit)
+        // Prefer stored multi-metric profile; otherwise migrate from legacy unit without wiping user data.
+        trackingProfile = try container.decodeIfPresent(ExerciseTrackingProfile.self, forKey: .trackingProfile)
+            ?? ExerciseTrackingProfile.migrated(from: measurementUnit)
         progressionMethod = try container.decodeIfPresent(ProgressionMethod.self, forKey: .progressionMethod)
             ?? EquipmentDefaults.defaultProgressionMethod(for: measurementUnit)
         supportsProgressiveOverload = try container.decode(Bool.self, forKey: .supportsProgressiveOverload)
@@ -109,13 +124,14 @@ struct Exercise: Identifiable, Codable, Hashable {
                 measurement: measurementUnit,
                 id: id
             )
+        ownerId = try container.decodeIfPresent(String.self, forKey: .ownerId) ?? ""
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, name, aliases, primaryMuscleGroup, secondaryMuscleGroups, equipment
-        case category, movementPattern, laterality, measurementUnit, progressionMethod
+        case category, movementPattern, laterality, measurementUnit, trackingProfile, progressionMethod
         case supportsProgressiveOverload, isCustom, imageAssetName, animationAssetName
-        case movementFamily, requiredEquipment, suggestedAlternatives, weightInterpretation
+        case movementFamily, requiredEquipment, suggestedAlternatives, weightInterpretation, ownerId
     }
 
     static func defaultWeightInterpretation(
@@ -196,6 +212,7 @@ struct Exercise: Identifiable, Codable, Hashable {
         try container.encode(movementPattern, forKey: .movementPattern)
         try container.encode(laterality, forKey: .laterality)
         try container.encode(measurementUnit, forKey: .measurementUnit)
+        try container.encode(trackingProfile, forKey: .trackingProfile)
         try container.encode(progressionMethod, forKey: .progressionMethod)
         try container.encode(supportsProgressiveOverload, forKey: .supportsProgressiveOverload)
         try container.encode(isCustom, forKey: .isCustom)
@@ -205,15 +222,16 @@ struct Exercise: Identifiable, Codable, Hashable {
         try container.encode(requiredEquipment, forKey: .requiredEquipment)
         try container.encode(suggestedAlternatives, forKey: .suggestedAlternatives)
         try container.encode(weightInterpretation, forKey: .weightInterpretation)
+        try container.encode(ownerId, forKey: .ownerId)
     }
 
     var listSubtitle: String {
-        [primaryMuscleGroup.label, equipment.label, measurementUnit.shortLabel]
+        [primaryMuscleGroup.label, equipment.label, trackingProfile.compactSummary]
             .joined(separator: " · ")
     }
 
     var metadataSummary: String {
-        var parts = [movementPattern.label, laterality.label, measurementUnit.label]
+        var parts = [movementPattern.label, laterality.label, trackingProfile.compactSummary]
         if !secondaryMuscleGroups.isEmpty {
             parts.insert(secondaryMuscleGroups.map(\.label).joined(separator: ", "), at: 1)
         }
@@ -252,11 +270,13 @@ struct Exercise: Identifiable, Codable, Hashable {
     }
 
     var tracksOptionalWeight: Bool {
-        measurementUnit == .repsWithOptionalWeight
+        trackingProfile.supports(.weight)
+            && trackingProfile.supports(.reps)
+            && trackingProfile.primaryProgressionMetric == .reps
     }
 
     var tracksWeightAndDuration: Bool {
-        measurementUnit == .weightAndTime
+        trackingProfile.supports(.weight) && trackingProfile.supports(.time)
     }
 
     /// Weight is logged per dumbbell / per hand (not combined total).
@@ -267,7 +287,7 @@ struct Exercise: Identifiable, Codable, Hashable {
     var weightFieldLabel: String {
         switch weightInterpretation {
         case .perHand:
-            return id == "farmer-carry" ? "Weight per hand" : "Weight (per dumbbell)"
+            return id == "farmer-carry" || id == "suitcase-carry" ? "Weight per hand" : "Weight (per dumbbell)"
         case .perArm:
             return "Weight (per arm)"
         case .machineSetting:
@@ -306,58 +326,45 @@ struct Exercise: Identifiable, Codable, Hashable {
     }
 
     var showsDurationDuringSession: Bool {
-        switch measurementUnit {
-        case .time, .weightAndTime:
-            return true
-        default:
-            return false
-        }
+        trackingProfile.supports(.time)
+    }
+
+    var showsDistanceDuringSession: Bool {
+        trackingProfile.supports(.distance)
+    }
+
+    var showsSetsDuringSession: Bool {
+        trackingProfile.supports(.sets)
     }
 
     /// Bodyweight-style +2 rep progression when no external load is used.
     func usesRepProgression(currentWeightKg: Double) -> Bool {
         guard supportsProgressiveOverload else { return false }
-        switch measurementUnit {
-        case .repsWithOptionalWeight:
+        if tracksOptionalWeight {
             return currentWeightKg <= 0
-        case .bodyweight, .reps:
-            return true
-        default:
-            return false
         }
+        return trackingProfile.supports(.reps)
+            && !trackingProfile.supports(.weight)
+            && trackingProfile.primaryProgressionMetric == .reps
     }
 
     /// Whether the active workout UI should show a weight field for this exercise.
     var showsWeightDuringSession: Bool {
-        switch measurementUnit {
-        case .weight, .weightAndTime, .repsWithOptionalWeight:
-            return true
-        default:
-            return false
-        }
+        trackingProfile.supports(.weight)
     }
 
     /// Whether the active workout UI should show a reps field for this exercise.
     var showsRepsDuringSession: Bool {
-        switch measurementUnit {
-        case .weight, .bodyweight, .reps, .repsWithOptionalWeight:
-            return true
-        default:
-            return false
-        }
+        trackingProfile.supports(.reps)
     }
 
     /// Weight ladder progression for loaded lifts (including optional-weight with a load entered).
     func usesWeightProgression(currentWeightKg: Double) -> Bool {
         guard supportsProgressiveOverload else { return false }
-        switch measurementUnit {
-        case .weight:
-            return true
-        case .repsWithOptionalWeight:
+        if tracksOptionalWeight {
             return currentWeightKg > 0
-        default:
-            return false
         }
+        return trackingProfile.activeProgressionMetrics.contains(.weight)
     }
 }
 

@@ -25,17 +25,36 @@ struct AddExerciseSheet: View {
     @State private var filterMuscle: MuscleGroup?
     @State private var pendingIncrementExercise: Exercise?
     @State private var pendingDraft: DraftWorkoutExercise?
+    @State private var showHowToPerform = false
 
     private var searchFilters: ExerciseSearchFilters {
         ExerciseSearchFilters(muscleGroup: filterMuscle, equipment: filterEquipment)
     }
 
     private var filteredExercises: [Exercise] {
-        ExerciseCatalog.search(searchText, filters: searchFilters)
+        let results = ExerciseCatalog.search(searchText, filters: searchFilters)
+        // Empty query previously dumped the entire catalog (~300+) into a List with
+        // thumbnail resolution — that froze and crashed Add Exercise. Require a search
+        // (or filter) before listing, and cap unfiltered filter-only results.
+        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty && searchFilters.isEmpty {
+            return []
+        }
+        if trimmed.isEmpty {
+            return Array(results.prefix(80))
+        }
+        return Array(results.prefix(120))
     }
 
     private var showEmptyState: Bool {
-        !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && filteredExercises.isEmpty
+        let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmed.isEmpty && filteredExercises.isEmpty
+    }
+
+    private var showSearchPrompt: Bool {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && searchFilters.isEmpty
+            && selectedExercise == nil
     }
 
     var body: some View {
@@ -59,6 +78,16 @@ struct AddExerciseSheet: View {
                         }
                     }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    if let selectedExercise, selectedExercise.hasExerciseDetailsContent {
+                        Button {
+                            showHowToPerform = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                        }
+                        .accessibilityLabel(l10n.t(.how_to_perform))
+                    }
+                }
             }
             .onChange(of: speechService.transcript) { _, transcript in
                 guard !transcript.isEmpty else { return }
@@ -67,12 +96,23 @@ struct AddExerciseSheet: View {
             .onDisappear {
                 speechService.stopListening()
             }
-            .task {
-                await speechService.requestAuthorization()
-            }
             .sheet(isPresented: $showCreateCustom) {
                 CreateCustomExerciseSheet(initialName: searchText) { exercise in
                     selectExercise(exercise)
+                }
+            }
+            .sheet(isPresented: $showHowToPerform) {
+                if let selectedExercise {
+                    NavigationStack {
+                        ExerciseDetailsView(exercise: selectedExercise, showsSettingsLink: false)
+                            .toolbar {
+                                ToolbarItem(placement: .topBarTrailing) {
+                                    Button(l10n.t(.ok)) {
+                                        showHowToPerform = false
+                                    }
+                                }
+                            }
+                    }
                 }
             }
             .sheet(item: $pendingIncrementExercise, onDismiss: {
@@ -140,7 +180,9 @@ struct AddExerciseSheet: View {
                 .padding(.bottom, 4)
             }
 
-            if showEmptyState {
+            if showSearchPrompt {
+                searchPromptState
+            } else if showEmptyState {
                 emptySearchState
             } else {
                 List(filteredExercises) { exercise in
@@ -157,6 +199,33 @@ struct AddExerciseSheet: View {
             isSearchFocused = true
             ExerciseCatalog.syncCustomExercises(customExerciseStore.exercises)
         }
+    }
+
+    private var searchPromptState: some View {
+        VStack(spacing: 16) {
+            Spacer()
+            Text("Search for an exercise")
+                .font(SheLiftsFont.section)
+                .foregroundStyle(IronHerTheme.primaryText)
+            Text("Try “RDL”, “row”, or “curl” — or filter by equipment / muscle.")
+                .font(SheLiftsFont.caption)
+                .foregroundStyle(IronHerTheme.secondaryText)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+            Button {
+                showCreateCustom = true
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
+                    Text("Create Custom Exercise")
+                }
+                .font(SheLiftsFont.bodyMedium)
+                .foregroundStyle(IronHerTheme.primaryText)
+            }
+            .buttonStyle(SheLiftsPressStyle())
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private var emptySearchState: some View {
@@ -329,8 +398,8 @@ struct AddExerciseSheet: View {
         selectedExercise = exercise
         let philosophy = progressionStore.configuration(for: exercise.id)
         sets = philosophy.targetSets
-        durationSeconds = ExerciseTrackingFormatter.defaultDurationSeconds(for: exercise.measurementUnit)
-        distanceMeters = ExerciseTrackingFormatter.defaultDistanceMeters(for: exercise.measurementUnit)
+        durationSeconds = ExerciseTrackingFormatter.defaultDurationSeconds(for: exercise)
+        distanceMeters = ExerciseTrackingFormatter.defaultDistanceMeters(for: exercise)
 
         if let savedSets = globalProgressStore.targetSets(for: exercise.id) {
             sets = savedSets
@@ -342,10 +411,7 @@ struct AddExerciseSheet: View {
             reps = philosophy.startingReps
         }
 
-        switch exercise.measurementUnit {
-        case .reps, .bodyweight:
-            startingWeightInput = 0
-        default:
+        if exercise.showsWeightDuringSession {
             if let saved = globalProgressStore.workingWeightKg(for: exercise.id) ?? workoutStore.knownStartingWeight(for: exercise.id) {
                 let unit = globalProgressStore.resolvedWeightUnit(
                     for: exercise.id,
@@ -355,6 +421,8 @@ struct AddExerciseSheet: View {
             } else {
                 startingWeightInput = 0
             }
+        } else {
+            startingWeightInput = 0
         }
 
         if let progress = globalProgressStore.progress(for: exercise.id) {
@@ -389,7 +457,16 @@ struct AddExerciseSheet: View {
     private func toggleVoiceSearch() {
         if speechService.isListening {
             speechService.stopListening()
-        } else {
+            return
+        }
+        Task {
+            if speechService.authorizationStatus == .notDetermined {
+                await speechService.requestAuthorization()
+            }
+            guard speechService.authorizationStatus == .authorized else {
+                speechService.setErrorMessage("Microphone access is needed for voice search.")
+                return
+            }
             speechService.startListening()
         }
     }

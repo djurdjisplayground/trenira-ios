@@ -170,21 +170,39 @@ struct ExerciseProgressionSettingsView: View {
             }
 
             Section("How do you want to progress?") {
-                ForEach(availableMethods) { method in
-                    Button {
-                        rule.method = method
-                        save()
-                    } label: {
-                        HStack(alignment: .top, spacing: 12) {
-                            Image(systemName: rule.method == method ? "largecircle.fill.circle" : "circle")
-                                .foregroundStyle(IronHerTheme.primaryText)
-                            Text(method.label)
-                                .font(SheLiftsFont.body)
-                                .foregroundStyle(IronHerTheme.primaryText)
-                            Spacer(minLength: 0)
+                if supportsWeightAndTimeProgress {
+                    ForEach(WeightTimeProgressChoice.allCases) { choice in
+                        Button {
+                            applyWeightTimeChoice(choice)
+                        } label: {
+                            HStack(alignment: .top, spacing: 12) {
+                                Image(systemName: weightTimeChoice == choice ? "largecircle.fill.circle" : "circle")
+                                    .foregroundStyle(IronHerTheme.primaryText)
+                                Text(choice.label)
+                                    .font(SheLiftsFont.body)
+                                    .foregroundStyle(IronHerTheme.primaryText)
+                                Spacer(minLength: 0)
+                            }
                         }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
+                } else {
+                    ForEach(availableMethods) { method in
+                        Button {
+                            rule.method = method
+                            save()
+                        } label: {
+                            HStack(alignment: .top, spacing: 12) {
+                                Image(systemName: rule.method == method ? "largecircle.fill.circle" : "circle")
+                                    .foregroundStyle(IronHerTheme.primaryText)
+                                Text(method.label)
+                                    .font(SheLiftsFont.body)
+                                    .foregroundStyle(IronHerTheme.primaryText)
+                                Spacer(minLength: 0)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
 
@@ -240,7 +258,7 @@ struct ExerciseProgressionSettingsView: View {
                 }
 
                 if showsWeightIncrement {
-                    Section("When you reach your highest target") {
+                    Section("Weight Increment") {
                         ForEach(WeightFormatter.commonIncrements(for: resolvedUnit), id: \.self) { increment in
                             Button {
                                 weightIncrementDisplay = increment
@@ -274,9 +292,33 @@ struct ExerciseProgressionSettingsView: View {
                                 .font(SheLiftsFont.caption)
                                 .foregroundStyle(IronHerTheme.secondaryText)
                         }
+                    }
+                    .id("weight-increment-\(exercise.id)-\(resolvedUnit.rawValue)")
+                }
 
-                        if rule.method == .durationCycle {
-                            Toggle("Also increase weight after duration cycle", isOn: $rule.increaseWeightAfterDurationCycle)
+                if showsTimeIncrement {
+                    Section("Time Increment") {
+                        Stepper(
+                            "+\(rule.durationIncrementSeconds) sec",
+                            value: $rule.durationIncrementSeconds,
+                            in: 1...60,
+                            step: 1
+                        )
+                    }
+                }
+
+                if showsDistanceIncrement {
+                    Section("Distance Increment") {
+                        HStack {
+                            Text("+\(String(format: "%g", rule.distanceIncrementMeters)) m")
+                            Spacer()
+                            Stepper(
+                                "",
+                                value: $rule.distanceIncrementMeters,
+                                in: 1...500,
+                                step: 5
+                            )
+                            .labelsHidden()
                         }
                     }
                 }
@@ -312,6 +354,13 @@ struct ExerciseProgressionSettingsView: View {
         .onAppear(perform: load)
         .onChange(of: rule.targetSets) { _, _ in save() }
         .onChange(of: rule.increaseWeightAfterDurationCycle) { _, _ in save() }
+        .onChange(of: rule.multiMetricMode) { _, _ in save() }
+        .onChange(of: rule.durationIncrementSeconds) { _, _ in save() }
+        .onChange(of: rule.distanceIncrementMeters) { _, _ in save() }
+        .onChange(of: settingsStore.weightUnit) { _, _ in refreshIncrementDisplay() }
+        .onChange(of: globalProgressStore.weightUnitPreference(for: exercise.id)) { _, _ in
+            refreshIncrementDisplay()
+        }
         .onChange(of: weightIncrementDisplay) { _, newValue in
             rule.weightIncrementKg = WeightFormatter.kilograms(from: newValue, unit: resolvedUnit)
             save()
@@ -332,31 +381,96 @@ struct ExerciseProgressionSettingsView: View {
     }
 
     private var availableMethods: [ProgressionMethodChoice] {
-        switch exercise.measurementUnit {
-        case .weight, .repsWithOptionalWeight:
-            return [.doubleProgression, .repsOnly, .setsProgression, .manual]
-        case .reps, .bodyweight:
-            return [.repsOnly, .setsProgression, .manual]
-        case .time:
-            return [.durationCycle, .setsProgression, .manual]
-        case .weightAndTime:
-            return [.durationCycle, .setsProgression, .manual]
-        case .distance:
-            return [.setsProgression, .manual]
+        var methods: [ProgressionMethodChoice] = [.manual]
+        let profile = exercise.trackingProfile
+        if profile.supports(.weight), profile.supports(.reps) {
+            methods.insert(.doubleProgression, at: 0)
         }
+        if profile.supports(.reps) {
+            methods.insert(.repsOnly, at: methods.count - 1)
+        }
+        if profile.supports(.time) {
+            methods.insert(.durationCycle, at: methods.count - 1)
+        }
+        if profile.supports(.sets) {
+            methods.insert(.setsProgression, at: methods.count - 1)
+        }
+        if profile.supports(.distance) {
+            methods.insert(.distanceProgression, at: methods.count - 1)
+        }
+        // Preserve order uniqueness
+        var seen = Set<ProgressionMethodChoice>()
+        return methods.filter { seen.insert($0).inserted }
     }
 
     private var showsRepLadder: Bool {
-        rule.method == .doubleProgression || rule.method == .repsOnly
+        !supportsWeightAndTimeProgress
+            && (rule.method == .doubleProgression || rule.method == .repsOnly)
     }
 
     private var showsDurationLadder: Bool {
-        rule.method == .durationCycle
+        // Weight/time carries use simple time increments, not duration ladders.
+        !supportsWeightAndTimeProgress && rule.method == .durationCycle
+    }
+
+    private var supportsWeightAndTimeProgress: Bool {
+        exercise.trackingProfile.supports(.weight) && exercise.trackingProfile.supports(.time)
+    }
+
+    private var weightTimeChoice: WeightTimeProgressChoice {
+        WeightTimeProgressChoice(from: rule)
     }
 
     private var showsWeightIncrement: Bool {
-        rule.method == .doubleProgression
-            || (rule.method == .durationCycle && exercise.measurementUnit == .weightAndTime)
+        if supportsWeightAndTimeProgress {
+            return weightTimeChoice == .weight || weightTimeChoice == .both
+        }
+        return rule.activeProgressionIncludesWeight(for: exercise)
+    }
+
+    private var showsDistanceIncrement: Bool {
+        rule.method == .distanceProgression
+            || (rule.multiMetricMode == .both && exercise.trackingProfile.supports(.distance))
+    }
+
+    private var showsTimeIncrement: Bool {
+        if supportsWeightAndTimeProgress {
+            return weightTimeChoice == .time || weightTimeChoice == .both
+        }
+        return rule.method == .durationCycle
+    }
+
+    private func applyWeightTimeChoice(_ choice: WeightTimeProgressChoice) {
+        let weightKg = max(
+            0.25,
+            rule.weightIncrementKg > 0
+                ? rule.weightIncrementKg
+                : settingsStore.incrementKg(for: exercise)
+        )
+        let seconds = max(
+            1,
+            rule.durationIncrementSeconds > 0
+                ? rule.durationIncrementSeconds
+                : (exercise.trackingProfile.defaultDurationIncrementSeconds ?? 5)
+        )
+        rule.method = .durationCycle
+        rule.weightIncrementKg = weightKg
+        switch choice {
+        case .time:
+            rule.multiMetricMode = .primary
+            rule.increaseWeightAfterDurationCycle = false
+            rule.durationIncrementSeconds = seconds
+        case .weight:
+            rule.multiMetricMode = .secondary
+            rule.increaseWeightAfterDurationCycle = true
+            rule.durationIncrementSeconds = 0
+        case .both:
+            rule.multiMetricMode = .both
+            rule.increaseWeightAfterDurationCycle = false
+            rule.durationIncrementSeconds = seconds
+        }
+        weightIncrementDisplay = WeightFormatter.displayValue(kg: weightKg, unit: resolvedUnit)
+        save()
     }
 
     private func load() {
@@ -410,6 +524,13 @@ struct ExerciseProgressionSettingsView: View {
             rule.durationSteps = values
             save()
         }
+    }
+
+    private func refreshIncrementDisplay() {
+        weightIncrementDisplay = WeightFormatter.displayValue(
+            kg: rule.weightIncrementKg,
+            unit: resolvedUnit
+        )
     }
 
     private func save() {

@@ -55,10 +55,10 @@ enum SubscriptionFeature: CaseIterable, Hashable {
         case .smartProgressHistory: return "Advanced progress insights"
         case .progressTrends: return "Progress trends"
         case .smarterProgressionAnalysis: return "Smarter progression analysis"
-        case .adaptWorkout: return "Equipment-aware adaptations"
+        case .adaptWorkout: return "Adapt workouts"
         case .replaceExercise: return "Exercise substitutions"
         case .generateWorkout: return "AI workout generation"
-        case .regenerateWorkout: return "Workout regeneration"
+        case .regenerateWorkout: return "Adapt workouts"
         }
     }
 
@@ -85,13 +85,13 @@ enum SubscriptionFeature: CaseIterable, Hashable {
         case .smarterProgressionAnalysis:
             return "Understand what’s working — without noise or clutter."
         case .adaptWorkout:
-            return "Adjust when equipment changes, without starting over."
+            return "Adapt a workout you already have — equipment, setting, or fresh variety."
         case .replaceExercise:
             return "Swap a movement when needed — progression stays with you."
         case .generateWorkout:
             return "Describe your goal and get a structured plan you can still edit."
         case .regenerateWorkout:
-            return "Refresh a plan while keeping your intention and progression context."
+            return "Adapt a workout you already have — equipment, setting, or fresh variety."
         case .unlimitedWorkoutPlans:
             return "Build as many routines as your training needs."
         case .workoutPlans:
@@ -144,7 +144,7 @@ enum SubscriptionFeature: CaseIterable, Hashable {
         case .smartProgressHistory, .progressTrends, .smarterProgressionAnalysis: return "chart.xyaxis.line"
         case .generateWorkout: return "sparkles"
         case .regenerateWorkout: return "arrow.triangle.2.circlepath"
-        case .adaptWorkout: return "building.2"
+        case .adaptWorkout: return "arrow.triangle.branch"
         case .replaceExercise: return "arrow.left.arrow.right"
         case .unlimitedWorkoutPlans: return "infinity"
         case .basicHistory: return "clock"
@@ -165,14 +165,11 @@ enum SubscriptionFeature: CaseIterable, Hashable {
         .appearanceModes,
     ]
 
-    /// Marketing list for the Premium plan card.
+    /// Marketing list for the Premium plan card / paywall benefits.
     static let premiumFeatures: [SubscriptionFeature] = [
         .unlimitedWorkoutPlans,
-        .smartProgressHistory,
-        .progressTrends,
         .generateWorkout,
         .regenerateWorkout,
         .adaptWorkout,
-        .smarterProgressionAnalysis,
     ]
 }

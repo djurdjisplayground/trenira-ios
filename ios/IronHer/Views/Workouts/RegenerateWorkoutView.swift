@@ -3,7 +3,6 @@ import SwiftUI
 struct RegenerateWorkoutView: View {
     @Environment(WorkoutStore.self) private var workoutStore
     @Environment(SubscriptionStore.self) private var subscriptionStore
-    @Environment(GymEquipmentProfileStore.self) private var gymProfiles
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedWorkoutId: UUID?
@@ -14,7 +13,7 @@ struct RegenerateWorkoutView: View {
     @State private var showPremiumUpgrade = false
 
     private var eligibleWorkouts: [Workout] {
-        workoutStore.workouts.filter { !$0.exercises.isEmpty }
+        workoutStore.workouts.filter { !$0.isDraft && !$0.exercises.isEmpty }
     }
 
     var body: some View {
@@ -42,13 +41,13 @@ struct RegenerateWorkoutView: View {
         }
         .onAppear {
             if selectedKinds.isEmpty {
-                selectedKinds = gymProfiles.currentEquipment(fallback: GymEquipmentPreset.fullGym.equipment)
+                selectedKinds = GymEquipmentPreset.fullGym.equipment
             }
         }
     }
 
     private var introSection: some View {
-        Text("Refresh exercises while keeping your focus, intention, and progression where it still fits.")
+        Text("Refresh exercises while keeping your focus and progression where it still fits.")
             .font(SheLiftsFont.body)
             .foregroundStyle(IronHerTheme.secondaryText)
     }
@@ -76,7 +75,6 @@ struct RegenerateWorkoutView: View {
                 .font(SheLiftsFont.body)
 
             if !useSameEquipment {
-                GymProfilePickerRow(selection: $selectedKinds)
                 GymEquipmentPicker(selection: $selectedKinds)
             }
         }
@@ -124,7 +122,7 @@ struct RegenerateWorkoutView: View {
         guard let workoutId = selectedWorkoutId,
               let workout = workoutStore.workout(id: workoutId) else { return }
 
-        guard subscriptionStore.canCreateWorkoutPlan(currentCount: workoutStore.workouts.count) else {
+        guard subscriptionStore.canCreateWorkoutPlan(currentCount: workoutStore.savedWorkoutCount) else {
             showPremiumUpgrade = true
             return
         }
@@ -147,6 +145,5 @@ struct RegenerateWorkoutView: View {
         RegenerateWorkoutView()
             .environment(WorkoutStore())
             .environment(SubscriptionStore())
-            .environment(GymEquipmentProfileStore())
     }
 }

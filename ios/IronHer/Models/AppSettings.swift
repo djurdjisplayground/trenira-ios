@@ -194,3 +194,42 @@ enum DevelopmentConfig {
         #endif
     }
 }
+
+/// Closed TestFlight / beta switches.
+/// Premium architecture stays in the codebase — flip `isClosedBeta` to `false`
+/// before public App Store launch to restore monetization.
+enum BetaConfig {
+    /// When `true`: unlock all Premium features, hide paywalls and purchase UI.
+    static let isClosedBeta = true
+
+    static var unlocksPremium: Bool { isClosedBeta }
+    static var hidesMonetization: Bool { isClosedBeta }
+
+    static let feedbackEmail = "durdijatunguz@gmail.com"
+
+    static var feedbackMailtoURL: URL {
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = feedbackEmail
+        components.queryItems = [
+            URLQueryItem(
+                name: "subject",
+                value: "trenira beta feedback — \(AppVersion.label)"
+            ),
+        ]
+        return components.url ?? URL(string: "mailto:\(feedbackEmail)")!
+    }
+}
+
+enum AppVersion {
+    static var marketing: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+    }
+
+    static var build: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
+    }
+
+    /// e.g. "1.0 (1)"
+    static var label: String { "\(marketing) (\(build))" }
+}

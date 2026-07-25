@@ -38,6 +38,9 @@ struct EditWorkoutDetailView: View {
         .alert("Delete Workout?", isPresented: $showDeleteConfirm) {
             Button("Cancel", role: .cancel) {}
             Button("Delete Workout", role: .destructive) {
+                #if DEBUG
+                print("[WorkoutDelete] editor confirm delete id=\(workoutId)")
+                #endif
                 sessionStore.clearCompletedThisWeek(workoutId: workoutId)
                 if sessionStore.activeSession?.workoutId == workoutId {
                     sessionStore.endSession(markWeeklyCompletion: false)
@@ -46,7 +49,7 @@ struct EditWorkoutDetailView: View {
                 dismiss()
             }
         } message: {
-            Text("This removes the workout plan. Your exercise progression and history stay intact.")
+            Text("This moves the workout to Recently Deleted for 30 days. Your exercise progression and history stay intact.")
         }
         .onAppear(perform: loadWorkout)
         .sheet(isPresented: $showAddExercise) {
@@ -170,12 +173,15 @@ struct EditWorkoutDetailView: View {
             showDeleteConfirm = true
         } label: {
             Text("Delete Workout")
+                .font(SheLiftsFont.bodyMedium)
+                .foregroundStyle(.red)
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
         }
-        .font(SheLiftsFont.bodyMedium)
-        .foregroundStyle(.red)
+        .buttonStyle(.plain)
         .padding(.top, 16)
         .padding(.bottom, 8)
+        .accessibilityIdentifier("delete-workout-button")
     }
 
     private var canSave: Bool {

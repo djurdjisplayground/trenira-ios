@@ -18,6 +18,7 @@ struct WeightHistoryEntry: Identifiable, Codable, Hashable {
     let previousSets: Int?
     let date: Date
     let event: WeightHistoryEvent
+    var ownerId: String
 
     init(
         id: UUID = UUID(),
@@ -29,7 +30,8 @@ struct WeightHistoryEntry: Identifiable, Codable, Hashable {
         sets: Int? = nil,
         previousSets: Int? = nil,
         date: Date = .now,
-        event: WeightHistoryEvent
+        event: WeightHistoryEvent,
+        ownerId: String = ""
     ) {
         self.id = id
         self.exerciseId = exerciseId
@@ -41,10 +43,11 @@ struct WeightHistoryEntry: Identifiable, Codable, Hashable {
         self.previousSets = previousSets
         self.date = date
         self.event = event
+        self.ownerId = ownerId
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, exerciseId, weightKg, previousWeightKg, reps, previousReps, sets, previousSets, date, event
+        case id, exerciseId, weightKg, previousWeightKg, reps, previousReps, sets, previousSets, date, event, ownerId
     }
 
     init(from decoder: Decoder) throws {
@@ -59,6 +62,7 @@ struct WeightHistoryEntry: Identifiable, Codable, Hashable {
         previousSets = try container.decodeIfPresent(Int.self, forKey: .previousSets)
         date = try container.decodeIfPresent(Date.self, forKey: .date) ?? .now
         event = try container.decode(WeightHistoryEvent.self, forKey: .event)
+        ownerId = try container.decodeIfPresent(String.self, forKey: .ownerId) ?? ""
     }
 }
 

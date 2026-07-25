@@ -18,6 +18,9 @@ final class AuthenticationManager: NSObject {
     private let emailAddressDefaultsKey = "emailAddress"
     private var authTimeoutTask: Task<Void, Never>?
 
+    /// Fired after auth settles (guest continue, provider sign-in, sign-out). Used for data migration.
+    var onAuthStateSettled: ((AuthState) -> Void)?
+
     /// Must be retained until Apple calls the delegate methods.
     private var appleAuthorizationController: ASAuthorizationController?
 
@@ -90,6 +93,7 @@ final class AuthenticationManager: NSObject {
             authState = .email(userId: account.userId, email: account.email)
             statusMessage = "Signed in with Email"
             persistState()
+            onAuthStateSettled?(.email(userId: account.userId, email: account.email))
         } catch {
             errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             statusMessage = "Sign in failed"
@@ -110,6 +114,7 @@ final class AuthenticationManager: NSObject {
             authState = .email(userId: account.userId, email: account.email)
             statusMessage = "Account created"
             persistState()
+            onAuthStateSettled?(.email(userId: account.userId, email: account.email))
         } catch {
             errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             statusMessage = "Sign up failed"
@@ -124,6 +129,7 @@ final class AuthenticationManager: NSObject {
         authState = .guest
         statusMessage = "Continuing without an account"
         persistState()
+        onAuthStateSettled?(.guest)
     }
 
     func restoreSessionIfNeeded() async {
@@ -139,7 +145,19 @@ final class AuthenticationManager: NSObject {
         }
     }
 
+    /// Prefer calling through UserDataCoordinator so workouts are never wiped.
+    func signOut(preparing dataCoordinator: UserDataCoordinator? = nil) {
+        Task { @MainActor in
+            await dataCoordinator?.prepareForSignOut()
+            performSignOut()
+        }
+    }
+
     func signOut() {
+        signOut(preparing: nil)
+    }
+
+    private func performSignOut() {
         authTimeoutTask?.cancel()
         appleAuthorizationController = nil
         authState = .signedOut
@@ -147,6 +165,7 @@ final class AuthenticationManager: NSObject {
         errorMessage = nil
         statusMessage = "Choose how you'd like to continue"
         clearPersistedState()
+        onAuthStateSettled?(.signedOut)
     }
 
     private func restoreSavedState() {
@@ -160,18 +179,24 @@ final class AuthenticationManager: NSObject {
             authState = .guest
             statusMessage = "Continuing without an account"
         case "apple":
-            if let userId = UserDefaults.standard.string(forKey: accountUserDefaultsKey) {
+            let userId = SecureAccountIdentityStore.load(provider: "apple")
+                ?? UserDefaults.standard.string(forKey: accountUserDefaultsKey)
+            if let userId {
                 authState = .apple(userId: userId)
                 statusMessage = "Welcome back"
             }
         case "google":
-            if let userId = UserDefaults.standard.string(forKey: accountUserDefaultsKey) {
+            let userId = SecureAccountIdentityStore.load(provider: "google")
+                ?? UserDefaults.standard.string(forKey: accountUserDefaultsKey)
+            if let userId {
                 let email = UserDefaults.standard.string(forKey: googleEmailDefaultsKey)
                 authState = .google(userId: userId, email: email)
                 statusMessage = "Welcome back"
             }
         case "email":
-            if let userId = UserDefaults.standard.string(forKey: accountUserDefaultsKey),
+            let userId = SecureAccountIdentityStore.load(provider: "email")
+                ?? UserDefaults.standard.string(forKey: accountUserDefaultsKey)
+            if let userId,
                let email = UserDefaults.standard.string(forKey: emailAddressDefaultsKey) {
                 authState = .email(userId: userId, email: email)
                 statusMessage = "Welcome back"
@@ -227,6 +252,7 @@ final class AuthenticationManager: NSObject {
             errorMessage = nil
             statusMessage = "Signed in with Apple"
             persistState()
+            onAuthStateSettled?(.apple(userId: credential.user))
 
         case .failure(let error):
             logger.error("Apple sign-in failed: \(error.localizedDescription, privacy: .public)")
@@ -245,6 +271,7 @@ final class AuthenticationManager: NSObject {
         errorMessage = nil
         statusMessage = "Signed in with Google"
         persistState()
+        onAuthStateSettled?(.google(userId: userId, email: email))
     }
 
     private func completeGoogleSignInFailure(_ error: Error) {
@@ -300,14 +327,18 @@ final class AuthenticationManager: NSObject {
             UserDefaults.standard.removeObject(forKey: accountUserDefaultsKey)
             UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
             UserDefaults.standard.removeObject(forKey: emailAddressDefaultsKey)
+            SecureAccountIdentityStore.clearAllKnownProviders()
         case .apple(let userId):
             UserDefaults.standard.set("apple", forKey: authModeDefaultsKey)
+            // Legacy key kept for migration; primary identity lives in Keychain.
             UserDefaults.standard.set(userId, forKey: accountUserDefaultsKey)
+            SecureAccountIdentityStore.save(provider: "apple", userID: userId)
             UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
             UserDefaults.standard.removeObject(forKey: emailAddressDefaultsKey)
         case .google(let userId, let email):
             UserDefaults.standard.set("google", forKey: authModeDefaultsKey)
             UserDefaults.standard.set(userId, forKey: accountUserDefaultsKey)
+            SecureAccountIdentityStore.save(provider: "google", userID: userId)
             UserDefaults.standard.removeObject(forKey: emailAddressDefaultsKey)
             if let email {
                 UserDefaults.standard.set(email, forKey: googleEmailDefaultsKey)
@@ -317,6 +348,7 @@ final class AuthenticationManager: NSObject {
         case .email(let userId, let email):
             UserDefaults.standard.set("email", forKey: authModeDefaultsKey)
             UserDefaults.standard.set(userId, forKey: accountUserDefaultsKey)
+            SecureAccountIdentityStore.save(provider: "email", userID: userId)
             UserDefaults.standard.set(email, forKey: emailAddressDefaultsKey)
             UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
         }
@@ -327,6 +359,7 @@ final class AuthenticationManager: NSObject {
         UserDefaults.standard.removeObject(forKey: accountUserDefaultsKey)
         UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
         UserDefaults.standard.removeObject(forKey: emailAddressDefaultsKey)
+        SecureAccountIdentityStore.clearAllKnownProviders()
     }
 
     private func startAuthTimeout() {
@@ -365,23 +398,23 @@ extension AuthenticationManager: ASAuthorizationControllerDelegate {
 
 extension AuthenticationManager: ASAuthorizationControllerPresentationContextProviding {
     nonisolated func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        MainActor.assumeIsolated {
-            guard let window = UIApplication.shared.activeKeyWindow else {
-                logger.error("No key window available for Sign in with Apple presentation")
-                return ASPresentationAnchor()
-            }
-            return window
+        // Apple may invoke this off the main thread. `MainActor.assumeIsolated` aborts when that happens.
+        if Thread.isMainThread {
+            return Self.resolvePresentationAnchor()
+        }
+        return DispatchQueue.main.sync {
+            Self.resolvePresentationAnchor()
         }
     }
-}
 
-private extension UIApplication {
-    var activeKeyWindow: UIWindow? {
-        let scenes = connectedScenes
+    nonisolated private static func resolvePresentationAnchor() -> ASPresentationAnchor {
+        let scenes = UIApplication.shared.connectedScenes
         let windowScene = scenes.first { $0.activationState == .foregroundActive } as? UIWindowScene
             ?? scenes.compactMap { $0 as? UIWindowScene }.first
-
-        return windowScene?.windows.first(where: \.isKeyWindow)
-            ?? windowScene?.windows.first
+        if let window = windowScene?.windows.first(where: \.isKeyWindow)
+            ?? windowScene?.windows.first {
+            return window
+        }
+        return ASPresentationAnchor()
     }
 }

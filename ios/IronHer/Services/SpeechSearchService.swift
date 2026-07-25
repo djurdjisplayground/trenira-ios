@@ -15,12 +15,17 @@ final class SpeechSearchService {
     private var recognitionTask: SFSpeechRecognitionTask?
     private let audioEngine = AVAudioEngine()
 
+    func setErrorMessage(_ message: String?) {
+        errorMessage = message
+    }
+
     func requestAuthorization() async {
-        authorizationStatus = await withCheckedContinuation { continuation in
+        let status = await withCheckedContinuation { (continuation: CheckedContinuation<SFSpeechRecognizerAuthorizationStatus, Never>) in
             SFSpeechRecognizer.requestAuthorization { status in
                 continuation.resume(returning: status)
             }
         }
+        authorizationStatus = status
     }
 
     func startListening() {
@@ -43,14 +48,15 @@ final class SpeechSearchService {
 
             let inputNode = audioEngine.inputNode
             recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest) { [weak self] result, error in
-                guard let self else { return }
-
-                if let result {
-                    transcript = result.bestTranscription.formattedString
-                }
-
-                if error != nil || result?.isFinal == true {
-                    stopListening()
+                // Speech callbacks arrive off the main actor — hop before touching @Observable state.
+                Task { @MainActor in
+                    guard let self else { return }
+                    if let result {
+                        self.transcript = result.bestTranscription.formattedString
+                    }
+                    if error != nil || result?.isFinal == true {
+                        self.stopListening()
+                    }
                 }
             }
 

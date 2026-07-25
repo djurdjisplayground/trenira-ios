@@ -18,8 +18,16 @@ enum ExerciseTrackingFormatter {
         }
     }
 
+    static func defaultDurationSeconds(for exercise: Exercise) -> Int {
+        exercise.trackingProfile.supports(.time) ? 60 : 0
+    }
+
     static func defaultDistanceMeters(for measurement: MeasurementUnit) -> Double {
         measurement == .distance ? 40 : 0
+    }
+
+    static func defaultDistanceMeters(for exercise: Exercise) -> Double {
+        exercise.trackingProfile.supports(.distance) ? 40 : 0
     }
 
     static func formatDuration(seconds: Int) -> String {
@@ -71,36 +79,41 @@ enum ExerciseTrackingFormatter {
         default: perHand = ""
         }
 
-        switch exercise.measurementUnit {
-        case .weight:
-            return "\(sets) sets · \(reps) reps · \(weightText)\(perHand)"
-        case .bodyweight:
-            return "\(sets) sets · \(reps) reps · Bodyweight"
-        case .time:
-            return "\(sets) sets · \(formatDuration(seconds: durationSeconds))"
-        case .distance:
-            return "\(sets) sets · \(formatDistance(meters: distanceMeters, unit: weightUnit))"
-        case .reps:
-            return "\(sets) sets · \(reps) reps"
-        case .weightAndTime:
-            return "\(sets) sets · \(weightText)\(perHand) · \(formatDuration(seconds: durationSeconds))"
-        case .repsWithOptionalWeight:
-            if weightKg > 0 {
-                return "\(sets) sets · \(reps) reps · \(weightText)\(perHand)"
-            }
-            return "\(sets) sets · \(reps) reps · Bodyweight"
+        var parts: [String] = []
+        let profile = exercise.trackingProfile
+        if profile.supports(.sets) {
+            parts.append("\(sets) sets")
         }
+        if profile.supports(.reps) {
+            parts.append("\(reps) reps")
+        }
+        if profile.supports(.weight) {
+            if exercise.tracksOptionalWeight, weightKg <= 0 {
+                parts.append("Bodyweight")
+            } else {
+                parts.append("\(weightText)\(perHand)")
+            }
+        }
+        if profile.supports(.time) {
+            parts.append(formatDuration(seconds: durationSeconds))
+        }
+        if profile.supports(.distance) {
+            parts.append(formatDistance(meters: distanceMeters, unit: weightUnit))
+        }
+        return parts.isEmpty ? "\(sets) sets" : parts.joined(separator: " · ")
     }
 
     static func trackingLabel(for exercise: Exercise) -> String {
-        switch exercise.measurementUnit {
-        case .weight: return "Sets × Reps × Weight"
-        case .bodyweight: return "Sets × Reps"
-        case .time: return "Sets × Duration"
-        case .distance: return "Sets × Distance"
-        case .reps: return "Sets × Reps"
-        case .weightAndTime: return "Sets × Weight × Duration"
-        case .repsWithOptionalWeight: return "Sets × Reps · Optional Weight"
+        let labels: [(MeasurementMetric, String)] = [
+            (.sets, "Sets"),
+            (.reps, "Reps"),
+            (.weight, "Weight"),
+            (.time, "Duration"),
+            (.distance, "Distance"),
+        ]
+        let parts = labels.compactMap { metric, label in
+            exercise.trackingProfile.supports(metric) ? label : nil
         }
+        return parts.isEmpty ? "Sets" : parts.joined(separator: " × ")
     }
 }

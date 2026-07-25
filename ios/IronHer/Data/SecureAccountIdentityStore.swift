@@ -1,0 +1,56 @@
+import Foundation
+import Security
+
+/// Stores the authenticated provider user ID in Keychain (not an OAuth token — those stay with Apple/Google SDKs).
+enum SecureAccountIdentityStore {
+    private static let service = "com.trenira.app.account-identity"
+
+    static func save(provider: String, userID: String) {
+        let account = "\(provider).userID"
+        let data = Data(userID.utf8)
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+        SecItemDelete(query as CFDictionary)
+        var add = query
+        add[kSecValueData as String] = data
+        add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        SecItemAdd(add as CFDictionary, nil)
+    }
+
+    static func load(provider: String) -> String? {
+        let account = "\(provider).userID"
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        guard status == errSecSuccess,
+              let data = item as? Data,
+              let string = String(data: data, encoding: .utf8),
+              !string.isEmpty else {
+            return nil
+        }
+        return string
+    }
+
+    static func clear(provider: String) {
+        let account = "\(provider).userID"
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+        SecItemDelete(query as CFDictionary)
+    }
+
+    static func clearAllKnownProviders() {
+        ["apple", "google", "email"].forEach(clear)
+    }
+}

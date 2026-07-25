@@ -94,7 +94,6 @@ struct PremiumFeatureLink<Destination: View>: View {
                 }
             }
         }
-        .id(subscriptionStore.revision)
     }
 
     private var linkLabel: some View {

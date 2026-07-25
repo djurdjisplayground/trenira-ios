@@ -304,23 +304,22 @@ extension AuthenticationManager: ASAuthorizationControllerDelegate {
 
 extension AuthenticationManager: ASAuthorizationControllerPresentationContextProviding {
     nonisolated func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        MainActor.assumeIsolated {
-            guard let window = UIApplication.shared.activeKeyWindow else {
-                logger.error("No key window available for Sign in with Apple presentation")
-                return ASPresentationAnchor()
-            }
-            return window
+        if Thread.isMainThread {
+            return Self.resolvePresentationAnchor()
+        }
+        return DispatchQueue.main.sync {
+            Self.resolvePresentationAnchor()
         }
     }
-}
 
-private extension UIApplication {
-    var activeKeyWindow: UIWindow? {
-        let scenes = connectedScenes
+    nonisolated private static func resolvePresentationAnchor() -> ASPresentationAnchor {
+        let scenes = UIApplication.shared.connectedScenes
         let windowScene = scenes.first { $0.activationState == .foregroundActive } as? UIWindowScene
             ?? scenes.compactMap { $0 as? UIWindowScene }.first
-
-        return windowScene?.windows.first(where: \.isKeyWindow)
-            ?? windowScene?.windows.first
+        if let window = windowScene?.windows.first(where: \.isKeyWindow)
+            ?? windowScene?.windows.first {
+            return window
+        }
+        return ASPresentationAnchor()
     }
 }

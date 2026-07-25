@@ -10,8 +10,11 @@ struct CreateCustomExerciseSheet: View {
     @State private var name: String
     @State private var primaryMuscle: MuscleGroup = .chest
     @State private var equipment: EquipmentType = .dumbbell
-    @State private var measurement: MeasurementUnit = .weight
-    @State private var progression: ProgressionMethod = .addWeight
+    @State private var selectedMetrics: Set<MeasurementMetric> = [.weight, .reps, .sets]
+    @State private var primaryMetric: MeasurementMetric = .weight
+    @State private var secondaryMetric: MeasurementMetric? = nil
+    @State private var progressionMode: MultiMetricProgressionMode = .primary
+    @State private var showAdvancedProgression = false
 
     init(initialName: String = "", onCreated: @escaping (Exercise) -> Void) {
         self.initialName = initialName
@@ -41,20 +44,52 @@ struct CreateCustomExerciseSheet: View {
                     }
                 }
 
-                Section("Tracking") {
-                    Picker("Measurement", selection: $measurement) {
-                        ForEach(MeasurementUnit.allCases, id: \.self) { unit in
-                            Text(unit.label).tag(unit)
-                        }
+                Section {
+                    ForEach(MeasurementMetric.allCases) { metric in
+                        Toggle(metric.label, isOn: metricBinding(metric))
                     }
-                    .onChange(of: measurement) { _, newValue in
-                        progression = EquipmentDefaults.defaultProgressionMethod(for: newValue)
-                    }
+                } header: {
+                    Text("Measurement Types")
+                } footer: {
+                    Text("Choose what you record each set. Sensible defaults are already selected for most lifts.")
+                        .font(SheLiftsFont.caption)
+                }
 
-                    Picker("Default progression", selection: $progression) {
-                        ForEach(progressionOptions, id: \.self) { method in
-                            Text(method.label).tag(method)
+                if selectableProgressionMetrics.count > 1 {
+                    Section("Primary Progression Metric") {
+                        Picker("Progress by", selection: $primaryMetric) {
+                            ForEach(selectableProgressionMetrics, id: \.self) { metric in
+                                Text(metric.progressionChoiceLabel).tag(metric)
+                            }
                         }
+                        .pickerStyle(.inline)
+                    }
+                }
+
+                if selectableProgressionMetrics.count > 1 {
+                    Section {
+                        Toggle("Advanced progression", isOn: $showAdvancedProgression)
+                        if showAdvancedProgression {
+                            Picker("Also progress", selection: secondaryBinding) {
+                                Text("None").tag(Optional<MeasurementMetric>.none)
+                                ForEach(secondaryOptions, id: \.self) { metric in
+                                    Text(metric.label).tag(Optional(metric))
+                                }
+                            }
+
+                            if secondaryMetric != nil {
+                                Picker("Mode", selection: $progressionMode) {
+                                    Text(MultiMetricProgressionMode.primary.label).tag(MultiMetricProgressionMode.primary)
+                                    Text(MultiMetricProgressionMode.secondary.label).tag(MultiMetricProgressionMode.secondary)
+                                    Text(MultiMetricProgressionMode.both.label).tag(MultiMetricProgressionMode.both)
+                                }
+                            }
+                        }
+                    } header: {
+                        Text("Progression")
+                    } footer: {
+                        Text("Leave advanced off to progress only the primary metric.")
+                            .font(SheLiftsFont.caption)
                     }
                 }
 
@@ -64,7 +99,7 @@ struct CreateCustomExerciseSheet: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
                     .foregroundStyle(IronHerTheme.accent)
-                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || selectedMetrics.isEmpty)
                 }
             }
             .navigationTitle("Custom Exercise")
@@ -74,27 +109,73 @@ struct CreateCustomExerciseSheet: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+            .onChange(of: selectedMetrics) { _, _ in
+                reconcileProgressionSelection()
+            }
         }
     }
 
-    private var progressionOptions: [ProgressionMethod] {
-        switch measurement {
-        case .weight: return [.addWeight, .addReps, .addSets]
-        case .bodyweight: return [.addReps, .addSets, .addExternalWeight]
-        case .time: return [.addDuration, .addSets]
-        case .distance: return [.addDistance, .addSets]
-        case .reps, .repsWithOptionalWeight: return [.addReps, .addSets, .addExternalWeight]
-        case .weightAndTime: return [.addDuration, .addSets, .addWeight]
+    private var selectableProgressionMetrics: [MeasurementMetric] {
+        MeasurementMetric.allCases.filter { selectedMetrics.contains($0) }
+    }
+
+    private var secondaryOptions: [MeasurementMetric] {
+        selectableProgressionMetrics.filter { $0 != primaryMetric }
+    }
+
+    private var secondaryBinding: Binding<MeasurementMetric?> {
+        Binding(
+            get: { secondaryMetric },
+            set: { newValue in
+                secondaryMetric = newValue
+                if newValue == nil {
+                    progressionMode = .primary
+                }
+            }
+        )
+    }
+
+    private func metricBinding(_ metric: MeasurementMetric) -> Binding<Bool> {
+        Binding(
+            get: { selectedMetrics.contains(metric) },
+            set: { isOn in
+                if isOn {
+                    selectedMetrics.insert(metric)
+                } else if selectedMetrics.count > 1 {
+                    selectedMetrics.remove(metric)
+                }
+            }
+        )
+    }
+
+    private func reconcileProgressionSelection() {
+        if !selectedMetrics.contains(primaryMetric) {
+            primaryMetric = selectableProgressionMetrics.first(where: { $0 != .sets })
+                ?? selectableProgressionMetrics.first
+                ?? .reps
+        }
+        if let secondary = secondaryMetric, !selectedMetrics.contains(secondary) || secondary == primaryMetric {
+            secondaryMetric = nil
+            progressionMode = .primary
         }
     }
 
     private func saveExercise() {
+        var metrics = MeasurementMetric.allCases.filter { selectedMetrics.contains($0) }
+        if !metrics.contains(.sets) {
+            metrics.append(.sets)
+        }
+        let profile = ExerciseTrackingProfile(
+            metrics: metrics,
+            primaryProgressionMetric: primaryMetric,
+            secondaryProgressionMetric: showAdvancedProgression ? secondaryMetric : nil,
+            progressionMode: showAdvancedProgression ? progressionMode : .primary
+        )
         let exercise = customExerciseStore.add(
             name: name,
             primaryMuscleGroup: primaryMuscle,
             equipment: equipment,
-            measurementUnit: measurement,
-            progressionMethod: progression
+            trackingProfile: profile
         )
         ExerciseCatalog.syncCustomExercises(customExerciseStore.exercises)
         onCreated(exercise)

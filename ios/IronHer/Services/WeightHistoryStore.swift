@@ -5,6 +5,9 @@ import Foundation
 final class WeightHistoryStore {
     private(set) var entries: [WeightHistoryEntry] = []
 
+    var ownershipProvider: (() -> String)?
+    var onMutation: (() -> Void)?
+
     private let storageKey = "weightHistory"
 
     init() {
@@ -19,10 +22,12 @@ final class WeightHistoryStore {
             WeightHistoryEntry(
                 exerciseId: exerciseId,
                 weightKg: weightKg,
-                event: .initial
+                event: .initial,
+                ownerId: ownershipProvider?() ?? ""
             )
         )
         save()
+        onMutation?()
     }
 
     func recordProgression(exerciseId: String, from previousKg: Double, to newKg: Double) {
@@ -33,10 +38,12 @@ final class WeightHistoryStore {
                 exerciseId: exerciseId,
                 weightKg: newKg,
                 previousWeightKg: previousKg,
-                event: .progression
+                event: .progression,
+                ownerId: ownershipProvider?() ?? ""
             )
         )
         save()
+        onMutation?()
     }
 
     func recordRepProgression(exerciseId: String, from previousReps: Int, to newReps: Int) {
@@ -47,10 +54,12 @@ final class WeightHistoryStore {
                 exerciseId: exerciseId,
                 reps: newReps,
                 previousReps: previousReps,
-                event: .repProgression
+                event: .repProgression,
+                ownerId: ownershipProvider?() ?? ""
             )
         )
         save()
+        onMutation?()
     }
 
     func recordSetProgression(exerciseId: String, from previousSets: Int, to newSets: Int) {
@@ -61,10 +70,12 @@ final class WeightHistoryStore {
                 exerciseId: exerciseId,
                 sets: newSets,
                 previousSets: previousSets,
-                event: .setProgression
+                event: .setProgression,
+                ownerId: ownershipProvider?() ?? ""
             )
         )
         save()
+        onMutation?()
     }
 
     func entries(for exerciseId: String) -> [WeightHistoryEntry] {
@@ -108,6 +119,21 @@ final class WeightHistoryStore {
     func clearAll() {
         entries = []
         save()
+        onMutation?()
+    }
+
+    func replaceAllForSync(_ records: [WeightHistoryEntry]) {
+        entries = records
+        save()
+    }
+
+    func stampMissingOwnership(_ ownerId: String) {
+        var changed = false
+        for index in entries.indices where entries[index].ownerId.isEmpty {
+            entries[index].ownerId = ownerId
+            changed = true
+        }
+        if changed { save() }
     }
 
     private func load() {

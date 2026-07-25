@@ -547,4 +547,16 @@ final class GlobalExerciseProgressStore {
         guard let data = try? JSONEncoder().encode(records) else { return }
         UserDefaults.standard.set(data, forKey: storageKey)
     }
+
+    func exportSyncBlob() -> Data? {
+        try? JSONEncoder().encode(records)
+    }
+
+    func importSyncBlob(_ data: Data) {
+        guard let decoded = try? JSONDecoder().decode([String: GlobalExerciseProgress].self, from: data) else {
+            return
+        }
+        records = decoded
+        save()
+    }
 }

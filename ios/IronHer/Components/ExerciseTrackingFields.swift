@@ -14,6 +14,8 @@ struct ExerciseTrackingFields: View {
     /// When true, weightInput is already in the exercise's resolved display unit.
     var usesDisplayUnits: Bool = true
 
+    private var profile: ExerciseTrackingProfile { exercise.trackingProfile }
+
     private var resolvedUnit: WeightUnit {
         globalProgressStore.resolvedWeightUnit(
             for: exercise.id,
@@ -22,50 +24,38 @@ struct ExerciseTrackingFields: View {
     }
 
     private var showsUnitPicker: Bool {
-        switch exercise.measurementUnit {
-        case .weight, .weightAndTime, .repsWithOptionalWeight:
-            return true
-        default:
-            return false
-        }
+        profile.supports(.weight)
     }
 
     var body: some View {
         Group {
-            switch exercise.measurementUnit {
-            case .weight:
+            if profile.supports(.sets) {
                 setsStepper
+            }
+            if profile.supports(.reps) {
                 repsStepper
-                weightField(label: exercise.weightFieldLabel)
-                unitPicker
-                weightCaption
-            case .bodyweight:
-                setsStepper
-                repsStepper
-                progressionNote("Progress through reps, sets, tempo, or added external weight when applicable.")
-            case .time:
-                setsStepper
-                durationStepper
-            case .distance:
-                setsStepper
-                distanceField
-            case .reps:
-                setsStepper
-                repsStepper
-                progressionNote("Track quality and add reps or sets over time.")
-            case .weightAndTime:
-                setsStepper
-                weightField(label: exercise.weightFieldLabel)
-                unitPicker
-                weightCaption
-                durationStepper
-            case .repsWithOptionalWeight:
-                setsStepper
-                repsStepper
-                optionalWeightField
-                if weightInput > 0 {
+            }
+            if profile.supports(.weight) {
+                if exercise.tracksOptionalWeight {
+                    optionalWeightField
+                    if weightInput > 0 {
+                        unitPicker
+                    }
+                } else {
+                    weightField(label: exercise.weightFieldLabel)
                     unitPicker
+                    weightCaption
                 }
+            }
+            if profile.supports(.time) {
+                durationStepper
+            }
+            if profile.supports(.distance) {
+                distanceField
+            }
+
+            if !profile.supports(.weight), profile.supports(.reps) {
+                progressionNote("Progress through reps, sets, tempo, or added external weight when applicable.")
             }
         }
     }
@@ -123,10 +113,10 @@ struct ExerciseTrackingFields: View {
                 let oldDisplay = weightInput
                 globalProgressStore.setWeightUnitPreference(newPreference, for: exercise.id)
                 let newUnit = newPreference.resolved(defaultUnit: settingsStore.weightUnit)
-                // Keep the same number on the plate when switching units from the editor.
-                // (Active workout offers an explicit convert vs keep dialog.)
+                // Preserve physical load: convert display value when the user changes units.
                 if usesDisplayUnits, oldUnit != newUnit {
-                    weightInput = oldDisplay
+                    let kg = WeightFormatter.kilograms(from: oldDisplay, unit: oldUnit)
+                    weightInput = WeightFormatter.displayValue(kg: kg, unit: newUnit)
                 }
             }
         )

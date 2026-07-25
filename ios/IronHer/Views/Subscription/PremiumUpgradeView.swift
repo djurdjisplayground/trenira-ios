@@ -1,5 +1,7 @@
+import StoreKit
 import SwiftUI
 
+/// Minimal trenira Premium paywall. Prices and periods come from StoreKit.
 struct PremiumUpgradeView: View {
     @Environment(SubscriptionStore.self) private var subscriptionStore
     @Environment(LocalizationStore.self) private var l10n
@@ -7,167 +9,361 @@ struct PremiumUpgradeView: View {
 
     let highlightFeature: SubscriptionFeature?
 
+    @State private var showManageSubscriptions = false
+
     init(highlightFeature: SubscriptionFeature? = nil) {
         self.highlightFeature = highlightFeature
     }
 
     var body: some View {
+        Group {
+            if BetaConfig.hidesMonetization {
+                betaUnlockedContent
+            } else {
+                paywallContent
+            }
+        }
+    }
+
+    /// Closed beta: no pricing, purchases, or upgrade CTA.
+    private var betaUnlockedContent: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            VStack(spacing: 10) {
+                Text("Full access unlocked")
+                    .font(SheLiftsFont.title)
+                    .foregroundStyle(IronHerTheme.primaryText)
+
+                Text("Premium features are available to all testers during closed beta. Thanks for helping test trenira.")
+                    .font(SheLiftsFont.subheadline)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 28)
+            }
+
+            Spacer()
+
+            Button("Close") {
+                dismiss()
+            }
+            .buttonStyle(PrimaryButtonStyle())
+            .padding(.horizontal, IronHerTheme.screenPadding)
+            .padding(.bottom, 32)
+        }
+        .background(IronHerTheme.background)
+        .navigationTitle("Beta")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            PaywallDebug.log("Paywall suppressed (closed beta unlock)")
+        }
+    }
+
+    private var paywallContent: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 32) {
+            VStack(alignment: .leading, spacing: 28) {
                 headerSection
-                planComparison
-                reassuranceSection
-                actionSection
-                footnoteSection
+                benefitsSection
+
+                if subscriptionStore.isPremium {
+                    premiumActiveSection
+                } else {
+                    productsSection
+                    purchaseSection
+                }
+
+                legalSection
             }
             .padding(.horizontal, IronHerTheme.screenPadding)
             .padding(.vertical, 24)
         }
         .background(IronHerTheme.background)
-        .navigationTitle(l10n.t(.premium))
+        .navigationTitle("trenira premium")
         .navigationBarTitleDisplayMode(.inline)
-        .id(subscriptionStore.revision)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Close") {
+                    PaywallDebug.log("Paywall dismissed (Close tapped)")
+                    dismiss()
+                }
+                .foregroundStyle(IronHerTheme.secondaryText)
+            }
+        }
+        .task {
+            PaywallDebug.log("Paywall presented (feature=\(highlightFeature.map(String.init(describing:)) ?? "none"), isPremium=\(subscriptionStore.isPremium))")
+            // Always refresh — keep paywall visible with loading / retry UI; never auto-dismiss.
+            await subscriptionStore.loadProducts()
+        }
+        .onDisappear {
+            PaywallDebug.log("Paywall dismissed (view disappeared)")
+        }
+        .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
+        .onChange(of: showManageSubscriptions) { wasShowing, isShowing in
+            if wasShowing && !isShowing {
+                Task { await subscriptionStore.refreshEntitlements() }
+            }
+        }
     }
+
+    // MARK: - Sections
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(headerTitle)
+            Text("trenira premium")
                 .font(SheLiftsFont.largeTitle)
                 .foregroundStyle(IronHerTheme.primaryText)
+                .textCase(nil)
 
-            Text(headerBody)
+            Text(supportingCopy)
                 .font(SheLiftsFont.subheadline)
                 .foregroundStyle(IronHerTheme.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
-        }
-    }
 
-    private var headerTitle: String {
-        if let highlightFeature {
-            return highlightFeature.upgradeHeadline
-        }
-        return l10n.t(.progress_with_less_thinking)
-    }
-
-    private var headerBody: String {
-        if let highlightFeature {
-            return highlightFeature.upgradeBody
-        }
-        return l10n.t(.premium_header_body)
-    }
-
-    private var planComparison: some View {
-        VStack(spacing: 16) {
-            planCard(
-                title: l10n.t(.free),
-                subtitle: BrandIdentity.freePlanSubtitle,
-                features: SubscriptionFeature.freeFeatures,
-                isHighlighted: !subscriptionStore.isPremium
-            )
-
-            planCard(
-                title: l10n.t(.premium),
-                subtitle: BrandIdentity.premiumPlanSubtitle,
-                features: SubscriptionFeature.premiumFeatures,
-                isHighlighted: subscriptionStore.isPremium || highlightFeature != nil
-            )
-        }
-    }
-
-    private func planCard(
-        title: String,
-        subtitle: String,
-        features: [SubscriptionFeature],
-        isHighlighted: Bool
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(SheLiftsFont.section)
-                    .foregroundStyle(IronHerTheme.primaryText)
-
-                Text(subtitle)
+            if let highlightFeature, highlightFeature != .unlimitedWorkoutPlans {
+                Text(highlightFeature.upgradeBody)
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
-            }
-
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(features, id: \.self) { feature in
-                    featureRow(feature)
-                }
+                    .padding(.top, 4)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(20)
+    }
+
+    private var supportingCopy: String {
+        if highlightFeature == .unlimitedWorkoutPlans {
+            return "The free plan includes up to 3 saved workouts. Premium unlocks unlimited plans — plus create and adapt around real life."
+        }
+        return "Train without limits.\nCreate and adapt workouts around real life."
+    }
+
+    private var benefitsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            benefitRow("Unlimited workout plans")
+            benefitRow("Generate workouts with AI")
+            benefitRow("Adapt workouts you already have")
+        }
+        .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(IronHerTheme.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: IronHerTheme.cornerRadius, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: IronHerTheme.cornerRadius, style: .continuous)
-                .stroke(
-                    isHighlighted ? IronHerTheme.primaryText.opacity(0.35) : IronHerTheme.separator.opacity(0.55),
-                    lineWidth: isHighlighted ? 1 : 0.5
-                )
+                .stroke(IronHerTheme.separator.opacity(0.55), lineWidth: 0.5)
         }
     }
 
-    private func featureRow(_ feature: SubscriptionFeature) -> some View {
+    private func benefitRow(_ text: String) -> some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "checkmark")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(IronHerTheme.primaryText)
                 .frame(width: 16, height: 18)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(feature.title)
-                    .font(SheLiftsFont.bodyMedium)
-                    .foregroundStyle(IronHerTheme.primaryText)
+            Text(text)
+                .font(SheLiftsFont.bodyMedium)
+                .foregroundStyle(IronHerTheme.primaryText)
+        }
+    }
 
-                if let detail = feature.detail {
-                    Text(detail)
+    private var productsSection: some View {
+        VStack(spacing: 12) {
+            if subscriptionStore.isLoadingProducts && subscriptionStore.orderedProducts.isEmpty {
+                VStack(spacing: 10) {
+                    ProgressView()
+                    Text("Loading subscription options…")
                         .font(SheLiftsFont.caption)
                         .foregroundStyle(IronHerTheme.secondaryText)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+            } else if subscriptionStore.orderedProducts.isEmpty {
+                VStack(spacing: 12) {
+                    Text(subscriptionStore.purchaseErrorMessage
+                          ?? "No subscription products were returned.")
+                        .font(SheLiftsFont.caption)
+                        .foregroundStyle(IronHerTheme.secondaryText)
+                        .multilineTextAlignment(.center)
+
+                    Button("Try Again") {
+                        Task { await subscriptionStore.loadProducts() }
+                    }
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.primaryText)
+                    .disabled(subscriptionStore.isLoadingProducts)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+            } else {
+                ForEach(subscriptionStore.orderedProducts, id: \.id) { product in
+                    productOption(product)
+                }
+
+                if subscriptionStore.isLoadingProducts {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 4)
                 }
             }
         }
     }
 
-    private var reassuranceSection: some View {
-        Text(BrandIdentity.philosophy)
-            .font(SheLiftsFont.subheadline)
-            .foregroundStyle(IronHerTheme.secondaryText)
-            .fixedSize(horizontal: false, vertical: true)
-            .notesCard(padding: 18)
+    private func productOption(_ product: Product) -> some View {
+        let selected = subscriptionStore.selectedProductID == product.id
+        let bestValue = SubscriptionProductFormatting.isBestValue(product)
+        let eligible = subscriptionStore.isEligibleForIntroOffer(productID: product.id)
+        let introLine = SubscriptionProductFormatting.introductoryOfferLine(
+            for: product,
+            isEligible: eligible
+        )
+
+        return Button {
+            subscriptionStore.selectedProductID = product.id
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(product.displayName)
+                        .font(SheLiftsFont.section)
+                        .foregroundStyle(IronHerTheme.primaryText)
+
+                    Spacer()
+
+                    if bestValue {
+                        Text("Best value")
+                            .font(SheLiftsFont.caption)
+                            .foregroundStyle(IronHerTheme.secondaryText)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(IronHerTheme.groupedBackground)
+                            .clipShape(Capsule())
+                    }
+
+                    Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(selected ? IronHerTheme.primaryText : IronHerTheme.secondaryText)
+                }
+
+                Text(SubscriptionProductFormatting.priceAndPeriodLine(for: product))
+                    .font(SheLiftsFont.bodyMedium)
+                    .foregroundStyle(IronHerTheme.primaryText)
+
+                Text(SubscriptionProductFormatting.autoRenewLine(for: product))
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+
+                if let introLine {
+                    Text(introLine)
+                        .font(SheLiftsFont.caption)
+                        .foregroundStyle(IronHerTheme.primaryText)
+                }
+            }
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(IronHerTheme.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: IronHerTheme.cornerRadius, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: IronHerTheme.cornerRadius, style: .continuous)
+                    .stroke(
+                        selected || bestValue
+                            ? IronHerTheme.primaryText.opacity(bestValue ? 0.45 : 0.35)
+                            : IronHerTheme.separator.opacity(0.55),
+                        lineWidth: selected || bestValue ? 1.25 : 0.5
+                    )
+            }
+        }
+        .buttonStyle(.plain)
     }
 
-    private var actionSection: some View {
-        VStack(spacing: 12) {
-            if subscriptionStore.isPremium {
-                Text(l10n.t(.you_have_premium))
-                    .font(SheLiftsFont.section)
-                    .foregroundStyle(IronHerTheme.primaryText)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-            } else {
-                Button {
-                    subscriptionStore.upgradeToPremium()
-                } label: {
-                    if subscriptionStore.isProcessingPurchase {
-                        ProgressView()
-                            .tint(IronHerTheme.accentForeground)
-                    } else {
-                        Text(l10n.t(.upgrade_to_premium))
+    private var purchaseSection: some View {
+        VStack(spacing: 14) {
+            Button {
+                Task {
+                    let outcome = await subscriptionStore.purchaseSelected()
+                    if outcome == .success {
+                        PaywallDebug.log("Paywall dismissed (purchase succeeded)")
+                        dismiss()
                     }
                 }
-                .buttonStyle(PrimaryButtonStyle())
-                .disabled(subscriptionStore.isProcessingPurchase)
-
-                Button("Stay on Free") {
-                    dismiss()
+            } label: {
+                if subscriptionStore.isProcessingPurchase && !subscriptionStore.isRestoring {
+                    ProgressView()
+                        .tint(IronHerTheme.accentForeground)
+                } else {
+                    Text("Continue")
                 }
-                .font(SheLiftsFont.subheadline)
-                .foregroundStyle(IronHerTheme.secondaryText)
-                .frame(maxWidth: .infinity)
             }
+            .buttonStyle(PrimaryButtonStyle())
+            .disabled(
+                subscriptionStore.isProcessingPurchase
+                    || subscriptionStore.selectedProduct == nil
+            )
+
+            Button {
+                Task {
+                    await subscriptionStore.restorePurchases()
+                    // Only leave the paywall when Premium was actually restored.
+                    if subscriptionStore.isPremium {
+                        PaywallDebug.log("Paywall dismissed (restore restored Premium)")
+                        dismiss()
+                    }
+                }
+            } label: {
+                if subscriptionStore.isRestoring {
+                    ProgressView()
+                } else {
+                    Text("Restore Purchases")
+                }
+            }
+            .font(SheLiftsFont.caption)
+            .foregroundStyle(IronHerTheme.secondaryText)
+            .disabled(subscriptionStore.isProcessingPurchase)
+
+            if let purchaseStatusMessage = subscriptionStore.purchaseStatusMessage {
+                Text(purchaseStatusMessage)
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
+
+            if let restoreStatusMessage = subscriptionStore.restoreStatusMessage {
+                Text(restoreStatusMessage)
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+                    .multilineTextAlignment(.center)
+            }
+
+            if let purchaseErrorMessage = subscriptionStore.purchaseErrorMessage,
+               !subscriptionStore.orderedProducts.isEmpty || !subscriptionStore.isLoadingProducts {
+                Text(purchaseErrorMessage)
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+            }
+        }
+    }
+
+    private var premiumActiveSection: some View {
+        VStack(spacing: 14) {
+            Text(l10n.t(.you_have_premium))
+                .font(SheLiftsFont.section)
+                .foregroundStyle(IronHerTheme.primaryText)
+                .frame(maxWidth: .infinity)
+
+            Button("Manage Subscription") {
+                showManageSubscriptions = true
+            }
+            .buttonStyle(PrimaryButtonStyle())
+
+            Button {
+                Task { await subscriptionStore.restorePurchases() }
+            } label: {
+                if subscriptionStore.isRestoring {
+                    ProgressView()
+                } else {
+                    Text("Restore Purchases")
+                }
+            }
+            .font(SheLiftsFont.caption)
+            .foregroundStyle(IronHerTheme.secondaryText)
+            .disabled(subscriptionStore.isProcessingPurchase)
 
             if let restoreStatusMessage = subscriptionStore.restoreStatusMessage {
                 Text(restoreStatusMessage)
@@ -182,23 +378,34 @@ struct PremiumUpgradeView: View {
                     .foregroundStyle(.red)
                     .multilineTextAlignment(.center)
             }
-
-            Button("Restore purchases") {
-                subscriptionStore.restorePurchases()
-            }
-            .font(SheLiftsFont.caption)
-            .foregroundStyle(IronHerTheme.secondaryText)
-            .disabled(subscriptionStore.isProcessingPurchase)
         }
     }
 
-    private var footnoteSection: some View {
-        Text("trenira helps you organize and adapt — it does not replace your judgment. \(BrandIdentity.taglineInline)")
+    private var legalSection: some View {
+        VStack(spacing: 10) {
+            Text("Payment is charged to your Apple ID. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period.")
+                .font(SheLiftsFont.caption)
+                .foregroundStyle(IronHerTheme.secondaryText)
+                .multilineTextAlignment(.center)
+
+            HStack(spacing: 16) {
+                Link("Privacy Policy", destination: LegalLinks.privacyPolicy)
+                Text("·")
+                    .foregroundStyle(IronHerTheme.secondaryText)
+                Link("Terms of Use", destination: LegalLinks.termsOfUse)
+            }
             .font(SheLiftsFont.caption)
             .foregroundStyle(IronHerTheme.secondaryText)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: .infinity)
-            .padding(.top, 4)
+
+            if !LegalLinks.areConfigured {
+                Text("Privacy Policy and Terms links are placeholders until live pages are published.")
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText.opacity(0.8))
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 8)
     }
 }
 
