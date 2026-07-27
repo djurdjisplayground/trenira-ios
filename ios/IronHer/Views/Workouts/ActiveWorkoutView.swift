@@ -1,4 +1,6 @@
+import AudioToolbox
 import SwiftUI
+import UIKit
 
 struct ActiveWorkoutView: View {
     @Environment(WorkoutStore.self) private var workoutStore
@@ -10,6 +12,7 @@ struct ActiveWorkoutView: View {
     @Environment(TestingTimeStore.self) private var testingTimeStore
     @Environment(LocalizationStore.self) private var l10n
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
 
     let workoutId: UUID
     /// When true, open the lighter-start sheet after the session is ready.
@@ -23,11 +26,14 @@ struct ActiveWorkoutView: View {
     @State private var showExerciseNavigation = false
     @State private var showLighterStartSheet = false
     @State private var showExerciseDetails = false
+    @State private var showReplaceExercise = false
     @State private var didPresentLighterStart = false
     @State private var encouragementMessage: String?
     @State private var celebrationMessage = WorkoutCompletionCopy.randomMessage()
     @State private var nextProgressionSummary: String?
     @State private var pendingUnitChange: PendingWeightUnitChange?
+    @State private var restTimer = RestTimerController()
+    @State private var showRestCompleteBanner = false
 
     private var workout: Workout? {
         workoutStore.workout(id: workoutId)
@@ -83,7 +89,7 @@ struct ActiveWorkoutView: View {
 
     var body: some View {
         Group {
-            if let entry = activeEntry, let exercise = ExerciseCatalog.exercise(id: entry.exerciseId) {
+            if let entry = activeEntry, let exercise = resolvedExercise(for: entry) {
                 exerciseDetailView(entry: entry, exercise: exercise)
             } else {
                 exerciseHubView
@@ -149,8 +155,33 @@ struct ActiveWorkoutView: View {
                 }
             )
         }
+        .sheet(isPresented: $showReplaceExercise) {
+            if let entry = activeEntry {
+                NavigationStack {
+                    ReplaceExerciseView(
+                        workoutId: workoutId,
+                        entryId: entry.id,
+                        isActiveSession: true
+                    )
+                }
+            }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                restTimer.syncWithCurrentDate()
+            }
+        }
+        .onChange(of: restTimer.didComplete) { _, completed in
+            guard completed else { return }
+            handleRestTimerCompleted()
+        }
+        .onDisappear {
+            if showWorkoutComplete {
+                restTimer.stop()
+            }
+        }
         .sheet(isPresented: $showExerciseDetails) {
-            if let entry = activeEntry, let exercise = ExerciseCatalog.exercise(id: entry.exerciseId) {
+            if let entry = activeEntry, let exercise = resolvedExercise(for: entry) {
                 NavigationStack {
                     ExerciseDetailsView(exercise: exercise, showsSettingsLink: false)
                         .toolbar {
@@ -203,7 +234,7 @@ struct ActiveWorkoutView: View {
 
                 VStack(spacing: 12) {
                     ForEach(exercises) { entry in
-                        if let exercise = ExerciseCatalog.exercise(id: entry.exerciseId) {
+                        if let exercise = resolvedExercise(for: entry) {
                             exerciseHubRow(entry: entry, exercise: exercise)
                         }
                     }
@@ -310,6 +341,20 @@ struct ActiveWorkoutView: View {
         return ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 exerciseCard(entry: entry, exercise: exercise)
+
+                if restTimer.isActive || showRestCompleteBanner {
+                    RestTimerBar(
+                        controller: restTimer,
+                        onPause: { restTimer.pause() },
+                        onResume: { restTimer.resume() },
+                        onSkip: {
+                            restTimer.skip()
+                            showRestCompleteBanner = false
+                        },
+                        onAdd15: { restTimer.add(seconds: 15) }
+                    )
+                }
+
                 setCompletionSection(entry: entry, exercise: exercise, state: state)
 
                 if let encouragementMessage, settingsStore.showsEncouragement {
@@ -326,6 +371,11 @@ struct ActiveWorkoutView: View {
             .padding(.horizontal, IronHerTheme.screenPadding)
             .padding(.vertical, 24)
         }
+    }
+
+    private func resolvedExercise(for entry: WorkoutExerciseEntry) -> Exercise? {
+        let exerciseId = session?.resolvedExerciseId(for: entry) ?? entry.exerciseId
+        return ExerciseCatalog.exercise(id: exerciseId)
     }
 
     private var exerciseNavigationControls: some View {
@@ -414,6 +464,17 @@ struct ActiveWorkoutView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel(l10n.t(.exercise_info_accessibility))
                 }
+
+                Menu {
+                    Button("Replace Exercise") {
+                        showReplaceExercise = true
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.system(size: 17, weight: .regular))
+                        .foregroundStyle(IronHerTheme.secondaryText)
+                }
+                .accessibilityLabel("Exercise options")
             }
 
             Text(exercise.listSubtitle)
@@ -808,6 +869,9 @@ struct ActiveWorkoutView: View {
             return
         }
 
+        // Incomplete → complete: start rest timer (not on uncheck / redraw).
+        startRestTimerIfNeeded(afterCompleting: entry)
+
         guard let state = sessionStore.activeSession?.state(for: entry.id) else { return }
 
         if settingsStore.showsEncouragement,
@@ -833,9 +897,41 @@ struct ActiveWorkoutView: View {
         }
     }
 
+    private func startRestTimerIfNeeded(afterCompleting entry: WorkoutExerciseEntry) {
+        guard settingsStore.restTimer.isEnabled else { return }
+        guard !showWorkoutComplete else { return }
+
+        let duration = entry.effectiveRestDuration(defaultDuration: settingsStore.restTimer.defaultDuration)
+        let name = resolvedExercise(for: entry)?.name
+        showRestCompleteBanner = false
+
+        restTimer.start(
+            duration: duration,
+            exerciseID: entry.id,
+            exerciseName: name
+        )
+    }
+
+    private func handleRestTimerCompleted() {
+        showRestCompleteBanner = true
+        if settingsStore.restTimer.hapticsEnabled {
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
+        if settingsStore.restTimer.soundEnabled {
+            AudioServicesPlaySystemSound(1057)
+        }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(2.5))
+            if showRestCompleteBanner, !restTimer.isRunning {
+                showRestCompleteBanner = false
+                restTimer.stop()
+            }
+        }
+    }
+
     /// Evaluate progression for this exercise immediately — never wait for Finish Workout.
     private func handleExerciseCompleted(entry: WorkoutExerciseEntry) {
-        guard let exercise = ExerciseCatalog.exercise(id: entry.exerciseId) else {
+        guard let exercise = resolvedExercise(for: entry) else {
             nextProgressionSummary = nil
             showExerciseNavigation = true
             return
@@ -894,6 +990,8 @@ struct ActiveWorkoutView: View {
     }
 
     private func finishWorkout() {
+        restTimer.stop()
+        showRestCompleteBanner = false
         showExerciseNavigation = false
         celebrationMessage = WorkoutCompletionCopy.randomMessage()
 
@@ -915,14 +1013,26 @@ struct ActiveWorkoutView: View {
             guard let state = session?.state(for: entry.id),
                   state.completedSetCount > 0 else { continue }
 
+            let exerciseId = session?.resolvedExerciseId(for: entry) ?? entry.exerciseId
             let unit = globalProgressStore.resolvedWeightUnit(
-                for: entry.exerciseId,
+                for: exerciseId,
                 defaultUnit: settingsStore.weightUnit
             )
+            let planned = WorkoutExerciseEntry(
+                id: entry.id,
+                exerciseId: exerciseId,
+                sets: entry.sets,
+                reps: entry.reps,
+                startingWeight: entry.startingWeight,
+                durationSeconds: entry.durationSeconds,
+                distanceMeters: entry.distanceMeters,
+                order: entry.order,
+                restDurationOverride: entry.restDurationOverride
+            )
             globalProgressStore.recordActualPerformance(
-                exerciseId: entry.exerciseId,
+                exerciseId: exerciseId,
                 workoutName: workoutName,
-                planned: entry,
+                planned: planned,
                 state: state,
                 into: workoutStore,
                 historyStore: historyStore,

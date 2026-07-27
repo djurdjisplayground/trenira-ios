@@ -49,6 +49,10 @@ final class UserSettingsStore {
         didSet { save() }
     }
 
+    var restTimer: RestTimerSettings {
+        didSet { save() }
+    }
+
     private(set) var lastDeveloperActionMessage: String?
 
     private let storageKey = "userSettings"
@@ -66,6 +70,7 @@ final class UserSettingsStore {
             allowReopenCompletedWorkouts = decoded.allowReopenCompletedWorkouts ?? true
             allowManualWorkoutCompletionTesting = decoded.allowManualWorkoutCompletionTesting ?? true
             enableTestNotifications = decoded.enableTestNotifications ?? false
+            restTimer = decoded.restTimer ?? .default
         } else {
             weightUnit = .kilograms
             appTheme = .system
@@ -77,6 +82,7 @@ final class UserSettingsStore {
             allowReopenCompletedWorkouts = true
             allowManualWorkoutCompletionTesting = true
             enableTestNotifications = false
+            restTimer = .default
         }
 
         // Migrate legacy developer settings key if present.
@@ -172,7 +178,8 @@ final class UserSettingsStore {
             exerciseIncrementOverridesKg: exerciseIncrementOverridesKg,
             allowReopenCompletedWorkouts: allowReopenCompletedWorkouts,
             allowManualWorkoutCompletionTesting: allowManualWorkoutCompletionTesting,
-            enableTestNotifications: enableTestNotifications
+            enableTestNotifications: enableTestNotifications,
+            restTimer: restTimer
         )
         guard let data = try? JSONEncoder().encode(payload) else { return }
         UserDefaults.standard.set(data, forKey: storageKey)
@@ -194,6 +201,7 @@ final class UserSettingsStore {
         allowReopenCompletedWorkouts = payload.allowReopenCompletedWorkouts ?? true
         allowManualWorkoutCompletionTesting = payload.allowManualWorkoutCompletionTesting ?? true
         enableTestNotifications = payload.enableTestNotifications ?? false
+        restTimer = payload.restTimer ?? .default
         save()
     }
 
@@ -208,6 +216,7 @@ final class UserSettingsStore {
         let allowReopenCompletedWorkouts: Bool?
         let allowManualWorkoutCompletionTesting: Bool?
         let enableTestNotifications: Bool?
+        let restTimer: RestTimerSettings?
     }
 
     private struct LegacyDeveloperSettings: Codable {

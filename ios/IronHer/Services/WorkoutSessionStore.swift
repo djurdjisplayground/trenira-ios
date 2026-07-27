@@ -134,6 +134,21 @@ final class WorkoutSessionStore {
         saveActiveSession()
     }
 
+    /// Session-only exercise swap. Does not rewrite the saved workout plan.
+    func setExerciseIdOverride(entryId: UUID, exerciseId: String) {
+        guard var session = activeSession else { return }
+        session.exerciseIdOverrides[entryId] = exerciseId
+        activeSession = session
+        saveActiveSession()
+    }
+
+    func clearExerciseIdOverride(entryId: UUID) {
+        guard var session = activeSession else { return }
+        session.exerciseIdOverrides.removeValue(forKey: entryId)
+        activeSession = session
+        saveActiveSession()
+    }
+
     func toggleSet(entryId: UUID, setIndex: Int) {
         guard var session = activeSession,
               var state = session.exerciseStates[entryId] else { return }
@@ -228,7 +243,8 @@ final class WorkoutSessionStore {
 
         let loggedExercises: [LoggedExercisePerformance] = exercises.compactMap { entry in
             guard let state = session.state(for: entry.id) else { return nil }
-            let unit = weightUnitForExercise(entry.exerciseId)
+            let exerciseId = session.resolvedExerciseId(for: entry)
+            let unit = weightUnitForExercise(exerciseId)
             let sets = state.completedSetFlags.indices.map { index in
                 let performance = state.performance(at: index) ?? SetPerformance(from: entry)
                 let entered = performance.weightKg > 0
@@ -247,7 +263,7 @@ final class WorkoutSessionStore {
             }
             return LoggedExercisePerformance(
                 entryId: entry.id,
-                exerciseId: entry.exerciseId,
+                exerciseId: exerciseId,
                 plannedSets: entry.sets,
                 plannedReps: entry.reps,
                 plannedWeightKg: entry.startingWeight,

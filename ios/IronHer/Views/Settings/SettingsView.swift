@@ -154,6 +154,55 @@ struct SettingsView: View {
                     .foregroundStyle(IronHerTheme.secondaryText)
             }
 
+            Section("Rest Timer") {
+                Toggle("Enable Automatic Rest Timer", isOn: Binding(
+                    get: { settings.restTimer.isEnabled },
+                    set: { enabled in
+                        var timer = settings.restTimer
+                        timer.isEnabled = enabled
+                        settings.restTimer = timer
+                    }
+                ))
+
+                Picker("Default Rest Duration", selection: Binding(
+                    get: { RestDurationOption.closest(to: settings.restTimer.defaultDuration) },
+                    set: { option in
+                        var timer = settings.restTimer
+                        timer.defaultDuration = option.timeInterval
+                        settings.restTimer = timer
+                    }
+                )) {
+                    ForEach(RestDurationOption.allCases) { option in
+                        Text(option.label).tag(option)
+                    }
+                }
+                .disabled(!settings.restTimer.isEnabled)
+
+                Toggle("Sound", isOn: Binding(
+                    get: { settings.restTimer.soundEnabled },
+                    set: { enabled in
+                        var timer = settings.restTimer
+                        timer.soundEnabled = enabled
+                        settings.restTimer = timer
+                    }
+                ))
+                .disabled(!settings.restTimer.isEnabled)
+
+                Toggle("Haptics", isOn: Binding(
+                    get: { settings.restTimer.hapticsEnabled },
+                    set: { enabled in
+                        var timer = settings.restTimer
+                        timer.hapticsEnabled = enabled
+                        settings.restTimer = timer
+                    }
+                ))
+                .disabled(!settings.restTimer.isEnabled)
+
+                Text("Starts automatically after you complete a set. Per-exercise overrides live in Edit Exercise.")
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+            }
+
             Section(l10n.t(.appearance)) {
                 Picker(l10n.t(.theme), selection: $settings.appTheme) {
                     ForEach(AppTheme.allCases) { theme in
@@ -414,6 +463,25 @@ struct DeveloperSettingsView: View {
                     #if DEBUG
                     let outcome = UserDataMigrationSelfTests.runAll()
                     settingsStore.noteDeveloperAction(outcome.summary)
+                    #endif
+                }
+
+                Button("Run replace-exercise self-tests") {
+                    #if DEBUG
+                    Task {
+                        let ranking = ExerciseReplacementSelfTests.runAll()
+                        let flow = await ExerciseReplacementFlowSelfTests.runAll()
+                        settingsStore.noteDeveloperAction(ranking.summary + "\n\n" + flow.summary)
+                    }
+                    #endif
+                }
+
+                Button("Run rest-timer self-tests") {
+                    #if DEBUG
+                    Task {
+                        let outcome = await RestTimerControllerSelfTests.runAll()
+                        settingsStore.noteDeveloperAction(outcome.summary)
+                    }
                     #endif
                 }
             }

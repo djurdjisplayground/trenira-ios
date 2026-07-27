@@ -223,6 +223,8 @@ struct ActiveWorkoutSession: Identifiable, Codable, Equatable {
     var startedAt: Date
     var exerciseStates: [UUID: ExerciseSessionState]
     var activeEntryId: UUID?
+    /// Session-only exercise swaps keyed by entry id (does not rewrite the saved plan).
+    var exerciseIdOverrides: [UUID: String]
 
     init(
         id: UUID = UUID(),
@@ -230,7 +232,8 @@ struct ActiveWorkoutSession: Identifiable, Codable, Equatable {
         workoutName: String,
         startedAt: Date = .now,
         exerciseStates: [UUID: ExerciseSessionState] = [:],
-        activeEntryId: UUID? = nil
+        activeEntryId: UUID? = nil,
+        exerciseIdOverrides: [UUID: String] = [:]
     ) {
         self.id = id
         self.workoutId = workoutId
@@ -238,10 +241,30 @@ struct ActiveWorkoutSession: Identifiable, Codable, Equatable {
         self.startedAt = startedAt
         self.exerciseStates = exerciseStates
         self.activeEntryId = activeEntryId
+        self.exerciseIdOverrides = exerciseIdOverrides
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        workoutId = try container.decode(UUID.self, forKey: .workoutId)
+        workoutName = try container.decode(String.self, forKey: .workoutName)
+        startedAt = try container.decode(Date.self, forKey: .startedAt)
+        exerciseStates = try container.decodeIfPresent([UUID: ExerciseSessionState].self, forKey: .exerciseStates) ?? [:]
+        activeEntryId = try container.decodeIfPresent(UUID.self, forKey: .activeEntryId)
+        exerciseIdOverrides = try container.decodeIfPresent([UUID: String].self, forKey: .exerciseIdOverrides) ?? [:]
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, workoutId, workoutName, startedAt, exerciseStates, activeEntryId, exerciseIdOverrides
     }
 
     func state(for entryId: UUID) -> ExerciseSessionState? {
         exerciseStates[entryId]
+    }
+
+    func resolvedExerciseId(for entry: WorkoutExerciseEntry) -> String {
+        exerciseIdOverrides[entry.id] ?? entry.exerciseId
     }
 
     var fullyCompletedExerciseCount: Int {

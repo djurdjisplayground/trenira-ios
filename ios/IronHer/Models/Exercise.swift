@@ -377,6 +377,8 @@ struct WorkoutExerciseEntry: Identifiable, Codable, Hashable {
     var durationSeconds: Int
     var distanceMeters: Double
     var order: Int
+    /// Optional rest between sets for this exercise. `nil` → Settings default.
+    var restDurationOverride: TimeInterval?
 
     init(
         id: UUID = UUID(),
@@ -386,7 +388,8 @@ struct WorkoutExerciseEntry: Identifiable, Codable, Hashable {
         startingWeight: Double = 0,
         durationSeconds: Int = 0,
         distanceMeters: Double = 0,
-        order: Int
+        order: Int,
+        restDurationOverride: TimeInterval? = nil
     ) {
         self.id = id
         self.exerciseId = exerciseId
@@ -396,6 +399,7 @@ struct WorkoutExerciseEntry: Identifiable, Codable, Hashable {
         self.durationSeconds = durationSeconds
         self.distanceMeters = distanceMeters
         self.order = order
+        self.restDurationOverride = restDurationOverride
     }
 
     init(from decoder: Decoder) throws {
@@ -408,6 +412,17 @@ struct WorkoutExerciseEntry: Identifiable, Codable, Hashable {
         durationSeconds = try container.decodeIfPresent(Int.self, forKey: .durationSeconds) ?? 0
         distanceMeters = try container.decodeIfPresent(Double.self, forKey: .distanceMeters) ?? 0
         order = try container.decode(Int.self, forKey: .order)
+        restDurationOverride = try container.decodeIfPresent(TimeInterval.self, forKey: .restDurationOverride)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, exerciseId, sets, reps, startingWeight, durationSeconds, distanceMeters, order
+        case restDurationOverride
+    }
+
+    /// Effective rest for this entry given global settings.
+    func effectiveRestDuration(defaultDuration: TimeInterval) -> TimeInterval {
+        restDurationOverride ?? defaultDuration
     }
 }
 
@@ -419,6 +434,7 @@ struct DraftWorkoutExercise: Identifiable {
     var startingWeight: Double
     var durationSeconds: Int
     var distanceMeters: Double
+    var restDurationOverride: TimeInterval?
 
     init(
         entryId: UUID = UUID(),
@@ -427,7 +443,8 @@ struct DraftWorkoutExercise: Identifiable {
         reps: Int,
         startingWeight: Double = 0,
         durationSeconds: Int = 0,
-        distanceMeters: Double = 0
+        distanceMeters: Double = 0,
+        restDurationOverride: TimeInterval? = nil
     ) {
         self.id = entryId
         self.exercise = exercise
@@ -436,5 +453,6 @@ struct DraftWorkoutExercise: Identifiable {
         self.startingWeight = startingWeight
         self.durationSeconds = durationSeconds
         self.distanceMeters = distanceMeters
+        self.restDurationOverride = restDurationOverride
     }
 }

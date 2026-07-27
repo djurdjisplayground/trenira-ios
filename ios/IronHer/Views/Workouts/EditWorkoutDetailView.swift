@@ -5,6 +5,7 @@ struct EditWorkoutDetailView: View {
     @Environment(WeightHistoryStore.self) private var historyStore
     @Environment(GlobalExerciseProgressStore.self) private var globalProgressStore
     @Environment(WorkoutSessionStore.self) private var sessionStore
+    @Environment(SubscriptionStore.self) private var subscriptionStore
     @Environment(TestingTimeStore.self) private var testingTimeStore
     @Environment(\.dismiss) private var dismiss
 
@@ -14,6 +15,8 @@ struct EditWorkoutDetailView: View {
     @State private var draftExercises: [DraftWorkoutExercise] = []
     @State private var showAddExercise = false
     @State private var editingExercise: DraftWorkoutExercise?
+    @State private var replaceDraft: DraftWorkoutExercise?
+    @State private var showReplacePremium = false
     @State private var showDeleteConfirm = false
 
     var body: some View {
@@ -65,16 +68,32 @@ struct EditWorkoutDetailView: View {
                 reps: draft.reps,
                 startingWeight: draft.startingWeight,
                 durationSeconds: draft.durationSeconds,
-                distanceMeters: draft.distanceMeters
-            ) { sets, reps, weight, duration, distance in
+                distanceMeters: draft.distanceMeters,
+                restDurationOverride: draft.restDurationOverride
+            ) { sets, reps, weight, duration, distance, restOverride in
                 updateExercise(
                     draft.id,
                     sets: sets,
                     reps: reps,
                     weight: weight,
                     duration: duration,
-                    distance: distance
+                    distance: distance,
+                    restDurationOverride: restOverride
                 )
+            }
+        }
+        .sheet(item: $replaceDraft) { draft in
+            NavigationStack {
+                ReplaceExerciseView(
+                    workoutId: workoutId,
+                    entryId: draft.id,
+                    isActiveSession: false
+                )
+            }
+        }
+        .sheet(isPresented: $showReplacePremium) {
+            NavigationStack {
+                PremiumUpgradeView(highlightFeature: .replaceExercise)
             }
         }
     }
@@ -127,14 +146,21 @@ struct EditWorkoutDetailView: View {
                                 }
                             )
 
-                            PremiumFeatureLink(
-                                feature: .replaceExercise,
-                                title: "Replace Exercise",
-                                subtitle: "Same focus, different movement",
-                                systemImage: "arrow.left.arrow.right"
-                            ) {
-                                ReplaceExerciseView(workoutId: workoutId, entryId: draft.id)
+                            Button {
+                                if subscriptionStore.hasAccess(to: .replaceExercise) {
+                                    replaceDraft = draft
+                                } else {
+                                    showReplacePremium = true
+                                }
+                            } label: {
+                                PremiumFeatureRow(
+                                    feature: .replaceExercise,
+                                    title: "Replace Exercise",
+                                    subtitle: "Same focus, different movement",
+                                    systemImage: "arrow.left.arrow.right"
+                                )
                             }
+                            .buttonStyle(.plain)
                             .font(SheLiftsFont.caption)
                             .padding(.leading, 4)
                         }
@@ -224,18 +250,28 @@ struct EditWorkoutDetailView: View {
                     distanceMeters: globalProgressStore.resolvedDistanceMeters(
                         for: entry.exerciseId,
                         entryDistanceMeters: entry.distanceMeters
-                    )
+                    ),
+                    restDurationOverride: entry.restDurationOverride
                 )
             }
     }
 
-    private func updateExercise(_ id: UUID, sets: Int, reps: Int, weight: Double, duration: Int, distance: Double) {
+    private func updateExercise(
+        _ id: UUID,
+        sets: Int,
+        reps: Int,
+        weight: Double,
+        duration: Int,
+        distance: Double,
+        restDurationOverride: TimeInterval?
+    ) {
         guard let index = draftExercises.firstIndex(where: { $0.id == id }) else { return }
         draftExercises[index].sets = sets
         draftExercises[index].reps = reps
         draftExercises[index].startingWeight = weight
         draftExercises[index].durationSeconds = duration
         draftExercises[index].distanceMeters = distance
+        draftExercises[index].restDurationOverride = restDurationOverride
 
         // Edit Exercise save → update the single global progression record immediately.
         syncGlobalProgress(from: draftExercises[index])
@@ -285,7 +321,8 @@ struct EditWorkoutDetailView: View {
                 startingWeight: progress?.workingWeightKg ?? draft.startingWeight,
                 durationSeconds: progress?.targetDurationSeconds ?? draft.durationSeconds,
                 distanceMeters: progress?.targetDistanceMeters ?? draft.distanceMeters,
-                order: index
+                order: index,
+                restDurationOverride: draft.restDurationOverride
             )
         }
 
@@ -308,6 +345,7 @@ struct EditWorkoutDetailView: View {
             .environment(WeightHistoryStore())
             .environment(GlobalExerciseProgressStore())
             .environment(WorkoutSessionStore())
+            .environment(SubscriptionStore())
             .environment(TestingTimeStore())
             .environment(LocalizationStore())
     }

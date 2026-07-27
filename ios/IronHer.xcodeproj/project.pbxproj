@@ -19,6 +19,15 @@
 		A100000E00000000000000B2 /* UserDataCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000B3 /* UserDataCoordinator.swift */; };
 		A100000E00000000000000B4 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000B5 /* AppModel.swift */; };
 		A100000E00000000000000B6 /* UserDataMigrationSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000B7 /* UserDataMigrationSelfTests.swift */; };
+		A100000E00000000000000C0 /* ExerciseReplacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000C1 /* ExerciseReplacement.swift */; };
+		A100000E00000000000000C2 /* ExerciseReplacementService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000C3 /* ExerciseReplacementService.swift */; };
+		A100000E00000000000000C4 /* RestTimerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000C5 /* RestTimerController.swift */; };
+		A100000E00000000000000C6 /* RestTimerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000C7 /* RestTimerBar.swift */; };
+		A100000E00000000000000C8 /* ExerciseReplacementSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000C9 /* ExerciseReplacementSelfTests.swift */; };
+		A100000E00000000000000CA /* RestTimerControllerSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000CB /* RestTimerControllerSelfTests.swift */; };
+		A100000E00000000000000CC /* ExerciseReplacementCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000CD /* ExerciseReplacementCoordinator.swift */; };
+		A100000E00000000000000CE /* ExerciseReplacementFlowModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000CF /* ExerciseReplacementFlowModel.swift */; };
+		A100000E00000000000000D0 /* ExerciseReplacementFlowSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000D1 /* ExerciseReplacementFlowSelfTests.swift */; };
 		A10000010000000000000001 /* IronHerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000001 /* IronHerApp.swift */; };
 		A10000010000000000000002 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000002 /* LoginView.swift */; };
 		A10000010000000000000003 /* SheLiftsLogoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000003 /* SheLiftsLogoView.swift */; };
@@ -149,6 +158,15 @@
 		A100000E00000000000000B3 /* UserDataCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataCoordinator.swift; sourceTree = "<group>"; };
 		A100000E00000000000000B5 /* AppModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModel.swift; sourceTree = "<group>"; };
 		A100000E00000000000000B7 /* UserDataMigrationSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserDataMigrationSelfTests.swift; sourceTree = "<group>"; };
+		A100000E00000000000000C1 /* ExerciseReplacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseReplacement.swift; sourceTree = "<group>"; };
+		A100000E00000000000000C3 /* ExerciseReplacementService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseReplacementService.swift; sourceTree = "<group>"; };
+		A100000E00000000000000C5 /* RestTimerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTimerController.swift; sourceTree = "<group>"; };
+		A100000E00000000000000C7 /* RestTimerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTimerBar.swift; sourceTree = "<group>"; };
+		A100000E00000000000000C9 /* ExerciseReplacementSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseReplacementSelfTests.swift; sourceTree = "<group>"; };
+		A100000E00000000000000CB /* RestTimerControllerSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTimerControllerSelfTests.swift; sourceTree = "<group>"; };
+		A100000E00000000000000CD /* ExerciseReplacementCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseReplacementCoordinator.swift; sourceTree = "<group>"; };
+		A100000E00000000000000CF /* ExerciseReplacementFlowModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseReplacementFlowModel.swift; sourceTree = "<group>"; };
+		A100000E00000000000000D1 /* ExerciseReplacementFlowSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseReplacementFlowSelfTests.swift; sourceTree = "<group>"; };
 		042E9DF33012140300999559 /* trenira.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = trenira.storekit; sourceTree = "<group>"; };
 		A10000020000000000000001 /* IronHerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IronHerApp.swift; sourceTree = "<group>"; };
 		A10000020000000000000002 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
@@ -297,6 +315,9 @@
 				A100000E00000000000000B3 /* UserDataCoordinator.swift */,
 				A100000E00000000000000B5 /* AppModel.swift */,
 				A100000E00000000000000B7 /* UserDataMigrationSelfTests.swift */,
+				A100000E00000000000000C9 /* ExerciseReplacementSelfTests.swift */,
+				A100000E00000000000000D1 /* ExerciseReplacementFlowSelfTests.swift */,
+				A100000E00000000000000CB /* RestTimerControllerSelfTests.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -365,6 +386,7 @@
 				A10000020000000000000003 /* SheLiftsLogoView.swift */,
 				A1000002000000000000000E /* AuthOptionButton.swift */,
 				A10000020000000000000011 /* WorkoutActionButton.swift */,
+				A100000E00000000000000C7 /* RestTimerBar.swift */,
 				A10000020000000000000017 /* ExerciseThumbnailView.swift */,
 				A100000200000000000000E4 /* ExerciseDemonstrationPlayer.swift */,
 				A100000200000000000000E6 /* ProceduralExerciseDemonstrationView.swift */,
@@ -408,6 +430,10 @@
 				A10000020000000000000028 /* UserSettingsStore.swift */,
 				A10000020000000000000029 /* WeightHistoryStore.swift */,
 				A10000020000000000000031 /* WorkoutAdaptationService.swift */,
+				A100000E00000000000000C3 /* ExerciseReplacementService.swift */,
+				A100000E00000000000000CD /* ExerciseReplacementCoordinator.swift */,
+				A100000E00000000000000CF /* ExerciseReplacementFlowModel.swift */,
+				A100000E00000000000000C5 /* RestTimerController.swift */,
 				A1000002000000000000004F /* WorkoutGenerationService.swift */,
 				A10000020000000000000032 /* SpeechSearchService.swift */,
 				A10000040000000000000015 /* Progression */,
@@ -432,6 +458,7 @@
 				A1000002000000000000000F /* Workout.swift */,
 				A10000020000000000000053 /* WorkoutSession.swift */,
 				A10000020000000000000015 /* Exercise.swift */,
+				A100000E00000000000000C1 /* ExerciseReplacement.swift */,
 				A100000200000000000000E1 /* ExerciseDemonstration.swift */,
 				A100000200000000000000A1 /* GymEquipment.swift */,
 				A1000002000000000000003D /* ExerciseTypes.swift */,
@@ -725,6 +752,15 @@
 				A100000E00000000000000B2 /* UserDataCoordinator.swift in Sources */,
 				A100000E00000000000000B4 /* AppModel.swift in Sources */,
 				A100000E00000000000000B6 /* UserDataMigrationSelfTests.swift in Sources */,
+				A100000E00000000000000C0 /* ExerciseReplacement.swift in Sources */,
+				A100000E00000000000000C2 /* ExerciseReplacementService.swift in Sources */,
+				A100000E00000000000000C4 /* RestTimerController.swift in Sources */,
+				A100000E00000000000000C6 /* RestTimerBar.swift in Sources */,
+				A100000E00000000000000C8 /* ExerciseReplacementSelfTests.swift in Sources */,
+				A100000E00000000000000CA /* RestTimerControllerSelfTests.swift in Sources */,
+				A100000E00000000000000CC /* ExerciseReplacementCoordinator.swift in Sources */,
+				A100000E00000000000000CE /* ExerciseReplacementFlowModel.swift in Sources */,
+				A100000E00000000000000D0 /* ExerciseReplacementFlowSelfTests.swift in Sources */,
 				A100000100000000000000D1 /* PremiumProductID.swift in Sources */,
 				A100000100000000000000D2 /* SubscriptionProductFormatting.swift in Sources */,
 				A100000100000000000000D3 /* LegalLinks.swift in Sources */,

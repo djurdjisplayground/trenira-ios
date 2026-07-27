@@ -154,7 +154,8 @@ final class WorkoutStore {
                     startingWeight: entry.startingWeight,
                     durationSeconds: entry.durationSeconds,
                     distanceMeters: entry.distanceMeters,
-                    order: index
+                    order: index,
+                    restDurationOverride: entry.restDurationOverride
                 )
             }
 
@@ -245,6 +246,34 @@ final class WorkoutStore {
         }
         save()
         onMutation?()
+    }
+
+    /// Applies exercise list updates to many workouts, then persists once.
+    /// Skips unknown ids / drafts. Preserves workout ids, names, and list order.
+    @discardableResult
+    func applyExerciseListUpdates(_ updates: [UUID: [WorkoutExerciseEntry]]) -> Int {
+        guard !updates.isEmpty else { return 0 }
+        var changed = 0
+        for (id, exercises) in updates {
+            guard let index = workouts.firstIndex(where: { $0.id == id && !$0.isDraft }) else { continue }
+            workouts[index].exercises = exercises
+            workouts[index].updatedAt = .now
+            if workouts[index].ownerId.isEmpty {
+                workouts[index].ownerId = ownershipProvider?() ?? ""
+            }
+            changed += 1
+        }
+        guard changed > 0 else { return 0 }
+        save()
+        onMutation?()
+        return changed
+    }
+
+    /// Saved (non-draft) plans that contain at least one entry with `exerciseId`.
+    func savedWorkoutsContaining(exerciseId: String) -> [Workout] {
+        workouts.filter { workout in
+            !workout.isDraft && workout.exercises.contains { $0.exerciseId == exerciseId }
+        }
     }
 
     func deleteWorkout(id: UUID) {
