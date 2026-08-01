@@ -74,6 +74,33 @@ enum TestFlightPrepSelfTests {
         check("privacy has no incorrect brand casing", !containsBadBrand(privacy))
         check("terms have no incorrect brand casing", !containsBadBrand(terms))
         check("privacy does not claim GDPR certification", !privacy.lowercased().contains("fully gdpr compliant"))
+        check(
+            "privacy has no lawyer-review note",
+            !privacy.localizedCaseInsensitiveContains("lawyer review")
+        )
+        check(
+            "terms have no lawyer-review note",
+            !terms.localizedCaseInsensitiveContains("lawyer review")
+        )
+        check(
+            "privacy has no internal-note marker",
+            !privacy.localizedCaseInsensitiveContains("internal note")
+        )
+        check(
+            "terms have no internal-note marker",
+            !terms.localizedCaseInsensitiveContains("internal note")
+        )
+        check(
+            "privacy keeps effective date",
+            privacy.contains(AppConfiguration.legalEffectiveDate)
+        )
+        let parsedPrivacy = LegalDocumentParser.parse(privacy)
+        check("privacy parser extracts title", parsedPrivacy.title == "Privacy Policy")
+        check("privacy parser extracts effective date", parsedPrivacy.effectiveDate == AppConfiguration.legalEffectiveDate)
+        check("privacy parser has sections", parsedPrivacy.sections.count >= 10)
+        let parsedTerms = LegalDocumentParser.parse(terms)
+        check("terms parser extracts title", parsedTerms.title == "Terms & Conditions")
+        check("terms parser has health disclaimer", parsedTerms.sections.contains { $0.heading.contains("Health Disclaimer") })
 
         // Feedback / email
         check("feedback recipient correct", FeedbackService.recipient == "trenira@trenira.info")

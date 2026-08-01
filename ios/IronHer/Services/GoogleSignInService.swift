@@ -42,6 +42,7 @@ enum GoogleSignInError: LocalizedError {
     case notConfigured
     case noPresenter
     case missingUser
+    case incompleteIdentity
 
     var errorDescription: String? {
         switch self {
@@ -49,8 +50,8 @@ enum GoogleSignInError: LocalizedError {
             "Google Sign-In isn't configured yet. Add your GIDClientID to Info.plist."
         case .noPresenter:
             "Couldn't present Google Sign-In. Please try again."
-        case .missingUser:
-            "Google Sign-In didn't return a user profile."
+        case .missingUser, .incompleteIdentity:
+            "Google Sign-In could not be completed. Please try again."
         }
     }
 }

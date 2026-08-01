@@ -14,8 +14,7 @@ enum AppConfiguration {
     static let minimumUserAge = 16
     static let minimumConsultationAge = 18
 
-    /// Update in one place before public App Store release.
-    /// LAWYER REVIEW: confirm final effective date before publishing.
+    /// Shown as the effective date on in-app Privacy Policy and Terms.
     static let legalEffectiveDate = "31 July 2026"
 
     /// Optional hosted pages — when nil, Settings shows native in-app documents.

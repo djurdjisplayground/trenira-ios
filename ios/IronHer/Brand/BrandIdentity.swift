@@ -44,14 +44,6 @@ enum BrandIdentity {
         "Go beyond tracking."
     }
 
-    static var microphoneUsageDescription: String {
-        "\(displayName) uses the microphone so you can search exercises by voice."
-    }
-
-    static var speechRecognitionUsageDescription: String {
-        "\(displayName) uses speech recognition to find exercises when you speak their names."
-    }
-
     /// Slight tracking keeps the lowercase wordmark open and modern.
     static let wordmarkTracking: CGFloat = 1.4
 }

@@ -4,7 +4,7 @@ enum AuthState: Equatable {
     case signedOut
     case guest
     case apple(userId: String)
-    case google(userId: String, email: String?)
+    case google(userId: String)
 
     var isSignedIn: Bool {
         switch self {
@@ -20,6 +20,7 @@ enum AuthState: Equatable {
         return false
     }
 
+    /// Neutral signed-in label for Settings. Never includes email or profile names.
     var displayName: String {
         switch self {
         case .signedOut:
@@ -27,9 +28,9 @@ enum AuthState: Equatable {
         case .guest:
             "Guest"
         case .apple:
-            "Apple account"
-        case .google(_, let email):
-            email ?? "Google account"
+            "Signed in with Apple"
+        case .google:
+            "Signed in with Google"
         }
     }
 }

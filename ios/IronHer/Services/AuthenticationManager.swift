@@ -12,9 +12,7 @@ final class AuthenticationManager: NSObject {
     var errorMessage: String?
     var statusMessage = "Choose how you'd like to continue"
 
-    private let accountUserDefaultsKey = "accountUserIdentifier"
     private let authModeDefaultsKey = "authMode"
-    private let googleEmailDefaultsKey = "googleEmail"
     private var authTimeoutTask: Task<Void, Never>?
 
     /// Fired after auth settles (guest continue, provider sign-in, sign-out). Used for data migration.
@@ -29,6 +27,7 @@ final class AuthenticationManager: NSObject {
 
     override init() {
         super.init()
+        AuthDataMinimizationMigration.runIfNeeded()
         restoreSavedState()
     }
 
@@ -40,10 +39,7 @@ final class AuthenticationManager: NSObject {
         statusMessage = "Waiting for Apple…"
         logger.info("Starting Sign in with Apple")
 
-        let provider = ASAuthorizationAppleIDProvider()
-        let request = provider.createRequest()
-        request.requestedScopes = [.fullName, .email]
-
+        let request = AppleSignInRequestFactory.makeRequest()
         let controller = ASAuthorizationController(authorizationRequests: [request])
         controller.delegate = self
         controller.presentationContextProvider = self
@@ -189,19 +185,20 @@ final class AuthenticationManager: NSObject {
             authState = .guest
             statusMessage = "Continuing without an account"
         case "apple":
-            let userId = SecureAccountIdentityStore.load(provider: "apple")
-                ?? UserDefaults.standard.string(forKey: accountUserDefaultsKey)
-            if let userId {
+            if let userId = SecureAccountIdentityStore.load(provider: "apple") {
                 authState = .apple(userId: userId)
                 statusMessage = "Welcome back"
+            } else {
+                clearPersistedState()
+                authState = .signedOut
             }
         case "google":
-            let userId = SecureAccountIdentityStore.load(provider: "google")
-                ?? UserDefaults.standard.string(forKey: accountUserDefaultsKey)
-            if let userId {
-                let email = UserDefaults.standard.string(forKey: googleEmailDefaultsKey)
-                authState = .google(userId: userId, email: email)
+            if let userId = SecureAccountIdentityStore.load(provider: "google") {
+                authState = .google(userId: userId)
                 statusMessage = "Welcome back"
+            } else {
+                clearPersistedState()
+                authState = .signedOut
             }
         case "email":
             // Email/password auth was removed for TestFlight. Force welcome screen.
@@ -254,6 +251,8 @@ final class AuthenticationManager: NSObject {
                 return
             }
 
+            // Only the stable Apple user identifier is used for local vault ownership.
+            // Name, email, identity token, and authorization code are never read or stored.
             logger.info("Apple sign-in succeeded")
             authState = .apple(userId: credential.user)
             errorMessage = nil
@@ -271,14 +270,20 @@ final class AuthenticationManager: NSObject {
         authTimeoutTask?.cancel()
         isAuthenticating = false
 
-        let userId = user.userID ?? UUID().uuidString
-        let email = user.profile?.email
+        guard let userId = GoogleAccountIdentity.stableUserID(from: user.userID) else {
+            logger.error("Google sign-in incomplete: missing stable user identifier")
+            GoogleSignInService.signOut()
+            errorMessage = GoogleSignInError.incompleteIdentity.errorDescription
+            statusMessage = "Sign in failed"
+            return
+        }
 
-        authState = .google(userId: userId, email: email)
+        // Profile email / name / photo / tokens are intentionally not read.
+        authState = .google(userId: userId)
         errorMessage = nil
         statusMessage = "Signed in with Google"
         persistState()
-        onAuthStateSettled?(.google(userId: userId, email: email))
+        onAuthStateSettled?(.google(userId: userId))
     }
 
     private func completeGoogleSignInFailure(_ error: Error) {
@@ -331,43 +336,39 @@ final class AuthenticationManager: NSObject {
             clearPersistedState()
         case .guest:
             UserDefaults.standard.set("guest", forKey: authModeDefaultsKey)
-            UserDefaults.standard.removeObject(forKey: accountUserDefaultsKey)
-            UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
             SecureAccountIdentityStore.clearAllKnownProviders()
+            removeObsoleteAuthUserDefaultsKeys()
         case .apple(let userId):
+            // Non-sensitive mode flag only. Raw provider ID lives in Keychain.
             UserDefaults.standard.set("apple", forKey: authModeDefaultsKey)
-            // Legacy key kept for migration; primary identity lives in Keychain.
-            UserDefaults.standard.set(userId, forKey: accountUserDefaultsKey)
             SecureAccountIdentityStore.save(provider: "apple", userID: userId)
-            UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
-        case .google(let userId, let email):
+            removeObsoleteAuthUserDefaultsKeys()
+        case .google(let userId):
             UserDefaults.standard.set("google", forKey: authModeDefaultsKey)
-            UserDefaults.standard.set(userId, forKey: accountUserDefaultsKey)
             SecureAccountIdentityStore.save(provider: "google", userID: userId)
-            if let email {
-                UserDefaults.standard.set(email, forKey: googleEmailDefaultsKey)
-            } else {
-                UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
-            }
+            removeObsoleteAuthUserDefaultsKeys()
         }
     }
 
     private func clearPersistedState() {
         UserDefaults.standard.removeObject(forKey: authModeDefaultsKey)
-        UserDefaults.standard.removeObject(forKey: accountUserDefaultsKey)
-        UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
+        removeObsoleteAuthUserDefaultsKeys()
         clearLegacyEmailAuthArtifacts()
         SecureAccountIdentityStore.clearAllKnownProviders()
     }
 
-    /// Clears leftovers from the removed local email/password auth path.
+    /// Clears leftovers from removed email/password auth and prior googleEmail storage.
     private func clearLegacyEmailAuthArtifacts() {
-        UserDefaults.standard.removeObject(forKey: "emailAddress")
-        UserDefaults.standard.removeObject(forKey: "emailAuthAccounts")
+        removeObsoleteAuthUserDefaultsKeys()
         SecureAccountIdentityStore.clear(provider: "email")
         if UserDefaults.standard.string(forKey: authModeDefaultsKey) == "email" {
             UserDefaults.standard.removeObject(forKey: authModeDefaultsKey)
-            UserDefaults.standard.removeObject(forKey: accountUserDefaultsKey)
+        }
+    }
+
+    private func removeObsoleteAuthUserDefaultsKeys() {
+        for key in AuthDataMinimizationMigration.obsoleteUserDefaultsKeys {
+            UserDefaults.standard.removeObject(forKey: key)
         }
     }
 

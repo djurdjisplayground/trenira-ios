@@ -1,7 +1,6 @@
 import Foundation
 
-/// In-app legal document copy for the TestFlight beta.
-/// LAWYER REVIEW required before public App Store release — not professional legal advice.
+/// In-app Privacy Policy and Terms & Conditions copy for the TestFlight beta.
 enum LegalDocumentContent {
     static var privacyTitle: String { "Privacy Policy" }
     static var termsTitle: String { "Terms & Conditions" }
@@ -12,12 +11,12 @@ enum LegalDocumentContent {
 
         **Effective date:** \(AppConfiguration.legalEffectiveDate)
 
-        **Operator:** \(AppConfiguration.operatorName)  
-        **Brand:** \(AppConfiguration.appName)  
-        **Contact:** \(AppConfiguration.supportEmail)  
+        **Operator:** \(AppConfiguration.operatorName)
+        **Brand:** \(AppConfiguration.appName)
+        **Contact:** \(AppConfiguration.supportEmail)
         **Availability:** \(AppConfiguration.serviceAvailability)
 
-        This Privacy Policy describes how \(AppConfiguration.appName) processes information during the current TestFlight beta. It is provided for transparency and has not been independently reviewed as formal legal advice.
+        This Privacy Policy describes how \(AppConfiguration.appName) processes information during the current TestFlight beta.
 
         ## 1. Who We Are
 
@@ -41,7 +40,7 @@ enum LegalDocumentContent {
 
         ## 4. Account and Authentication Data
 
-        If you continue with Sign in with Apple or Google Sign-In, those providers process authentication data according to their own terms and privacy policies. \(AppConfiguration.appName) stores local session pointers needed to keep your workouts associated with the signed-in identity on this device. The app does not receive or store your Apple or Google password.
+        If you continue with Sign in with Apple or Google Sign-In, those providers process authentication data according to their own terms and privacy policies. \(AppConfiguration.appName) stores only a local provider user identifier needed to keep your workouts associated with the signed-in identity on this device. The app does not request or store your Apple or Google name or email for sign-in, and it does not receive or store your Apple or Google password.
 
         Guest use does not require an account provider.
 
@@ -120,7 +119,7 @@ enum LegalDocumentContent {
 
         ## 19. Contact
 
-        \(AppConfiguration.operatorName)  
+        \(AppConfiguration.operatorName)
         \(AppConfiguration.supportEmail)
         """
     }
@@ -131,11 +130,11 @@ enum LegalDocumentContent {
 
         **Effective date:** \(AppConfiguration.legalEffectiveDate)
 
-        **Operator:** \(AppConfiguration.operatorName)  
-        **Brand:** \(AppConfiguration.appName)  
+        **Operator:** \(AppConfiguration.operatorName)
+        **Brand:** \(AppConfiguration.appName)
         **Contact:** \(AppConfiguration.supportEmail)
 
-        These Terms explain how you may use \(AppConfiguration.appName) during the TestFlight beta. They are provided for clarity and have not been independently reviewed as formal legal advice. **LAWYER REVIEW required before public App Store release.**
+        These Terms explain how you may use \(AppConfiguration.appName) during the TestFlight beta.
 
         ## 1. About trenira
 
@@ -201,11 +200,9 @@ enum LegalDocumentContent {
 
         These Terms are governed by the laws applicable to the business operations of \(AppConfiguration.operatorName), subject to mandatory consumer protection rights that may apply in the user’s country of residence.
 
-        **Internal note — lawyer review before public release:** confirm jurisdiction and consumer-law wording for the operator’s place of establishment.
-
         ## 17. Contact
 
-        \(AppConfiguration.operatorName)  
+        \(AppConfiguration.operatorName)
         \(AppConfiguration.supportEmail)
         """
     }

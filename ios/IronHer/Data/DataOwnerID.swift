@@ -40,7 +40,7 @@ extension AuthState {
             return .guest(guestID)
         case .apple(let userId):
             return .account(provider: "apple", userID: userId)
-        case .google(let userId, _):
+        case .google(let userId):
             return .account(provider: "google", userID: userId)
         }
     }

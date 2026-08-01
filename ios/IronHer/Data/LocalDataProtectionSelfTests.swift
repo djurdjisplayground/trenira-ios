@@ -80,6 +80,7 @@ enum LocalDataProtectionSelfTests {
             "userSettings",
             "customExercises",
             "googleEmail",
+            "accountUserIdentifier",
             "authMode",
             ConsultationDraftStore.storageKey,
             OnboardingStore.storageKey,

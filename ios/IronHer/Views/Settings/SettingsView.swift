@@ -134,7 +134,7 @@ struct SettingsView: View {
             } footer: {
                 Text(
                     authManager.authState.isSignedIn
-                        ? "Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName). Erase All Local Data permanently removes trenira data stored on this device."
+                        ? "Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName). Erase All Local Data permanently removes trenira data on this device. It does not delete your Apple ID or Google Account."
                         : "Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName)."
                 )
                 .font(SheLiftsFont.caption)
@@ -557,6 +557,13 @@ struct DeveloperSettingsView: View {
                 Button("Run local data protection self-tests") {
                     #if DEBUG
                     let outcome = LocalDataProtectionSelfTests.runAll()
+                    settingsStore.noteDeveloperAction(outcome.summary)
+                    #endif
+                }
+
+                Button("Run auth privacy self-tests") {
+                    #if DEBUG
+                    let outcome = AuthPrivacySelfTests.runAll()
                     settingsStore.noteDeveloperAction(outcome.summary)
                     #endif
                 }
