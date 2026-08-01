@@ -1,10 +1,12 @@
 import Foundation
 
-/// Placeholder legal URLs — replace with live pages before App Store review.
+/// Legal document links. Prefer native in-app documents while hosted pages are unset.
 enum LegalLinks {
-    static let privacyPolicy = URL(string: "https://trenira.app/privacy")!
-    static let termsOfUse = URL(string: "https://trenira.app/terms")!
+    static var privacyPolicy: URL? { AppConfiguration.privacyPolicyURL }
+    static var termsOfUse: URL? { AppConfiguration.termsURL }
 
-    /// Set to `true` once real hosted pages are live.
-    static let areConfigured = false
+    /// `true` once hosted pages are live and should open instead of (or alongside) native screens.
+    static var areConfigured: Bool {
+        privacyPolicy != nil && termsOfUse != nil
+    }
 }

@@ -25,6 +25,36 @@
 		A100000E00000000000000C6 /* RestTimerBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000C7 /* RestTimerBar.swift */; };
 		A100000E00000000000000C8 /* ExerciseReplacementSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000C9 /* ExerciseReplacementSelfTests.swift */; };
 		A100000E00000000000000CA /* RestTimerControllerSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000CB /* RestTimerControllerSelfTests.swift */; };
+		A100000E00000000000000E0 /* DurationSetTimerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000E1 /* DurationSetTimerController.swift */; };
+		A100000E00000000000000E2 /* EraseLocalDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000E3 /* EraseLocalDataView.swift */; };
+		A100000E00000000000000F0 /* ProtectedFileWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000F1 /* ProtectedFileWriter.swift */; };
+		A100000E00000000000000F2 /* LocalDataErasureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000F3 /* LocalDataErasureService.swift */; };
+		A100000E00000000000000F4 /* LocalDataProtectionSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000F5 /* LocalDataProtectionSelfTests.swift */; };
+		A100000E00000000000000F6 /* RecommendationDisclaimerBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000F7 /* RecommendationDisclaimerBanner.swift */; };
+		A100000E0000000000000110 /* ConsultationConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000111 /* ConsultationConfig.swift */; };
+		A100000E0000000000000112 /* ConsultationRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000113 /* ConsultationRequest.swift */; };
+		A100000E0000000000000114 /* ConsultationDraftStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000115 /* ConsultationDraftStore.swift */; };
+		A100000E0000000000000116 /* ConsultationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000117 /* ConsultationService.swift */; };
+		A100000E0000000000000118 /* MailComposeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000119 /* MailComposeView.swift */; };
+		A100000E000000000000011A /* ConsultationDisclaimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E000000000000011B /* ConsultationDisclaimerView.swift */; };
+		A100000E000000000000011C /* ConsultationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E000000000000011D /* ConsultationCard.swift */; };
+		A100000E000000000000011E /* ConsultationRequestFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E000000000000011F /* ConsultationRequestFormView.swift */; };
+		A100000E0000000000000120 /* ConsultationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000121 /* ConsultationDetailView.swift */; };
+		A100000E0000000000000122 /* ConsultationSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000123 /* ConsultationSelfTests.swift */; };
+		A100000E0000000000000150 /* WeightProgressionCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000151 /* WeightProgressionCalculator.swift */; };
+		A100000E0000000000000152 /* WeightIncrementRepairMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000153 /* WeightIncrementRepairMigration.swift */; };
+		A100000E0000000000000154 /* WeightProgressionSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000155 /* WeightProgressionSelfTests.swift */; };
+		A100000E0000000000000160 /* OnboardingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000161 /* OnboardingStore.swift */; };
+		A100000E0000000000000162 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000163 /* OnboardingView.swift */; };
+		A100000E0000000000000164 /* LegalDocumentContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000165 /* LegalDocumentContent.swift */; };
+		A100000E0000000000000166 /* LegalDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000167 /* LegalDocumentView.swift */; };
+		A100000E0000000000000168 /* FeedbackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000169 /* FeedbackService.swift */; };
+		A100000E000000000000016A /* BetaFeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E000000000000016B /* BetaFeedbackView.swift */; };
+		A100000E000000000000016C /* TestFlightPrepSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E000000000000016D /* TestFlightPrepSelfTests.swift */; };
+		A100000E0000000000000130 /* ExerciseProgressSeriesBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000131 /* ExerciseProgressSeriesBuilder.swift */; };
+		A100000E0000000000000132 /* ExerciseProgressChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000133 /* ExerciseProgressChartView.swift */; };
+		A100000E0000000000000134 /* ExerciseProgressDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000135 /* ExerciseProgressDetailView.swift */; };
+		A100000E0000000000000136 /* ExerciseProgressSeriesSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000137 /* ExerciseProgressSeriesSelfTests.swift */; };
 		A100000E00000000000000CC /* ExerciseReplacementCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000CD /* ExerciseReplacementCoordinator.swift */; };
 		A100000E00000000000000CE /* ExerciseReplacementFlowModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000CF /* ExerciseReplacementFlowModel.swift */; };
 		A100000E00000000000000D0 /* ExerciseReplacementFlowSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000000D1 /* ExerciseReplacementFlowSelfTests.swift */; };
@@ -76,9 +106,7 @@
 		A100000100000000000000F1 /* ExerciseTrackingProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000200000000000000F1 /* ExerciseTrackingProfile.swift */; };
 		A1000001000000000000003E /* EquipmentDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000003E /* EquipmentDefaults.swift */; };
 		A10000010000000000000040 /* SubscriptionPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000040 /* SubscriptionPlan.swift */; };
-		A10000010000000000000041 /* EmailAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000041 /* EmailAuthService.swift */; };
 		A10000010000000000000042 /* SubscriptionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000042 /* SubscriptionStore.swift */; };
-		A10000010000000000000043 /* EmailAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000043 /* EmailAuthView.swift */; };
 		A10000010000000000000044 /* PremiumUpgradeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000044 /* PremiumUpgradeView.swift */; };
 		A10000010000000000000045 /* ExerciseSearchService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000045 /* ExerciseSearchService.swift */; };
 		A10000010000000000000046 /* CustomExerciseStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000046 /* CustomExerciseStore.swift */; };
@@ -105,6 +133,7 @@
 		A1000001000000000000005B /* WorkoutCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000005B /* WorkoutCelebrationView.swift */; };
 		A1000001000000000000005C /* MyProgressionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000005C /* MyProgressionView.swift */; };
 		A1000001000000000000005D /* BrandIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000005D /* BrandIdentity.swift */; };
+		A100000E0000000000000140 /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000141 /* AppConfiguration.swift */; };
 		A1000001000000000000005E /* AppLanguage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000005E /* AppLanguage.swift */; };
 		A1000001000000000000005F /* LocalizationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000005F /* LocalizationStore.swift */; };
 		A10000010000000000000060 /* UIStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000060 /* UIStrings.swift */; };
@@ -164,6 +193,11 @@
 		A100000E00000000000000C7 /* RestTimerBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTimerBar.swift; sourceTree = "<group>"; };
 		A100000E00000000000000C9 /* ExerciseReplacementSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseReplacementSelfTests.swift; sourceTree = "<group>"; };
 		A100000E00000000000000CB /* RestTimerControllerSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTimerControllerSelfTests.swift; sourceTree = "<group>"; };
+		A100000E00000000000000E1 /* DurationSetTimerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurationSetTimerController.swift; sourceTree = "<group>"; };
+		A100000E00000000000000E3 /* EraseLocalDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EraseLocalDataView.swift; sourceTree = "<group>"; };
+		A100000E00000000000000F1 /* ProtectedFileWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProtectedFileWriter.swift; sourceTree = "<group>"; };
+		A100000E00000000000000F3 /* LocalDataErasureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalDataErasureService.swift; sourceTree = "<group>"; };
+		A100000E00000000000000F5 /* LocalDataProtectionSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalDataProtectionSelfTests.swift; sourceTree = "<group>"; };
 		A100000E00000000000000CD /* ExerciseReplacementCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseReplacementCoordinator.swift; sourceTree = "<group>"; };
 		A100000E00000000000000CF /* ExerciseReplacementFlowModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseReplacementFlowModel.swift; sourceTree = "<group>"; };
 		A100000E00000000000000D1 /* ExerciseReplacementFlowSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseReplacementFlowSelfTests.swift; sourceTree = "<group>"; };
@@ -209,6 +243,31 @@
 		A10000020000000000000035 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A10000020000000000000036 /* AdaptWorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptWorkoutView.swift; sourceTree = "<group>"; };
 		A10000020000000000000037 /* HomeActionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeActionCard.swift; sourceTree = "<group>"; };
+		A100000E00000000000000F7 /* RecommendationDisclaimerBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecommendationDisclaimerBanner.swift; sourceTree = "<group>"; };
+		A100000E0000000000000111 /* ConsultationConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsultationConfig.swift; sourceTree = "<group>"; };
+		A100000E0000000000000113 /* ConsultationRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsultationRequest.swift; sourceTree = "<group>"; };
+		A100000E0000000000000115 /* ConsultationDraftStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsultationDraftStore.swift; sourceTree = "<group>"; };
+		A100000E0000000000000117 /* ConsultationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsultationService.swift; sourceTree = "<group>"; };
+		A100000E0000000000000119 /* MailComposeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MailComposeView.swift; sourceTree = "<group>"; };
+		A100000E000000000000011B /* ConsultationDisclaimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsultationDisclaimerView.swift; sourceTree = "<group>"; };
+		A100000E000000000000011D /* ConsultationCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsultationCard.swift; sourceTree = "<group>"; };
+		A100000E000000000000011F /* ConsultationRequestFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsultationRequestFormView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000121 /* ConsultationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsultationDetailView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000123 /* ConsultationSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsultationSelfTests.swift; sourceTree = "<group>"; };
+		A100000E0000000000000151 /* WeightProgressionCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightProgressionCalculator.swift; sourceTree = "<group>"; };
+		A100000E0000000000000153 /* WeightIncrementRepairMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightIncrementRepairMigration.swift; sourceTree = "<group>"; };
+		A100000E0000000000000155 /* WeightProgressionSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightProgressionSelfTests.swift; sourceTree = "<group>"; };
+		A100000E0000000000000161 /* OnboardingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStore.swift; sourceTree = "<group>"; };
+		A100000E0000000000000163 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000165 /* LegalDocumentContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentContent.swift; sourceTree = "<group>"; };
+		A100000E0000000000000167 /* LegalDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000169 /* FeedbackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackService.swift; sourceTree = "<group>"; };
+		A100000E000000000000016B /* BetaFeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BetaFeedbackView.swift; sourceTree = "<group>"; };
+		A100000E000000000000016D /* TestFlightPrepSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestFlightPrepSelfTests.swift; sourceTree = "<group>"; };
+		A100000E0000000000000131 /* ExerciseProgressSeriesBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseProgressSeriesBuilder.swift; sourceTree = "<group>"; };
+		A100000E0000000000000133 /* ExerciseProgressChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseProgressChartView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000135 /* ExerciseProgressDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseProgressDetailView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000137 /* ExerciseProgressSeriesSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseProgressSeriesSelfTests.swift; sourceTree = "<group>"; };
 		A10000020000000000000038 /* LaunchSplashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchSplashView.swift; sourceTree = "<group>"; };
 		A10000020000000000000039 /* MyWorkoutsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyWorkoutsView.swift; sourceTree = "<group>"; };
 		A1000002000000000000003A /* SheLiftsFont.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheLiftsFont.swift; sourceTree = "<group>"; };
@@ -218,9 +277,7 @@
 		A100000200000000000000F1 /* ExerciseTrackingProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseTrackingProfile.swift; sourceTree = "<group>"; };
 		A1000002000000000000003E /* EquipmentDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquipmentDefaults.swift; sourceTree = "<group>"; };
 		A10000020000000000000040 /* SubscriptionPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionPlan.swift; sourceTree = "<group>"; };
-		A10000020000000000000041 /* EmailAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAuthService.swift; sourceTree = "<group>"; };
 		A10000020000000000000042 /* SubscriptionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionStore.swift; sourceTree = "<group>"; };
-		A10000020000000000000043 /* EmailAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAuthView.swift; sourceTree = "<group>"; };
 		A10000020000000000000044 /* PremiumUpgradeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumUpgradeView.swift; sourceTree = "<group>"; };
 		A10000020000000000000045 /* ExerciseSearchService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseSearchService.swift; sourceTree = "<group>"; };
 		A10000020000000000000046 /* CustomExerciseStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomExerciseStore.swift; sourceTree = "<group>"; };
@@ -247,6 +304,7 @@
 		A1000002000000000000005B /* WorkoutCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutCelebrationView.swift; sourceTree = "<group>"; };
 		A1000002000000000000005C /* MyProgressionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MyProgressionView.swift; path = IronHer/Views/Workouts/MyProgressionView.swift; sourceTree = SOURCE_ROOT; };
 		A1000002000000000000005D /* BrandIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandIdentity.swift; sourceTree = "<group>"; };
+		A100000E0000000000000141 /* AppConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfiguration.swift; sourceTree = "<group>"; };
 		A1000002000000000000005E /* AppLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLanguage.swift; sourceTree = "<group>"; };
 		A1000002000000000000005F /* LocalizationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationStore.swift; sourceTree = "<group>"; };
 		A10000020000000000000060 /* UIStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIStrings.swift; sourceTree = "<group>"; };
@@ -308,6 +366,9 @@
 				A100000E00000000000000A5 /* UserDataSnapshot.swift */,
 				A100000E00000000000000A7 /* UserDataMergeEngine.swift */,
 				A100000E00000000000000A9 /* AccountDataVault.swift */,
+				A100000E00000000000000F1 /* ProtectedFileWriter.swift */,
+				A100000E00000000000000F3 /* LocalDataErasureService.swift */,
+				A100000E00000000000000F5 /* LocalDataProtectionSelfTests.swift */,
 				A100000E00000000000000AB /* RemoteUserDataStore.swift */,
 				A100000E00000000000000AD /* LocalPersistenceBackup.swift */,
 				A100000E00000000000000AF /* SecureAccountIdentityStore.swift */,
@@ -318,6 +379,11 @@
 				A100000E00000000000000C9 /* ExerciseReplacementSelfTests.swift */,
 				A100000E00000000000000D1 /* ExerciseReplacementFlowSelfTests.swift */,
 				A100000E00000000000000CB /* RestTimerControllerSelfTests.swift */,
+				A100000E0000000000000123 /* ConsultationSelfTests.swift */,
+				A100000E0000000000000137 /* ExerciseProgressSeriesSelfTests.swift */,
+				A100000E0000000000000153 /* WeightIncrementRepairMigration.swift */,
+				A100000E0000000000000155 /* WeightProgressionSelfTests.swift */,
+				A100000E000000000000016D /* TestFlightPrepSelfTests.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -366,7 +432,6 @@
 				A1000002000000000000000B /* RootView.swift */,
 				A10000020000000000000038 /* LaunchSplashView.swift */,
 				A10000020000000000000002 /* LoginView.swift */,
-				A10000040000000000000013 /* Auth */,
 				A10000040000000000000014 /* Subscription */,
 				A1000002000000000000000A /* HomeView.swift */,
 				A100000200000000000000B3 /* MainTabView.swift */,
@@ -376,8 +441,40 @@
 				A10000040000000000000010 /* History */,
 				A100000400000000000000C0 /* Progress */,
 				A10000040000000000000011 /* Settings */,
+				A100000E0000000000000124 /* Consultation */,
+				A100000E000000000000016E /* Onboarding */,
+				A100000E000000000000016F /* Legal */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		A100000E0000000000000124 /* Consultation */ = {
+			isa = PBXGroup;
+			children = (
+				A100000E0000000000000119 /* MailComposeView.swift */,
+				A100000E000000000000011B /* ConsultationDisclaimerView.swift */,
+				A100000E000000000000011D /* ConsultationCard.swift */,
+				A100000E000000000000011F /* ConsultationRequestFormView.swift */,
+				A100000E0000000000000121 /* ConsultationDetailView.swift */,
+			);
+			path = Consultation;
+			sourceTree = "<group>";
+		};
+		A100000E000000000000016E /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A100000E0000000000000163 /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		A100000E000000000000016F /* Legal */ = {
+			isa = PBXGroup;
+			children = (
+				A100000E0000000000000165 /* LegalDocumentContent.swift */,
+				A100000E0000000000000167 /* LegalDocumentView.swift */,
+			);
+			path = Legal;
 			sourceTree = "<group>";
 		};
 		A10000040000000000000005 /* Components */ = {
@@ -395,6 +492,7 @@
 				A10000020000000000000018 /* DraftExerciseRow.swift */,
 				A100000200000000000000A4 /* GymEquipmentPicker.swift */,
 				A10000020000000000000037 /* HomeActionCard.swift */,
+				A100000E00000000000000F7 /* RecommendationDisclaimerBanner.swift */,
 				A10000020000000000000048 /* ExerciseTrackingFields.swift */,
 				A1000002000000000000004D /* PremiumFeatureViews.swift */,
 				A1000002000000000000004E /* WorkoutAdaptationComponents.swift */,
@@ -407,7 +505,6 @@
 			isa = PBXGroup;
 			children = (
 				A10000020000000000000004 /* AuthenticationManager.swift */,
-				A10000020000000000000041 /* EmailAuthService.swift */,
 				A10000020000000000000042 /* SubscriptionStore.swift */,
 				A100000200000000000000D1 /* PremiumProductID.swift */,
 				A100000200000000000000D2 /* SubscriptionProductFormatting.swift */,
@@ -421,6 +518,11 @@
 				A1000002000000000000003B /* ExerciseDatabase.swift */,
 				A100000200000000000000A3 /* ExerciseDatabaseExpansion.swift */,
 				A100000200000000000000A2 /* GymEquipmentProfileStore.swift */,
+				A100000E0000000000000115 /* ConsultationDraftStore.swift */,
+				A100000E0000000000000117 /* ConsultationService.swift */,
+				A100000E0000000000000161 /* OnboardingStore.swift */,
+				A100000E0000000000000169 /* FeedbackService.swift */,
+				A100000E0000000000000131 /* ExerciseProgressSeriesBuilder.swift */,
 				A100000200000000000000B1 /* WeeklyProgressAnalyzer.swift */,
 				A100000200000000000000C2 /* ExerciseProgressOverview.swift */,
 				A100000200000000000000C5 /* AppTabRouter.swift */,
@@ -434,6 +536,7 @@
 				A100000E00000000000000CD /* ExerciseReplacementCoordinator.swift */,
 				A100000E00000000000000CF /* ExerciseReplacementFlowModel.swift */,
 				A100000E00000000000000C5 /* RestTimerController.swift */,
+				A100000E00000000000000E1 /* DurationSetTimerController.swift */,
 				A1000002000000000000004F /* WorkoutGenerationService.swift */,
 				A10000020000000000000032 /* SpeechSearchService.swift */,
 				A10000040000000000000015 /* Progression */,
@@ -467,6 +570,8 @@
 				A10000020000000000000027 /* WeightHistoryEntry.swift */,
 				A10000020000000000000040 /* SubscriptionPlan.swift */,
 				A10000020000000000000058 /* TrainingPreferences.swift */,
+				A100000E0000000000000111 /* ConsultationConfig.swift */,
+				A100000E0000000000000113 /* ConsultationRequest.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -525,6 +630,8 @@
 			isa = PBXGroup;
 			children = (
 				A10000020000000000000035 /* SettingsView.swift */,
+				A100000E000000000000016B /* BetaFeedbackView.swift */,
+				A100000E00000000000000E3 /* EraseLocalDataView.swift */,
 				A100000200000000000000C7 /* EquipmentIncrementsSettingsView.swift */,
 				A100000200000000000000A5 /* GymProfilesSettingsView.swift */,
 			);
@@ -541,14 +648,6 @@
 			path = Utilities;
 			sourceTree = "<group>";
 		};
-		A10000040000000000000013 /* Auth */ = {
-			isa = PBXGroup;
-			children = (
-				A10000020000000000000043 /* EmailAuthView.swift */,
-			);
-			path = Auth;
-			sourceTree = "<group>";
-		};
 		A10000040000000000000014 /* Subscription */ = {
 			isa = PBXGroup;
 			children = (
@@ -561,6 +660,7 @@
 			isa = PBXGroup;
 			children = (
 				A1000002000000000000004A /* ProgressionStrategy.swift */,
+				A100000E0000000000000151 /* WeightProgressionCalculator.swift */,
 				A100000200000000000000C8 /* ProgressionDefaults.swift */,
 				A1000002000000000000004B /* ExerciseProgressionStore.swift */,
 				A10000020000000000000057 /* GlobalExerciseProgressStore.swift */,
@@ -574,6 +674,7 @@
 			isa = PBXGroup;
 			children = (
 				A1000002000000000000005D /* BrandIdentity.swift */,
+				A100000E0000000000000141 /* AppConfiguration.swift */,
 				A100000200000000000000D3 /* LegalLinks.swift */,
 			);
 			path = Brand;
@@ -603,6 +704,8 @@
 			isa = PBXGroup;
 			children = (
 				A100000200000000000000C1 /* ProgressHubView.swift */,
+				A100000E0000000000000133 /* ExerciseProgressChartView.swift */,
+				A100000E0000000000000135 /* ExerciseProgressDetailView.swift */,
 			);
 			path = Progress;
 			sourceTree = "<group>";
@@ -686,6 +789,7 @@
 				A10000010000000000000002 /* LoginView.swift in Sources */,
 				A10000010000000000000003 /* SheLiftsLogoView.swift in Sources */,
 				A1000001000000000000005D /* BrandIdentity.swift in Sources */,
+				A100000E0000000000000140 /* AppConfiguration.swift in Sources */,
 				A1000001000000000000005E /* AppLanguage.swift in Sources */,
 				A1000001000000000000005F /* LocalizationStore.swift in Sources */,
 				A10000010000000000000060 /* UIStrings.swift in Sources */,
@@ -738,7 +842,6 @@
 				A100000100000000000000F1 /* ExerciseTrackingProfile.swift in Sources */,
 				A1000001000000000000003E /* EquipmentDefaults.swift in Sources */,
 				A10000010000000000000040 /* SubscriptionPlan.swift in Sources */,
-				A10000010000000000000041 /* EmailAuthService.swift in Sources */,
 				A10000010000000000000042 /* SubscriptionStore.swift in Sources */,
 				A100000E00000000000000A0 /* DataOwnerID.swift in Sources */,
 				A100000E00000000000000A2 /* GuestIdentityStore.swift in Sources */,
@@ -758,6 +861,36 @@
 				A100000E00000000000000C6 /* RestTimerBar.swift in Sources */,
 				A100000E00000000000000C8 /* ExerciseReplacementSelfTests.swift in Sources */,
 				A100000E00000000000000CA /* RestTimerControllerSelfTests.swift in Sources */,
+				A100000E00000000000000E0 /* DurationSetTimerController.swift in Sources */,
+				A100000E00000000000000E2 /* EraseLocalDataView.swift in Sources */,
+				A100000E00000000000000F0 /* ProtectedFileWriter.swift in Sources */,
+				A100000E00000000000000F2 /* LocalDataErasureService.swift in Sources */,
+				A100000E00000000000000F4 /* LocalDataProtectionSelfTests.swift in Sources */,
+				A100000E00000000000000F6 /* RecommendationDisclaimerBanner.swift in Sources */,
+				A100000E0000000000000110 /* ConsultationConfig.swift in Sources */,
+				A100000E0000000000000112 /* ConsultationRequest.swift in Sources */,
+				A100000E0000000000000114 /* ConsultationDraftStore.swift in Sources */,
+				A100000E0000000000000116 /* ConsultationService.swift in Sources */,
+				A100000E0000000000000118 /* MailComposeView.swift in Sources */,
+				A100000E000000000000011A /* ConsultationDisclaimerView.swift in Sources */,
+				A100000E000000000000011C /* ConsultationCard.swift in Sources */,
+				A100000E000000000000011E /* ConsultationRequestFormView.swift in Sources */,
+				A100000E0000000000000120 /* ConsultationDetailView.swift in Sources */,
+				A100000E0000000000000122 /* ConsultationSelfTests.swift in Sources */,
+				A100000E0000000000000130 /* ExerciseProgressSeriesBuilder.swift in Sources */,
+				A100000E0000000000000132 /* ExerciseProgressChartView.swift in Sources */,
+				A100000E0000000000000134 /* ExerciseProgressDetailView.swift in Sources */,
+				A100000E0000000000000136 /* ExerciseProgressSeriesSelfTests.swift in Sources */,
+				A100000E0000000000000150 /* WeightProgressionCalculator.swift in Sources */,
+				A100000E0000000000000152 /* WeightIncrementRepairMigration.swift in Sources */,
+				A100000E0000000000000154 /* WeightProgressionSelfTests.swift in Sources */,
+				A100000E0000000000000160 /* OnboardingStore.swift in Sources */,
+				A100000E0000000000000162 /* OnboardingView.swift in Sources */,
+				A100000E0000000000000164 /* LegalDocumentContent.swift in Sources */,
+				A100000E0000000000000166 /* LegalDocumentView.swift in Sources */,
+				A100000E0000000000000168 /* FeedbackService.swift in Sources */,
+				A100000E000000000000016A /* BetaFeedbackView.swift in Sources */,
+				A100000E000000000000016C /* TestFlightPrepSelfTests.swift in Sources */,
 				A100000E00000000000000CC /* ExerciseReplacementCoordinator.swift in Sources */,
 				A100000E00000000000000CE /* ExerciseReplacementFlowModel.swift in Sources */,
 				A100000E00000000000000D0 /* ExerciseReplacementFlowSelfTests.swift in Sources */,
@@ -765,7 +898,6 @@
 				A100000100000000000000D2 /* SubscriptionProductFormatting.swift in Sources */,
 				A100000100000000000000D3 /* LegalLinks.swift in Sources */,
 				A100000100000000000000D5 /* PaywallDebug.swift in Sources */,
-				A10000010000000000000043 /* EmailAuthView.swift in Sources */,
 				A10000010000000000000044 /* PremiumUpgradeView.swift in Sources */,
 				A10000010000000000000045 /* ExerciseSearchService.swift in Sources */,
 				A10000010000000000000046 /* CustomExerciseStore.swift in Sources */,
@@ -965,7 +1097,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.trenira.app;
+				PRODUCT_BUNDLE_IDENTIFIER = info.trenira.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -995,7 +1127,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.trenira.app;
+				PRODUCT_BUNDLE_IDENTIFIER = info.trenira.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;

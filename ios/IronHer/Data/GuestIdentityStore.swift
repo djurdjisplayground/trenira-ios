@@ -5,10 +5,14 @@ import Security
 enum GuestIdentityStore {
     private static let service = "com.trenira.app.guest-identity"
     private static let account = "localGuestID"
+    private static let accessibility = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
 
     /// Returns the existing guest UUID or creates one. Never stored in UserDefaults.
+    /// Existing values are preserved and rewritten with the current Keychain accessibility class.
     static func localGuestID() -> String {
         if let existing = read() {
+            // Migrate older accessibility class without rotating identity.
+            save(existing)
             return existing
         }
         let created = UUID().uuidString
@@ -18,6 +22,12 @@ enum GuestIdentityStore {
 
     static func peek() -> String? {
         read()
+    }
+
+    /// Rotates the guest identity after a guest data wipe so old vaults cannot return.
+    static func rotate() {
+        let created = UUID().uuidString
+        save(created)
     }
 
     private static func read() -> String? {
@@ -49,7 +59,7 @@ enum GuestIdentityStore {
         SecItemDelete(query as CFDictionary)
         var add = query
         add[kSecValueData as String] = data
-        add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        add[kSecAttrAccessible as String] = accessibility
         SecItemAdd(add as CFDictionary, nil)
     }
 }

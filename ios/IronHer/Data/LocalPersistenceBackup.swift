@@ -49,7 +49,7 @@ enum LocalPersistenceBackup {
             "blobs": encodedBlobs
         ]
         let data = try JSONSerialization.data(withJSONObject: body, options: [.prettyPrinted, .sortedKeys])
-        try data.write(to: url, options: [.atomic])
+        try ProtectedFileWriter.writeAtomically(data, to: url)
         return url
     }
 }

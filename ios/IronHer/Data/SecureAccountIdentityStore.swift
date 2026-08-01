@@ -5,6 +5,9 @@ import Security
 enum SecureAccountIdentityStore {
     private static let service = "com.trenira.app.account-identity"
 
+    /// Device-only, available only while the device is unlocked.
+    private static let accessibility = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+
     static func save(provider: String, userID: String) {
         let account = "\(provider).userID"
         let data = Data(userID.utf8)
@@ -16,10 +19,11 @@ enum SecureAccountIdentityStore {
         SecItemDelete(query as CFDictionary)
         var add = query
         add[kSecValueData as String] = data
-        add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
+        add[kSecAttrAccessible as String] = accessibility
         SecItemAdd(add as CFDictionary, nil)
     }
 
+    /// Loads the provider user ID and rewrites it with the current accessibility class when found.
     static func load(provider: String) -> String? {
         let account = "\(provider).userID"
         let query: [String: Any] = [
@@ -37,6 +41,8 @@ enum SecureAccountIdentityStore {
               !string.isEmpty else {
             return nil
         }
+        // Migrate older AfterFirstUnlock items to WhenUnlockedThisDeviceOnly after a successful read.
+        save(provider: provider, userID: string)
         return string
     }
 

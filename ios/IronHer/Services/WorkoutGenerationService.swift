@@ -93,7 +93,11 @@ struct WorkoutGenerationRequest {
 
 enum WorkoutGenerationService {
     static func generateWorkout(from request: WorkoutGenerationRequest) -> Workout? {
+        guard !request.muscleGroups.isEmpty else { return nil }
+        guard !request.availableEquipment.isEmpty else { return nil }
+
         let candidates = ExerciseCatalog.all.filter { exercise in
+            guard ExerciseCatalog.exercise(id: exercise.id) != nil else { return false }
             guard exercise.isCompatible(with: request.availableEquipment) else { return false }
             guard request.muscleGroups.contains(exercise.primaryMuscleGroup) else { return false }
             guard !request.avoidExerciseIds.contains(exercise.id) else { return false }
@@ -102,8 +106,9 @@ enum WorkoutGenerationService {
 
         guard !candidates.isEmpty else { return nil }
 
-        let targetCount = request.duration.targetExerciseCount.lowerBound
-            + Int.random(in: 0...(request.duration.targetExerciseCount.upperBound - request.duration.targetExerciseCount.lowerBound))
+        let range = request.duration.targetExerciseCount
+        let span = max(0, range.upperBound - range.lowerBound)
+        let targetCount = max(1, range.lowerBound + (span == 0 ? 0 : Int.random(in: 0...span)))
 
         var selected = pickExercises(
             from: candidates,
@@ -123,9 +128,12 @@ enum WorkoutGenerationService {
             }
         }
 
+        selected = selected.filter { ExerciseCatalog.exercise(id: $0.id) != nil }
         guard !selected.isEmpty else { return nil }
 
-        let (sets, reps) = defaultPrescription(for: request.goal, experience: request.experience)
+        let (rawSets, rawReps) = defaultPrescription(for: request.goal, experience: request.experience)
+        let sets = min(10, max(1, rawSets))
+        let reps = min(50, max(1, rawReps))
 
         let entries = selected.enumerated().map { index, exercise in
             WorkoutExerciseEntry(

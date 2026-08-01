@@ -295,9 +295,8 @@ struct EditWorkoutDetailView: View {
             historyStore.recordInitial(exerciseId: draft.exercise.id, weightKg: record.workingWeightKg)
         }
 
-        // Keep every draft of this exercise in the current editor aligned with the global record.
+        // Weight/reps/duration stay aligned globally. Planned set counts stay per entry.
         for index in draftExercises.indices where draftExercises[index].exercise.id == draft.exercise.id {
-            draftExercises[index].sets = record.targetSets
             draftExercises[index].reps = record.targetReps
             draftExercises[index].startingWeight = record.workingWeightKg
             draftExercises[index].durationSeconds = record.targetDurationSeconds
@@ -306,7 +305,6 @@ struct EditWorkoutDetailView: View {
     }
 
     private func saveChanges() {
-        // Persist the template structure for this workout, then re-assert global progression for each exercise.
         for draft in draftExercises {
             syncGlobalProgress(from: draft)
         }
@@ -316,7 +314,7 @@ struct EditWorkoutDetailView: View {
             return WorkoutExerciseEntry(
                 id: draft.id,
                 exerciseId: draft.exercise.id,
-                sets: progress?.targetSets ?? draft.sets,
+                sets: draft.sets,
                 reps: progress?.targetReps ?? draft.reps,
                 startingWeight: progress?.workingWeightKg ?? draft.startingWeight,
                 durationSeconds: progress?.targetDurationSeconds ?? draft.durationSeconds,

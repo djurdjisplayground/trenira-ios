@@ -49,18 +49,35 @@ final class AppModel {
         self.dataCoordinator = coordinator
         coordinator.bootstrap(authState: authManager.authState)
 
+        WeightIncrementRepairMigration.runIfNeeded(
+            ownerRawValue: coordinator.currentOwner.rawValue,
+            globalProgressStore: globalProgressStore,
+            workoutStore: workoutStore,
+            historyStore: historyStore,
+            progressionStore: progressionStore,
+            settingsStore: settingsStore
+        )
+
         authManager.onAuthStateSettled = { [weak self] state in
             guard let self else { return }
             Task { @MainActor in
                 switch state {
                 case .guest:
                     self.dataCoordinator.handleContinueAsGuest()
-                case .apple, .google, .email:
+                case .apple, .google:
                     await self.dataCoordinator.handleAuthenticatedSignIn(authState: state)
                 case .signedOut:
                     break
                 }
                 self.backupHintMessage = self.dataCoordinator.lastMigrationMessage
+                WeightIncrementRepairMigration.runIfNeeded(
+                    ownerRawValue: self.dataCoordinator.currentOwner.rawValue,
+                    globalProgressStore: self.globalProgressStore,
+                    workoutStore: self.workoutStore,
+                    historyStore: self.historyStore,
+                    progressionStore: self.progressionStore,
+                    settingsStore: self.settingsStore
+                )
             }
         }
     }

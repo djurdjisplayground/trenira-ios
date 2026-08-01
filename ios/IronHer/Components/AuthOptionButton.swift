@@ -4,7 +4,6 @@ struct AuthOptionButton: View {
     enum Style {
         case apple
         case google
-        case email
     }
 
     let title: String
@@ -43,9 +42,6 @@ struct AuthOptionButton: View {
             Text("G")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(IronHerTheme.primaryText)
-        case .email:
-            Image(systemName: "envelope")
-                .font(.system(size: 17, weight: .regular))
         }
     }
 
@@ -53,7 +49,7 @@ struct AuthOptionButton: View {
         switch style {
         case .apple:
             IronHerTheme.accentForeground
-        case .google, .email:
+        case .google:
             IronHerTheme.primaryText
         }
     }
@@ -62,7 +58,7 @@ struct AuthOptionButton: View {
         switch style {
         case .apple:
             IronHerTheme.accent
-        case .google, .email:
+        case .google:
             IronHerTheme.cardBackground
         }
     }
@@ -72,7 +68,6 @@ struct AuthOptionButton: View {
     VStack(spacing: 12) {
         AuthOptionButton(title: "Continue with Apple", style: .apple) {}
         AuthOptionButton(title: "Continue with Google", style: .google) {}
-        AuthOptionButton(title: "Continue with Email", style: .email) {}
     }
     .padding()
     .background(IronHerTheme.background)

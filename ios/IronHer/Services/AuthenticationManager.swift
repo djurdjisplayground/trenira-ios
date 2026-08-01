@@ -15,7 +15,6 @@ final class AuthenticationManager: NSObject {
     private let accountUserDefaultsKey = "accountUserIdentifier"
     private let authModeDefaultsKey = "authMode"
     private let googleEmailDefaultsKey = "googleEmail"
-    private let emailAddressDefaultsKey = "emailAddress"
     private var authTimeoutTask: Task<Void, Never>?
 
     /// Fired after auth settles (guest continue, provider sign-in, sign-out). Used for data migration.
@@ -24,7 +23,7 @@ final class AuthenticationManager: NSObject {
     /// Must be retained until Apple calls the delegate methods.
     private var appleAuthorizationController: ASAuthorizationController?
 
-    private let logger = Logger(subsystem: "com.ironher.app", category: "Auth")
+    private let logger = Logger(subsystem: "com.trenira.app", category: "Auth")
 
     var canAccessApp: Bool { authState.isSignedIn }
 
@@ -79,48 +78,6 @@ final class AuthenticationManager: NSObject {
         startAuthTimeout()
     }
 
-    func signInWithEmail(email: String, password: String) {
-        guard !isAuthenticating else { return }
-
-        isAuthenticating = true
-        errorMessage = nil
-        statusMessage = "Signing in…"
-
-        defer { isAuthenticating = false }
-
-        do {
-            let account = try EmailAuthService.signIn(email: email, password: password)
-            authState = .email(userId: account.userId, email: account.email)
-            statusMessage = "Signed in with Email"
-            persistState()
-            onAuthStateSettled?(.email(userId: account.userId, email: account.email))
-        } catch {
-            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-            statusMessage = "Sign in failed"
-        }
-    }
-
-    func createAccountWithEmail(email: String, password: String) {
-        guard !isAuthenticating else { return }
-
-        isAuthenticating = true
-        errorMessage = nil
-        statusMessage = "Creating account…"
-
-        defer { isAuthenticating = false }
-
-        do {
-            let account = try EmailAuthService.createAccount(email: email, password: password)
-            authState = .email(userId: account.userId, email: account.email)
-            statusMessage = "Account created"
-            persistState()
-            onAuthStateSettled?(.email(userId: account.userId, email: account.email))
-        } catch {
-            errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
-            statusMessage = "Sign up failed"
-        }
-    }
-
     func continueAsGuest() {
         authTimeoutTask?.cancel()
         appleAuthorizationController = nil
@@ -140,8 +97,6 @@ final class AuthenticationManager: NSObject {
             await restoreAppleSession(userId: userId)
         case .google:
             return
-        case .email:
-            return
         }
     }
 
@@ -157,9 +112,64 @@ final class AuthenticationManager: NSObject {
         signOut(preparing: nil)
     }
 
+    // MARK: - Local data erasure
+
+    enum LocalDataErasureAuthError: LocalizedError {
+        case notSignedIn
+        case erasureFailed(String)
+
+        var errorDescription: String? {
+            switch self {
+            case .notSignedIn:
+                "You're not signed in."
+            case .erasureFailed(let message):
+                message
+            }
+        }
+    }
+
+    /// Erases all Trenira local data on this device, then signs out.
+    /// Does not delete the user's Apple ID or Google account.
+    func eraseAllLocalData(dataCoordinator: UserDataCoordinator) async throws {
+        let logger = Logger(subsystem: "com.trenira.app", category: "LocalDataErasure")
+        guard authState.isSignedIn else {
+            throw LocalDataErasureAuthError.notSignedIn
+        }
+
+        do {
+            logger.info("Local erasure requested provider=\(self.authProviderLabel(self.authState), privacy: .public)")
+            try LocalDataErasureService.eraseAllLocalData(dataCoordinator: dataCoordinator)
+        } catch {
+            logger.error("Local erasure failed: \(error.localizedDescription, privacy: .public)")
+            throw LocalDataErasureAuthError.erasureFailed(
+                (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            )
+        }
+
+        performSignOut()
+        statusMessage = "Local data erased."
+        logger.info("Local erasure finished and session cleared")
+    }
+
+    /// Legacy name — routes to local erasure. Does not delete Apple/Google accounts.
+    func deleteAccount(dataCoordinator: UserDataCoordinator) async throws {
+        try await eraseAllLocalData(dataCoordinator: dataCoordinator)
+    }
+
+    private func authProviderLabel(_ state: AuthState) -> String {
+        switch state {
+        case .signedOut: return "signedOut"
+        case .guest: return "guest"
+        case .apple: return "apple"
+        case .google: return "google"
+        }
+    }
+
     private func performSignOut() {
         authTimeoutTask?.cancel()
         appleAuthorizationController = nil
+        // End provider SDK session without touching workout UserDefaults / vaults.
+        GoogleSignInService.signOut()
         authState = .signedOut
         isAuthenticating = false
         errorMessage = nil
@@ -194,13 +204,10 @@ final class AuthenticationManager: NSObject {
                 statusMessage = "Welcome back"
             }
         case "email":
-            let userId = SecureAccountIdentityStore.load(provider: "email")
-                ?? UserDefaults.standard.string(forKey: accountUserDefaultsKey)
-            if let userId,
-               let email = UserDefaults.standard.string(forKey: emailAddressDefaultsKey) {
-                authState = .email(userId: userId, email: email)
-                statusMessage = "Welcome back"
-            }
+            // Email/password auth was removed for TestFlight. Force welcome screen.
+            clearLegacyEmailAuthArtifacts()
+            authState = .signedOut
+            statusMessage = "Choose how you'd like to continue"
         default:
             break
         }
@@ -247,7 +254,7 @@ final class AuthenticationManager: NSObject {
                 return
             }
 
-            logger.info("Apple sign-in succeeded for user \(credential.user, privacy: .private)")
+            logger.info("Apple sign-in succeeded")
             authState = .apple(userId: credential.user)
             errorMessage = nil
             statusMessage = "Signed in with Apple"
@@ -326,7 +333,6 @@ final class AuthenticationManager: NSObject {
             UserDefaults.standard.set("guest", forKey: authModeDefaultsKey)
             UserDefaults.standard.removeObject(forKey: accountUserDefaultsKey)
             UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
-            UserDefaults.standard.removeObject(forKey: emailAddressDefaultsKey)
             SecureAccountIdentityStore.clearAllKnownProviders()
         case .apple(let userId):
             UserDefaults.standard.set("apple", forKey: authModeDefaultsKey)
@@ -334,23 +340,15 @@ final class AuthenticationManager: NSObject {
             UserDefaults.standard.set(userId, forKey: accountUserDefaultsKey)
             SecureAccountIdentityStore.save(provider: "apple", userID: userId)
             UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
-            UserDefaults.standard.removeObject(forKey: emailAddressDefaultsKey)
         case .google(let userId, let email):
             UserDefaults.standard.set("google", forKey: authModeDefaultsKey)
             UserDefaults.standard.set(userId, forKey: accountUserDefaultsKey)
             SecureAccountIdentityStore.save(provider: "google", userID: userId)
-            UserDefaults.standard.removeObject(forKey: emailAddressDefaultsKey)
             if let email {
                 UserDefaults.standard.set(email, forKey: googleEmailDefaultsKey)
             } else {
                 UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
             }
-        case .email(let userId, let email):
-            UserDefaults.standard.set("email", forKey: authModeDefaultsKey)
-            UserDefaults.standard.set(userId, forKey: accountUserDefaultsKey)
-            SecureAccountIdentityStore.save(provider: "email", userID: userId)
-            UserDefaults.standard.set(email, forKey: emailAddressDefaultsKey)
-            UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
         }
     }
 
@@ -358,8 +356,19 @@ final class AuthenticationManager: NSObject {
         UserDefaults.standard.removeObject(forKey: authModeDefaultsKey)
         UserDefaults.standard.removeObject(forKey: accountUserDefaultsKey)
         UserDefaults.standard.removeObject(forKey: googleEmailDefaultsKey)
-        UserDefaults.standard.removeObject(forKey: emailAddressDefaultsKey)
+        clearLegacyEmailAuthArtifacts()
         SecureAccountIdentityStore.clearAllKnownProviders()
+    }
+
+    /// Clears leftovers from the removed local email/password auth path.
+    private func clearLegacyEmailAuthArtifacts() {
+        UserDefaults.standard.removeObject(forKey: "emailAddress")
+        UserDefaults.standard.removeObject(forKey: "emailAuthAccounts")
+        SecureAccountIdentityStore.clear(provider: "email")
+        if UserDefaults.standard.string(forKey: authModeDefaultsKey) == "email" {
+            UserDefaults.standard.removeObject(forKey: authModeDefaultsKey)
+            UserDefaults.standard.removeObject(forKey: accountUserDefaultsKey)
+        }
     }
 
     private func startAuthTimeout() {

@@ -42,8 +42,6 @@ extension AuthState {
             return .account(provider: "apple", userID: userId)
         case .google(let userId, _):
             return .account(provider: "google", userID: userId)
-        case .email(let userId, _):
-            return .account(provider: "email", userID: userId)
         }
     }
 }

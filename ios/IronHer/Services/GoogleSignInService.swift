@@ -31,6 +31,11 @@ enum GoogleSignInService {
         let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: presenter)
         return result.user
     }
+
+    /// Ends the Google Sign-In SDK session. Does not erase Trenira workout data.
+    static func signOut() {
+        GIDSignIn.sharedInstance.signOut()
+    }
 }
 
 enum GoogleSignInError: LocalizedError {

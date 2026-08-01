@@ -5,12 +5,14 @@ enum EquipmentDefaults {
     static func defaultIncrementKg(for equipment: EquipmentType) -> Double {
         switch equipment {
         case .barbell:
-            return 2.5
+            return WeightProgressionCalculator.defaultIncrementKg
         case .dumbbell:
-            return 2.0
+            // Match the product default (2.5 kg). Legacy soft default of 2.0 caused
+            // 17.5 → 19.5 when Progression Rules showed 2.5.
+            return WeightProgressionCalculator.defaultIncrementKg
         case .cable, .machine, .kettlebell:
             // Neutral starting point; gyms vary widely — treat as user-defined.
-            return 2.5
+            return WeightProgressionCalculator.defaultIncrementKg
         case .bodyweight:
             return 0
         }
@@ -60,31 +62,33 @@ enum ExerciseIncrementResolver {
     static func incrementKg(
         for exerciseId: String,
         equipmentOverridesKg: [String: Double],
-        exerciseOverridesKg: [String: Double]
+        exerciseOverridesKg: [String: Double],
+        categoryDefaultKg: Double = WeightProgressionCalculator.defaultIncrementKg
     ) -> Double {
         guard let exercise = ExerciseCatalog.exercise(id: exerciseId) else {
-            return EquipmentDefaults.defaultIncrementKg(for: .dumbbell)
+            return categoryDefaultKg > 0
+                ? WeightProgressionCalculator.normalize(categoryDefaultKg)
+                : WeightProgressionCalculator.defaultIncrementKg
         }
         return incrementKg(
             for: exercise,
             equipmentOverridesKg: equipmentOverridesKg,
-            exerciseOverridesKg: exerciseOverridesKg
+            exerciseOverridesKg: exerciseOverridesKg,
+            categoryDefaultKg: categoryDefaultKg
         )
     }
 
     static func incrementKg(
         for exercise: Exercise,
         equipmentOverridesKg: [String: Double],
-        exerciseOverridesKg: [String: Double]
+        exerciseOverridesKg: [String: Double],
+        categoryDefaultKg: Double = WeightProgressionCalculator.defaultIncrementKg
     ) -> Double {
-        if let exerciseOverride = exerciseOverridesKg[exercise.id] {
-            return exerciseOverride
-        }
-        // Machine/cable: never rely on a global equipment override — per-exercise only.
-        if !requiresContextualIncrement(for: exercise.equipment),
-           let equipmentOverride = equipmentOverridesKg[exercise.equipment.rawValue] {
-            return equipmentOverride
-        }
-        return EquipmentDefaults.defaultIncrementKg(for: exercise.equipment)
+        WeightProgressionCalculator.resolveIncrementKg(
+            exercise: exercise,
+            exerciseOverridesKg: exerciseOverridesKg,
+            equipmentOverridesKg: equipmentOverridesKg,
+            categoryDefaultKg: categoryDefaultKg
+        )
     }
 }

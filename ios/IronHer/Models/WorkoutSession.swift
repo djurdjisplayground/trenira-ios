@@ -151,7 +151,10 @@ struct ExerciseSessionState: Codable, Equatable, Hashable {
 
     mutating func align(with entry: WorkoutExerciseEntry) {
         let defaults = SetPerformance(from: entry)
-        resize(to: entry.sets, defaultPerformance: defaults)
+        // Keep session set rows in lockstep with the workout template’s planned count.
+        // Stale drafts (e.g. old 4-set cache vs current 3-set config) are rebuilt here.
+        // Completed historical logs are never modified — only the live session state.
+        resize(to: max(1, entry.sets), defaultPerformance: defaults)
 
         // Incomplete sets always mirror the current planned target.
         // Completed sets keep what the athlete actually performed this session.

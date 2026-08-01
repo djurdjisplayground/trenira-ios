@@ -183,7 +183,7 @@ final class WorkoutStore {
         }
 
         #if DEBUG
-        print("[WorkoutDuplicate] ok source=\(source.id) copy=\(copy.id) name=\(copy.name) entries=\(copiedExercises.count)")
+        print("[WorkoutDuplicate] ok sourceEntries=\(copiedExercises.count)")
         #endif
         onCreate?()
         onMutation?()
@@ -400,6 +400,7 @@ final class WorkoutStore {
     }
 
     /// Fans out the global prescription onto every plan that contains this exercise.
+    /// Set counts are per-workout-entry and are not overwritten unless `updateSets` is true.
     @discardableResult
     func applyPrescription(
         for exerciseId: String,
@@ -407,12 +408,15 @@ final class WorkoutStore {
         reps: Int,
         sets: Int,
         durationSeconds: Int,
-        distanceMeters: Double
+        distanceMeters: Double,
+        updateSets: Bool = false
     ) -> Bool {
         applyToAllEntries(exerciseId: exerciseId) { entry in
             entry.startingWeight = weightKg
             entry.reps = reps
-            entry.sets = max(1, sets)
+            if updateSets {
+                entry.sets = max(1, sets)
+            }
             entry.durationSeconds = durationSeconds
             entry.distanceMeters = distanceMeters
         }

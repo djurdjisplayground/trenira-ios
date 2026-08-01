@@ -8,6 +8,7 @@ struct HomeView: View {
     @Environment(LocalizationStore.self) private var l10n
     @Environment(TestingTimeStore.self) private var testingTimeStore
     @Environment(UserDataCoordinator.self) private var dataCoordinator
+    @State private var showSignOutConfirm = false
 
     private var startableWorkouts: [Workout] {
         workoutStore.workouts.filter { !$0.isDraft && !$0.exercises.isEmpty }
@@ -73,6 +74,18 @@ struct HomeView: View {
             }
         }
         .id("\(testingTimeStore.revision)-\(sessionStore.activeSession?.id.uuidString ?? "none")")
+        .confirmationDialog(
+            l10n.t(.sign_out_confirm_title),
+            isPresented: $showSignOutConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(l10n.t(.log_out), role: .destructive) {
+                authManager.signOut(preparing: dataCoordinator)
+            }
+            Button(l10n.t(.cancel), role: .cancel) {}
+        } message: {
+            Text(l10n.t(.sign_out_confirm_message))
+        }
     }
 
     private var headerSection: some View {
@@ -144,8 +157,8 @@ struct HomeView: View {
             .font(SheLiftsFont.subheadline)
             .foregroundStyle(IronHerTheme.secondaryText)
         } else if authManager.authState != .signedOut {
-            Button(l10n.t(.sign_out)) {
-                authManager.signOut(preparing: dataCoordinator)
+            Button(l10n.t(.log_out)) {
+                showSignOutConfirm = true
             }
             .font(SheLiftsFont.subheadline)
             .foregroundStyle(IronHerTheme.secondaryText)

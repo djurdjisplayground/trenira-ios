@@ -397,13 +397,10 @@ struct AddExerciseSheet: View {
         speechService.stopListening()
         selectedExercise = exercise
         let philosophy = progressionStore.configuration(for: exercise.id)
-        sets = philosophy.targetSets
+        sets = globalProgressStore.targetSets(for: exercise.id)
+            ?? max(1, philosophy.targetSets)
         durationSeconds = ExerciseTrackingFormatter.defaultDurationSeconds(for: exercise)
         distanceMeters = ExerciseTrackingFormatter.defaultDistanceMeters(for: exercise)
-
-        if let savedSets = globalProgressStore.targetSets(for: exercise.id) {
-            sets = savedSets
-        }
 
         if let savedReps = globalProgressStore.targetReps(for: exercise.id) ?? workoutStore.knownReps(for: exercise.id) {
             reps = savedReps

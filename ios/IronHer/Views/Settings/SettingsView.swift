@@ -9,12 +9,14 @@ struct SettingsView: View {
     @Environment(AuthenticationManager.self) private var authManager
     @Environment(UserDataCoordinator.self) private var dataCoordinator
     @State private var showManageSubscriptions = false
+    @State private var showSignOutConfirm = false
+    @State private var showIntroduction = false
 
     var body: some View {
         @Bindable var settings = settingsStore
 
         Form {
-            Section("Account & backup") {
+            Section(l10n.t(.account)) {
                 Text(authManager.authState.displayName)
                     .foregroundStyle(IronHerTheme.primaryText)
 
@@ -40,17 +42,30 @@ struct SettingsView: View {
                 .foregroundStyle(IronHerTheme.secondaryText)
 
                 if authManager.authState.isGuest {
-                    Text("Sign in to back up your workouts and keep your progress across devices.")
+                    Text("Workouts stay on this device. Cloud backup is not available in this beta.")
                         .font(SheLiftsFont.caption)
                         .foregroundStyle(IronHerTheme.secondaryText)
                 } else if authManager.authState != .signedOut {
                     Text(
                         BetaConfig.hidesMonetization
-                            ? "Your workouts and progress stay with this account."
+                            ? "Your workouts stay on this device with this account. They are not backed up to the cloud yet."
                             : "Workouts and Premium are separate. Canceling Premium never deletes your training data."
                     )
                         .font(SheLiftsFont.caption)
                         .foregroundStyle(IronHerTheme.secondaryText)
+                }
+            }
+
+            if authManager.authState.isSignedIn && !authManager.authState.isGuest {
+                Section {
+                    Button(role: .destructive) {
+                        showSignOutConfirm = true
+                    } label: {
+                        Text(l10n.t(.log_out))
+                    }
+                } footer: {
+                    Text(l10n.t(.sign_out_confirm_message))
+                        .font(SheLiftsFont.caption)
                 }
             }
 
@@ -65,15 +80,64 @@ struct SettingsView: View {
                         .font(SheLiftsFont.caption)
                         .foregroundStyle(IronHerTheme.secondaryText)
                 }
+
+                Section {
+                    NavigationLink {
+                        BetaFeedbackView()
+                    } label: {
+                        Label("Send Feedback", systemImage: "envelope")
+                    }
+
+                    Button("View Introduction") {
+                        showIntroduction = true
+                    }
+                } header: {
+                    Text("Beta Feedback")
+                } footer: {
+                    Text("Opens a prefilled message to \(AppConfiguration.feedbackEmail). You review and send it yourself.")
+                        .font(SheLiftsFont.caption)
+                }
             }
 
             Section {
-                Link(destination: BetaConfig.feedbackMailtoURL) {
-                    Label("Send Feedback", systemImage: "envelope")
-                }
+                ConsultationCard()
+            } header: {
+                Text("Services & Support")
             } footer: {
-                Text("Opens Mail with \(BetaConfig.feedbackEmail). Include what you tried and what went wrong.")
+                Text("Optional person-to-person help. trenira stays fully usable without booking a session. Payment is arranged separately after you request.")
                     .font(SheLiftsFont.caption)
+            }
+
+            Section {
+                NavigationLink {
+                    PrivacyPolicyView()
+                } label: {
+                    Text("Privacy Policy")
+                }
+
+                NavigationLink {
+                    TermsAndConditionsView()
+                } label: {
+                    Text("Terms & Conditions")
+                }
+
+                if authManager.authState.isSignedIn {
+                    NavigationLink {
+                        EraseLocalDataView()
+                    } label: {
+                        Text(l10n.t(.erase_local_data))
+                            .foregroundStyle(.red)
+                    }
+                }
+            } header: {
+                Text("Legal & Privacy")
+            } footer: {
+                Text(
+                    authManager.authState.isSignedIn
+                        ? "Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName). Erase All Local Data permanently removes trenira data stored on this device."
+                        : "Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName)."
+                )
+                .font(SheLiftsFont.caption)
             }
 
             if !BetaConfig.hidesMonetization {
@@ -150,6 +214,13 @@ struct SettingsView: View {
                     EquipmentIncrementsSettingsView()
                 }
                 Text("Default weight steps by equipment, shown in \(settings.weightUnit.shortLabel).")
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+            }
+
+            Section(l10n.t(.workout_settings)) {
+                Toggle(l10n.t(.timer_sounds), isOn: $settings.timerSoundsEnabled)
+                Text(l10n.t(.timer_sounds_footer))
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
             }
@@ -245,6 +316,23 @@ struct SettingsView: View {
         .navigationTitle(l10n.t(.settings))
         .navigationBarTitleDisplayMode(.inline)
         .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
+        .confirmationDialog(
+            l10n.t(.sign_out_confirm_title),
+            isPresented: $showSignOutConfirm,
+            titleVisibility: .visible
+        ) {
+            Button(l10n.t(.log_out), role: .destructive) {
+                authManager.signOut(preparing: dataCoordinator)
+            }
+            Button(l10n.t(.cancel), role: .cancel) {}
+        } message: {
+            Text(l10n.t(.sign_out_confirm_message))
+        }
+        .fullScreenCover(isPresented: $showIntroduction) {
+            OnboardingView(isPreview: true) {
+                showIntroduction = false
+            }
+        }
         .onChange(of: showManageSubscriptions) { wasShowing, isShowing in
             // After the system manage sheet closes, re-check entitlements
             // (cancel / expire / plan change in StoreKit Testing).
@@ -462,6 +550,41 @@ struct DeveloperSettingsView: View {
                 Button("Run guest migration self-tests") {
                     #if DEBUG
                     let outcome = UserDataMigrationSelfTests.runAll()
+                    settingsStore.noteDeveloperAction(outcome.summary)
+                    #endif
+                }
+
+                Button("Run local data protection self-tests") {
+                    #if DEBUG
+                    let outcome = LocalDataProtectionSelfTests.runAll()
+                    settingsStore.noteDeveloperAction(outcome.summary)
+                    #endif
+                }
+
+                Button("Run consultation self-tests") {
+                    #if DEBUG
+                    let outcome = ConsultationSelfTests.runAll()
+                    settingsStore.noteDeveloperAction(outcome.summary)
+                    #endif
+                }
+
+                Button("Run exercise progress series self-tests") {
+                    #if DEBUG
+                    let outcome = ExerciseProgressSeriesSelfTests.runAll()
+                    settingsStore.noteDeveloperAction(outcome.summary)
+                    #endif
+                }
+
+                Button("Run weight progression self-tests") {
+                    #if DEBUG
+                    let outcome = WeightProgressionSelfTests.runAll()
+                    settingsStore.noteDeveloperAction(outcome.summary)
+                    #endif
+                }
+
+                Button("Run TestFlight prep self-tests") {
+                    #if DEBUG
+                    let outcome = TestFlightPrepSelfTests.runAll()
                     settingsStore.noteDeveloperAction(outcome.summary)
                     #endif
                 }

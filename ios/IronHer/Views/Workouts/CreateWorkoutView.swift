@@ -84,11 +84,14 @@ struct CreateWorkoutView: View {
 
                     for draftIndex in draftExercises.indices
                     where draftExercises[draftIndex].exercise.id == draft.exercise.id {
-                        draftExercises[draftIndex].sets = record.targetSets
                         draftExercises[draftIndex].reps = record.targetReps
                         draftExercises[draftIndex].startingWeight = record.workingWeightKg
                         draftExercises[draftIndex].durationSeconds = record.targetDurationSeconds
                         draftExercises[draftIndex].distanceMeters = record.targetDistanceMeters
+                    }
+                    // Keep the edited entry's set count as configured for this workout.
+                    if let index = draftExercises.firstIndex(where: { $0.id == draft.id }) {
+                        draftExercises[index].sets = sets
                     }
                     autosaveDraft()
                 }

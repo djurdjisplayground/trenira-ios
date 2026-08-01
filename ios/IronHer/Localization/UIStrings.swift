@@ -12,16 +12,10 @@ enum L10nKey: String, CaseIterable {
     case welcome_sign_in_prompt = "welcome_sign_in_prompt"
     case continue_with_apple = "continue_with_apple"
     case continue_with_google = "continue_with_google"
-    case continue_with_email = "continue_with_email"
     case continue_as_guest = "continue_as_guest"
-    case sign_in = "sign_in"
-    case create_account = "create_account"
-    case email = "email"
-    case password = "password"
     case cancel = "cancel"
-    case welcome_back = "welcome_back"
-    case create_your_account = "create_your_account"
-    case save_workouts_progress = "save_workouts_progress"
+    case early_beta_title = "early_beta_title"
+    case early_beta_notice = "early_beta_notice"
 
     // MARK: - Home
     case good_morning = "good_morning"
@@ -47,7 +41,6 @@ enum L10nKey: String, CaseIterable {
     case adapt_tab_footer = "adapt_tab_footer"
     case adapt_workout = "adapt_workout"
     case adapt_workout_manual = "adapt_workout_manual"
-    case regenerate_workout_ai_subtitle = "regenerate_workout_ai_subtitle"
     case starting_weight = "starting_weight"
     case starting_weight_caption = "starting_weight_caption"
     case weight_increment = "weight_increment"
@@ -55,7 +48,8 @@ enum L10nKey: String, CaseIterable {
     case exercise_no_weight_progression = "exercise_no_weight_progression"
     case create_manually = "create_manually"
     case create_manually_subtitle = "create_manually_subtitle"
-    case generate_with_ai = "generate_with_ai"
+    case generate_workout_option = "generate_workout_option"
+    case recommendation_disclaimer = "recommendation_disclaimer"
     case create_workout_options_footer = "create_workout_options_footer"
     case home_create_subtitle = "home_create_subtitle"
     case home_track_week_empty = "home_track_week_empty"
@@ -93,6 +87,17 @@ enum L10nKey: String, CaseIterable {
     case progress_history_empty_body = "progress_history_empty_body"
     case progress_history_list_footer = "progress_history_list_footer"
     case progress_detail_footer = "progress_detail_footer"
+    case progress_chart_footer = "progress_chart_footer"
+    case progress_chart_empty_title = "progress_chart_empty_title"
+    case progress_chart_empty_body = "progress_chart_empty_body"
+    case progress_chart_empty_range_title = "progress_chart_empty_range_title"
+    case progress_chart_empty_range_body = "progress_chart_empty_range_body"
+    case progress_chart_one_point_hint = "progress_chart_one_point_hint"
+    case progress_recent_sessions = "progress_recent_sessions"
+    case progress_recent_sessions_footer = "progress_recent_sessions_footer"
+    case progress_chart_estimated_strength = "progress_chart_estimated_strength"
+    case progress_chart_best_reps = "progress_chart_best_reps"
+    case progress_chart_longest_duration = "progress_chart_longest_duration"
     case equipment_increments_intro = "equipment_increments_intro"
     case equipment_increments_footer = "equipment_increments_footer"
     case equipment_increments_bodyweight_note = "equipment_increments_bodyweight_note"
@@ -251,8 +256,31 @@ enum L10nKey: String, CaseIterable {
     case search = "search"
     case search_exercises = "search_exercises"
     case sign_out = "sign_out"
+    case sign_out_confirm_title = "sign_out_confirm_title"
+    case sign_out_confirm_message = "sign_out_confirm_message"
+    case log_out = "log_out"
+    case continue_action = "continue_action"
     case sign_in_title = "sign_in_title"
     case premium_badge = "premium_badge"
+
+    // MARK: - Local data erasure
+    case account = "account"
+    case erase_local_data = "erase_local_data"
+    case erase_local_data_title = "erase_local_data_title"
+    case erase_local_data_body = "erase_local_data_body"
+    case erase_local_data_type_delete = "erase_local_data_type_delete"
+    case erase_local_data_confirm_title = "erase_local_data_confirm_title"
+    case erase_local_data_confirm_message = "erase_local_data_confirm_message"
+    case erase_local_data_footer = "erase_local_data_footer"
+    case erase_local_data_final_title = "erase_local_data_final_title"
+    case erase_local_data_final_message = "erase_local_data_final_message"
+    case erase_data = "erase_data"
+    case local_data_erased = "local_data_erased"
+
+    // MARK: - Workout settings
+    case workout_settings = "workout_settings"
+    case timer_sounds = "timer_sounds"
+    case timer_sounds_footer = "timer_sounds_footer"
 
     // MARK: - Return after break
     case welcome_back_training = "welcome_back_training"
@@ -284,19 +312,13 @@ enum UIStrings {
             .tagline_line2: "on your own terms.",
 
             // Auth / Welcome
-            .welcome_sign_in_prompt: "Sign in to back up your workouts and keep your progress across devices.",
+            .welcome_sign_in_prompt: "Choose how you'd like to continue.",
             .continue_with_apple: "Continue with Apple",
             .continue_with_google: "Continue with Google",
-            .continue_with_email: "Continue with Email",
             .continue_as_guest: "Continue as Guest",
-            .sign_in: "Sign In",
-            .create_account: "Create Account",
-            .email: "Email",
-            .password: "Password",
             .cancel: "Cancel",
-            .welcome_back: "Welcome Back",
-            .create_your_account: "Create Your Account",
-            .save_workouts_progress: "Sign in to back up your workouts and keep your progress across devices.",
+            .early_beta_title: "Early Beta",
+            .early_beta_notice: "Your workout data is currently stored only on this device.\n\nIf you delete the app or switch devices, your workout history will be lost.\n\nCloud backup and synchronisation are coming in a future update.",
 
             // Home
             .good_morning: "Good morning",
@@ -334,8 +356,8 @@ enum UIStrings {
             .in_progress: "In progress",
             .my_workouts_library_footer: "Create, edit, or delete workouts here. Start training from Home.",
             .generate_workout: "Generate Workout",
-            .generate_workout_subtitle: "Draft a plan from your goals and equipment",
-            .regenerate_workout: "Regenerate Workout",
+            .generate_workout_subtitle: "Automatically draft a plan from your goals and equipment",
+            .regenerate_workout: "Refresh Workout",
             .regenerate_workout_subtitle: "Fresh exercises, same training intention",
             .adapt_existing_workout: "Adapt Existing Workout",
             .adapt_existing_workout_subtitle: "I already have a workout — help me adapt it",
@@ -407,7 +429,7 @@ enum UIStrings {
             .appearance: "Appearance",
             .theme: "Theme",
             .notifications: "Notifications",
-            .session_feedback: "Session Feedback",
+            .session_feedback: "Training Guidance",
             .style: "Style",
             .progression_section: "Progression",
             .equipment_increments: "Equipment Increments",
@@ -455,8 +477,19 @@ enum UIStrings {
             .progress_current: "Current",
             .progress_date_range: "Date range",
             .progress_history_empty_body: "Complete workouts to see how your strength improves over time.",
-            .progress_history_list_footer: "Started to current — not every set.",
+            .progress_history_list_footer: "Open an exercise to see its strength, reps, or duration trend.",
             .progress_detail_footer: "A simple view of how this exercise has progressed.",
+            .progress_chart_footer: "Drag across the chart to inspect a session. Values come from completed sets only.",
+            .progress_chart_empty_title: "No progress data yet",
+            .progress_chart_empty_body: "Complete this exercise in a workout to start tracking progress.",
+            .progress_chart_empty_range_title: "No sessions in this period",
+            .progress_chart_empty_range_body: "Try a wider time range to see earlier progress for this exercise.",
+            .progress_chart_one_point_hint: "Complete this exercise again to see your trend.",
+            .progress_recent_sessions: "Recent sessions",
+            .progress_recent_sessions_footer: "Best set for this chart metric, from the same completed workouts.",
+            .progress_chart_estimated_strength: "Estimated strength",
+            .progress_chart_best_reps: "Best reps",
+            .progress_chart_longest_duration: "Longest duration",
             .equipment_increments_intro: "Weight increments belong to each exercise. Set them when you add a machine or cable, or in Exercise Library.",
             .equipment_increments_footer: "Used when progressive overload increases weight after a completed workout.",
             .equipment_increments_bodyweight_note: "No automatic weight increase. Progress through reps, sets, tempo, or added load.",
@@ -470,8 +503,9 @@ enum UIStrings {
             .adapt_workout: "Adapt Workout",
             .create_manually: "Create Manually",
             .create_manually_subtitle: "Build your plan exercise by exercise",
-            .generate_with_ai: "Generate with AI",
-            .create_workout_options_footer: "AI is optional — create manually anytime.",
+            .generate_workout_option: "Generate Workout",
+            .recommendation_disclaimer: "Recommendations are generated automatically based on your selected preferences and available equipment.\n\nAlways review your workout before starting and adjust it to your experience, goals and physical condition.",
+            .create_workout_options_footer: "Generation is optional — create manually anytime.",
             .home_create_subtitle: "Build a new plan",
             .results_section: "Results",
             .progress_progression_footer: "Defaults for how exercises move forward when you train.",
@@ -490,7 +524,6 @@ enum UIStrings {
             .machine_cable_increments_footer: "Edit saved increments for exercises you’ve already set up.",
             .exercise_increment_reset_footer: "Clears the saved increment. You’ll be asked again next time you add this exercise.",
             .adapt_workout_manual: "Adapt Workout",
-            .regenerate_workout_ai_subtitle: "Fresh exercises with AI — same training intention",
             .starting_weight: "Starting Weight",
             .starting_weight_caption: "Your current working weight for this exercise.",
             .weight_increment: "Weight Increment",
@@ -526,8 +559,31 @@ enum UIStrings {
             .search: "Search",
             .search_exercises: "Search Exercises",
             .sign_out: "Sign Out",
+            .sign_out_confirm_title: "Log out?",
+            .sign_out_confirm_message: "Your workouts will remain stored on this device. They will not be backed up or available on another device.",
+            .log_out: "Log Out",
+            .continue_action: "Continue",
             .sign_in_title: "Sign in to trenira",
             .premium_badge: "Premium",
+
+            // Local data erasure
+            .account: "Account",
+            .erase_local_data: "Erase All Local Data",
+            .erase_local_data_title: "Erase all local data?",
+            .erase_local_data_body: "Permanently deletes all workouts, workout history, progression data, gym profiles, equipment settings, preferences, and other trenira data stored on this device.\n\nThis cannot be undone.",
+            .erase_local_data_type_delete: "Type DELETE to confirm",
+            .erase_local_data_confirm_title: "Erase all trenira data from this device?",
+            .erase_local_data_confirm_message: "This will permanently delete your workouts, history, progression, and settings. Apple or Google sign-in will not restore them.",
+            .erase_local_data_footer: "This does not delete your Apple ID or Google account.",
+            .erase_local_data_final_title: "Final confirmation",
+            .erase_local_data_final_message: "This permanently erases trenira data on this device. You cannot undo this.",
+            .erase_data: "Erase Data",
+            .local_data_erased: "Local data erased.",
+
+            // Workout settings
+            .workout_settings: "Workout",
+            .timer_sounds: "Timer Sounds",
+            .timer_sounds_footer: "Play a short sound when a duration set timer reaches zero.",
 
             // Return after break
             .welcome_back_training: "Welcome back",

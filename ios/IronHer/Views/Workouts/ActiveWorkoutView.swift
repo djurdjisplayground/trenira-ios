@@ -34,6 +34,7 @@ struct ActiveWorkoutView: View {
     @State private var pendingUnitChange: PendingWeightUnitChange?
     @State private var restTimer = RestTimerController()
     @State private var showRestCompleteBanner = false
+    @State private var durationTimer = DurationSetTimerController()
 
     private var workout: Workout? {
         workoutStore.workout(id: workoutId)
@@ -169,6 +170,7 @@ struct ActiveWorkoutView: View {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 restTimer.syncWithCurrentDate()
+                durationTimer.syncWithCurrentDate()
             }
         }
         .onChange(of: restTimer.didComplete) { _, completed in
@@ -310,7 +312,7 @@ struct ActiveWorkoutView: View {
     }
 
     private func hubSubtitle(entry: WorkoutExerciseEntry, state: ExerciseSessionState, exercise: Exercise) -> String {
-        let setProgress = "\(state.completedSetCount)/\(entry.sets) sets"
+        let setProgress = "\(state.completedSetCount)/\(plannedSetCount(for: entry)) sets"
         let weight = WeightFormatter.format(kg: entry.startingWeight, unit: weightUnit(for: exercise.id))
         let perHand = exercise.displaysWeightPerHand ? " per hand" : ""
 
@@ -435,11 +437,10 @@ struct ActiveWorkoutView: View {
             for: entry.exerciseId,
             entryReps: entry.reps
         )
-        let plannedSets = globalProgressStore.targetSets(for: entry.exerciseId)
-            ?? progressionStore.configuration(for: entry.exerciseId).targetSets
+        let plannedSets = plannedSetCount(for: entry)
         let rule = progressionStore.rule(
             for: exercise,
-            weightIncrementKg: settingsStore.incrementKg(for: exercise)
+            weightIncrementKg: settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg)
         )
 
         return VStack(spacing: 20) {
@@ -543,7 +544,7 @@ struct ActiveWorkoutView: View {
                 }
             } else {
                 HStack(spacing: 12) {
-                    statPill(title: "Sets", value: "\(entry.sets)")
+                    statPill(title: "Sets", value: "\(plannedSetCount(for: entry))")
                     exerciseStats(entry: entry, exercise: exercise)
                 }
             }
@@ -562,6 +563,7 @@ struct ActiveWorkoutView: View {
         let showsDuration = exercise.showsDurationDuringSession
         let showsDistance = exercise.showsDistanceDuringSession
         let unit = weightUnit(for: exercise.id)
+        let plannedSetCount = plannedSetCount(for: entry)
         let plannedDuration = globalProgressStore.resolvedDurationSeconds(
             for: entry.exerciseId,
             entryDurationSeconds: entry.durationSeconds
@@ -572,7 +574,7 @@ struct ActiveWorkoutView: View {
         )
         let incrementDisplay = max(
             WeightFormatter.displayValue(
-                kg: settingsStore.incrementKg(for: exercise),
+                kg: settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg),
                 unit: unit
             ),
             unit == .pounds ? 1.0 : 0.5
@@ -616,13 +618,14 @@ struct ActiveWorkoutView: View {
                     .foregroundStyle(IronHerTheme.primaryText)
             }
 
-            ForEach(0..<state.plannedSets, id: \.self) { index in
+            ForEach(0..<plannedSetCount, id: \.self) { index in
                 let isComplete = state.completedSetFlags.indices.contains(index)
                     && state.completedSetFlags[index]
                 let performance = state.performance(at: index) ?? SetPerformance(from: entry)
 
                 ActiveSetRow(
                     setNumber: index + 1,
+                    totalSets: plannedSetCount,
                     isComplete: isComplete,
                     showsWeight: showsWeight,
                     showsReps: showsReps,
@@ -637,12 +640,17 @@ struct ActiveWorkoutView: View {
                     weightStep: incrementDisplay,
                     repsLabel: exercise.repsStepperLabel,
                     reps: performance.reps,
+                    targetDurationSeconds: plannedDuration,
                     durationSeconds: performance.durationSeconds > 0
                         ? performance.durationSeconds
                         : plannedDuration,
                     distanceMeters: performance.distanceMeters > 0
                         ? performance.distanceMeters
                         : plannedDistance,
+                    durationTimer: durationTimer,
+                    timerKey: DurationSetTimerController.Key(entryId: entry.id, setIndex: index),
+                    timerSoundEnabled: settingsStore.timerSoundsEnabled,
+                    timerHapticsEnabled: settingsStore.restTimer.hapticsEnabled,
                     onToggle: {
                         handleSetToggle(entry: entry, setIndex: index, wasComplete: isComplete)
                     },
@@ -666,6 +674,31 @@ struct ActiveWorkoutView: View {
                             setIndex: index,
                             distanceMeters: meters
                         )
+                    },
+                    onFinishTimedSet: {
+                        let key = DurationSetTimerController.Key(entryId: entry.id, setIndex: index)
+                        let actual: Int
+                        if durationTimer.isTracking(key) {
+                            if durationTimer.didComplete {
+                                actual = durationTimer.targetSeconds
+                            } else {
+                                actual = max(1, durationTimer.elapsedSeconds)
+                                durationTimer.finishEarly()
+                            }
+                        } else {
+                            actual = plannedDuration
+                        }
+                        sessionStore.updateSetDuration(
+                            entryId: entry.id,
+                            setIndex: index,
+                            durationSeconds: actual
+                        )
+                        if !isComplete {
+                            handleSetToggle(entry: entry, setIndex: index, wasComplete: false)
+                        }
+                        if durationTimer.isTracking(key) {
+                            durationTimer.clear()
+                        }
                     }
                 )
             }
@@ -777,23 +810,37 @@ struct ActiveWorkoutView: View {
         exercise: Exercise,
         state: ExerciseSessionState
     ) -> String? {
+        let plannedSetCount = plannedSetCount(for: entry)
         let rule = progressionStore.rule(
             for: exercise,
-            weightIncrementKg: settingsStore.incrementKg(for: exercise)
+            weightIncrementKg: settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg)
         )
         let plannedReps = globalProgressStore.resolvedReps(
             for: entry.exerciseId,
             entryReps: entry.reps
         )
+        let plannedWeight = globalProgressStore.resolvedWeight(
+            for: entry.exerciseId,
+            entryWeight: entry.startingWeight
+        )
         return ProgressionTargetProgress.summary(
             rule: rule,
             state: state,
+            plannedSetCount: plannedSetCount,
             currentPlannedReps: plannedReps,
             currentPlannedDuration: globalProgressStore.resolvedDurationSeconds(
                 for: entry.exerciseId,
                 entryDurationSeconds: entry.durationSeconds
-            )
+            ),
+            currentPlannedWeightKg: exercise.showsWeightDuringSession ? plannedWeight : 0,
+            weightUnit: weightUnit(for: exercise.id),
+            exercise: exercise
         )
+    }
+
+    /// Single source of truth for active-workout set count: the workout template entry.
+    private func plannedSetCount(for entry: WorkoutExerciseEntry) -> Int {
+        globalProgressStore.resolvedSets(for: entry.exerciseId, entrySets: entry.sets)
     }
 
     private func statPill(title: String, value: String) -> some View {
@@ -877,7 +924,7 @@ struct ActiveWorkoutView: View {
         if settingsStore.showsEncouragement,
            let message = WorkoutEncouragement.message(
                completedSets: state.completedSetCount,
-               plannedSets: state.plannedSets
+               plannedSets: plannedSetCount(for: entry)
            ) {
             withAnimation(.easeOut(duration: 0.2)) {
                 encouragementMessage = message
@@ -1102,6 +1149,7 @@ struct ActiveWorkoutView: View {
             currentPlannedReps: plannedReps,
             plannedDurationSeconds: plannedDuration,
             plannedDistanceMeters: plannedDistance,
+            plannedSetCount: plannedSetCount(for: entry),
             completedSetReps: completedReps,
             completedSetDurations: completedDurations,
             completedSetDistances: completedDistances,
@@ -1111,7 +1159,7 @@ struct ActiveWorkoutView: View {
         return progressionStore.evaluateAfterExercise(
             session: sessionResult,
             exercise: exercise,
-            weightIncrementKg: settingsStore.incrementKg(for: exercise)
+            weightIncrementKg: settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg)
         )
     }
 
@@ -1221,6 +1269,7 @@ private struct PendingWeightUnitChange: Identifiable {
 
 private struct ActiveSetRow: View {
     let setNumber: Int
+    let totalSets: Int
     let isComplete: Bool
     let showsWeight: Bool
     let showsReps: Bool
@@ -1232,21 +1281,35 @@ private struct ActiveSetRow: View {
     let weightStep: Double
     let repsLabel: String
     let reps: Int
+    let targetDurationSeconds: Int
     let durationSeconds: Int
     let distanceMeters: Double
+    let durationTimer: DurationSetTimerController
+    let timerKey: DurationSetTimerController.Key
+    let timerSoundEnabled: Bool
+    let timerHapticsEnabled: Bool
     let onToggle: () -> Void
     let onWeightChange: (Double) -> Void
     let onRepsChange: (Int) -> Void
     let onDurationChange: (Int) -> Void
     let onDistanceChange: (Double) -> Void
+    let onFinishTimedSet: () -> Void
 
     @State private var weightInput: Double = 0
     @State private var repsInput: Int = 0
     @State private var durationInput: Int = 0
     @State private var distanceInput: Double = 0
-    @State private var isTimerRunning = false
-    @State private var timerElapsed = 0
-    @State private var timerStartedAt: Date?
+
+    private var isThisTimer: Bool {
+        durationTimer.isTracking(timerKey)
+    }
+
+    private var displayedCountdown: Int {
+        if isThisTimer {
+            return durationTimer.remainingSeconds
+        }
+        return max(0, targetDurationSeconds)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -1260,9 +1323,16 @@ private struct ActiveSetRow: View {
                 }
                 .buttonStyle(.plain)
 
-                Text("Set \(setNumber)")
-                    .font(SheLiftsFont.body)
-                    .foregroundStyle(IronHerTheme.primaryText)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Set \(setNumber) of \(totalSets)")
+                        .font(SheLiftsFont.body)
+                        .foregroundStyle(IronHerTheme.primaryText)
+                    if showsDuration {
+                        Text("Target: \(ExerciseTrackingFormatter.formatDuration(seconds: targetDurationSeconds))")
+                            .font(SheLiftsFont.caption)
+                            .foregroundStyle(IronHerTheme.secondaryText)
+                    }
+                }
 
                 Spacer()
             }
@@ -1311,9 +1381,6 @@ private struct ActiveSetRow: View {
             repsInput = reps
             durationInput = max(0, durationSeconds)
             distanceInput = max(0, distanceMeters)
-            timerElapsed = 0
-            isTimerRunning = false
-            timerStartedAt = nil
         }
         .onChange(of: weightDisplay) { _, newValue in
             if abs(newValue - weightInput) > 0.001 {
@@ -1326,7 +1393,7 @@ private struct ActiveSetRow: View {
             }
         }
         .onChange(of: durationSeconds) { _, newValue in
-            if !isTimerRunning, newValue != durationInput {
+            if !(isThisTimer && (durationTimer.isRunning || durationTimer.isPaused)) {
                 durationInput = newValue
             }
         }
@@ -1335,94 +1402,68 @@ private struct ActiveSetRow: View {
                 distanceInput = newValue
             }
         }
-        .onDisappear {
-            stopTimer(commit: false)
+        .onChange(of: durationTimer.didComplete) { _, completed in
+            guard completed, isThisTimer else { return }
+            DurationTimerFeedback.playCompletion(
+                soundEnabled: timerSoundEnabled,
+                hapticsEnabled: timerHapticsEnabled
+            )
+            onDurationChange(targetDurationSeconds)
+            durationInput = targetDurationSeconds
         }
     }
 
     private var durationControls: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            stepperRow(
-                label: "duration",
-                valueText: ExerciseTrackingFormatter.formatDuration(seconds: displayedDuration)
-            ) {
-                commitDuration(max(0, durationInput - 5))
-            } increment: {
-                commitDuration(min(600, durationInput + 5))
+        VStack(alignment: .leading, spacing: 10) {
+            Text(ExerciseTrackingFormatter.formatDuration(seconds: displayedCountdown))
+                .font(SheLiftsFont.title)
+                .monospacedDigit()
+                .foregroundStyle(
+                    isThisTimer && durationTimer.didComplete
+                        ? IronHerTheme.accent
+                        : IronHerTheme.primaryText
+                )
+
+            if isThisTimer, durationTimer.didComplete {
+                Text("Time complete")
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
             }
 
             HStack(spacing: 10) {
-                Button(isTimerRunning ? "Pause" : (timerElapsed > 0 ? "Resume" : "Start")) {
-                    toggleTimer()
+                if isThisTimer, durationTimer.isRunning {
+                    Button("Pause") { durationTimer.pause() }
+                        .buttonStyle(OutlineButtonStyle())
+                } else if isThisTimer, durationTimer.isPaused {
+                    Button("Resume") { durationTimer.resume() }
+                        .buttonStyle(OutlineButtonStyle())
+                } else if !(isThisTimer && durationTimer.didComplete) {
+                    Button("Start") {
+                        durationTimer.start(
+                            target: max(1, targetDurationSeconds),
+                            key: timerKey
+                        ) { _, actual in
+                            onDurationChange(actual)
+                        }
+                    }
+                    .buttonStyle(PrimaryButtonStyle())
                 }
-                .font(SheLiftsFont.caption)
-                .foregroundStyle(IronHerTheme.primaryText)
 
-                Button("Reset") {
-                    resetTimer()
+                if isThisTimer, durationTimer.isRunning || durationTimer.isPaused || durationTimer.didComplete {
+                    Button("Reset") {
+                        durationTimer.reset(to: max(1, targetDurationSeconds))
+                        durationInput = targetDurationSeconds
+                        onDurationChange(targetDurationSeconds)
+                    }
+                    .buttonStyle(OutlineButtonStyle())
                 }
-                .font(SheLiftsFont.caption)
-                .foregroundStyle(IronHerTheme.secondaryText)
 
-                Spacer()
-
-                if isTimerRunning || timerElapsed > 0 {
-                    Text(ExerciseTrackingFormatter.formatDuration(seconds: displayedDuration))
-                        .font(SheLiftsFont.bodyMedium)
-                        .foregroundStyle(IronHerTheme.primaryText)
-                        .monospacedDigit()
+                if !isComplete, isThisTimer, (durationTimer.isRunning || durationTimer.isPaused || durationTimer.didComplete) {
+                    Button("Finish Set", action: onFinishTimedSet)
+                        .buttonStyle(PrimaryButtonStyle())
                 }
             }
         }
-        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { date in
-            guard isTimerRunning, let started = timerStartedAt else { return }
-            let live = timerElapsed + max(0, Int(date.timeIntervalSince(started)))
-            durationInput = live
-            onDurationChange(durationInput)
-        }
-    }
-
-    private var displayedDuration: Int {
-        if isTimerRunning, let started = timerStartedAt {
-            return max(0, timerElapsed + Int(Date().timeIntervalSince(started)))
-        }
-        return durationInput
-    }
-
-    private func toggleTimer() {
-        if isTimerRunning {
-            stopTimer(commit: true)
-        } else {
-            timerStartedAt = Date()
-            isTimerRunning = true
-        }
-    }
-
-    private func stopTimer(commit: Bool) {
-        if isTimerRunning, let started = timerStartedAt {
-            timerElapsed += Int(Date().timeIntervalSince(started))
-        }
-        timerStartedAt = nil
-        isTimerRunning = false
-        if commit {
-            durationInput = max(0, timerElapsed)
-            onDurationChange(durationInput)
-        }
-    }
-
-    private func resetTimer() {
-        isTimerRunning = false
-        timerStartedAt = nil
-        timerElapsed = 0
-        durationInput = max(0, durationSeconds)
-        onDurationChange(durationInput)
-    }
-
-    private func commitDuration(_ seconds: Int) {
-        stopTimer(commit: false)
-        timerElapsed = seconds
-        durationInput = seconds
-        onDurationChange(seconds)
     }
 
     private func stepperRow(
@@ -1475,6 +1516,7 @@ private struct ActiveSetRow: View {
             : String(format: "%.1f", value)
     }
 }
+
 
 #Preview {
     NavigationStack {

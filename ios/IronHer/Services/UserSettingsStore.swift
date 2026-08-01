@@ -53,6 +53,11 @@ final class UserSettingsStore {
         didSet { save() }
     }
 
+    /// Countdown completion sound for duration-based sets (Farmer's Carry, plank, etc.).
+    var timerSoundsEnabled: Bool {
+        didSet { save() }
+    }
+
     private(set) var lastDeveloperActionMessage: String?
 
     private let storageKey = "userSettings"
@@ -71,6 +76,7 @@ final class UserSettingsStore {
             allowManualWorkoutCompletionTesting = decoded.allowManualWorkoutCompletionTesting ?? true
             enableTestNotifications = decoded.enableTestNotifications ?? false
             restTimer = decoded.restTimer ?? .default
+            timerSoundsEnabled = decoded.timerSoundsEnabled ?? true
         } else {
             weightUnit = .kilograms
             appTheme = .system
@@ -83,6 +89,7 @@ final class UserSettingsStore {
             allowManualWorkoutCompletionTesting = true
             enableTestNotifications = false
             restTimer = .default
+            timerSoundsEnabled = true
         }
 
         // Migrate legacy developer settings key if present.
@@ -139,19 +146,27 @@ final class UserSettingsStore {
         return EquipmentDefaults.defaultIncrementKg(for: equipment)
     }
 
-    func incrementKg(for exercise: Exercise) -> Double {
+    func incrementKg(
+        for exercise: Exercise,
+        categoryDefaultKg: Double = WeightProgressionCalculator.defaultIncrementKg
+    ) -> Double {
         ExerciseIncrementResolver.incrementKg(
             for: exercise,
             equipmentOverridesKg: equipmentIncrementOverridesKg,
-            exerciseOverridesKg: exerciseIncrementOverridesKg
+            exerciseOverridesKg: exerciseIncrementOverridesKg,
+            categoryDefaultKg: categoryDefaultKg
         )
     }
 
-    func incrementKg(for exerciseId: String) -> Double {
+    func incrementKg(
+        for exerciseId: String,
+        categoryDefaultKg: Double = WeightProgressionCalculator.defaultIncrementKg
+    ) -> Double {
         ExerciseIncrementResolver.incrementKg(
             for: exerciseId,
             equipmentOverridesKg: equipmentIncrementOverridesKg,
-            exerciseOverridesKg: exerciseIncrementOverridesKg
+            exerciseOverridesKg: exerciseIncrementOverridesKg,
+            categoryDefaultKg: categoryDefaultKg
         )
     }
 
@@ -179,7 +194,8 @@ final class UserSettingsStore {
             allowReopenCompletedWorkouts: allowReopenCompletedWorkouts,
             allowManualWorkoutCompletionTesting: allowManualWorkoutCompletionTesting,
             enableTestNotifications: enableTestNotifications,
-            restTimer: restTimer
+            restTimer: restTimer,
+            timerSoundsEnabled: timerSoundsEnabled
         )
         guard let data = try? JSONEncoder().encode(payload) else { return }
         UserDefaults.standard.set(data, forKey: storageKey)
@@ -202,6 +218,24 @@ final class UserSettingsStore {
         allowManualWorkoutCompletionTesting = payload.allowManualWorkoutCompletionTesting ?? true
         enableTestNotifications = payload.enableTestNotifications ?? false
         restTimer = payload.restTimer ?? .default
+        timerSoundsEnabled = payload.timerSoundsEnabled ?? true
+        save()
+    }
+
+    /// Resets preferences to factory defaults (account deletion).
+    func resetToDefaults() {
+        weightUnit = .kilograms
+        appTheme = .system
+        coachingMode = .minimal
+        progressNotificationsEnabled = false
+        personalization = PersonalizationContext()
+        equipmentIncrementOverridesKg = [:]
+        exerciseIncrementOverridesKg = [:]
+        allowReopenCompletedWorkouts = true
+        allowManualWorkoutCompletionTesting = true
+        enableTestNotifications = false
+        restTimer = .default
+        timerSoundsEnabled = true
         save()
     }
 
@@ -217,6 +251,7 @@ final class UserSettingsStore {
         let allowManualWorkoutCompletionTesting: Bool?
         let enableTestNotifications: Bool?
         let restTimer: RestTimerSettings?
+        let timerSoundsEnabled: Bool?
     }
 
     private struct LegacyDeveloperSettings: Codable {

@@ -143,7 +143,7 @@ struct ExerciseProgressionSettingsView: View {
 
     init(exercise: Exercise) {
         self.exercise = exercise
-        let defaultIncrement = EquipmentDefaults.defaultIncrementKg(for: exercise.equipment)
+        let defaultIncrement = WeightProgressionCalculator.defaultIncrementKg
         _rule = State(
             initialValue: ExerciseProgressionRule.recommended(
                 for: exercise,
@@ -478,7 +478,7 @@ struct ExerciseProgressionSettingsView: View {
             0.25,
             rule.weightIncrementKg > 0
                 ? rule.weightIncrementKg
-                : settingsStore.incrementKg(for: exercise)
+                : settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg)
         )
         let seconds = max(
             1,
@@ -509,7 +509,7 @@ struct ExerciseProgressionSettingsView: View {
     private func load() {
         rule = progressionStore.rule(
             for: exercise,
-            weightIncrementKg: settingsStore.incrementKg(for: exercise)
+            weightIncrementKg: settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg)
         )
         stepInputs = rule.normalizedRepSteps.map(String.init)
         durationInputs = rule.normalizedDurationSteps.map(String.init)
@@ -531,7 +531,7 @@ struct ExerciseProgressionSettingsView: View {
         rule = .preset(
             preset,
             sets: rule.targetSets,
-            weightIncrementKg: settingsStore.incrementKg(for: exercise),
+            weightIncrementKg: settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg),
             method: method
         )
         stepInputs = rule.normalizedRepSteps.map(String.init)

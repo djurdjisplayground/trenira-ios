@@ -76,6 +76,12 @@ final class SyncEngine {
         await sync(snapshot: snapshot, allowDownloadMerge: true)
     }
 
+    /// Permanently removes the remote mirror for an owner. Does not touch local stores.
+    func deleteRemoteData(ownerId: String) async throws {
+        guard remote.isConfigured else { return }
+        try await remote.deleteSnapshot(ownerId: ownerId)
+    }
+
     var needsRetry: Bool {
         if case .failed = status { return true }
         return hasPendingChanges

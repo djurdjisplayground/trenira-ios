@@ -300,7 +300,7 @@ struct ExerciseProgressionFields: View {
     private var effectiveRule: ExerciseProgressionRule {
         progressionStore.rule(
             for: exercise,
-            weightIncrementKg: settingsStore.incrementKg(for: exercise)
+            weightIncrementKg: settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg)
         )
     }
 
@@ -525,8 +525,8 @@ struct ExerciseProgressionFields: View {
         var rule = effectiveRule
         let weightKg = max(
             0.25,
-            settingsStore.incrementKg(for: exercise) > 0
-                ? settingsStore.incrementKg(for: exercise)
+            settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg) > 0
+                ? settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg)
                 : (exercise.trackingProfile.defaultWeightIncrementKg ?? 2.5)
         )
         let seconds = max(
