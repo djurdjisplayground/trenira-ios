@@ -154,7 +154,8 @@ final class WorkoutStore {
                     startingWeight: entry.startingWeight,
                     durationSeconds: entry.durationSeconds,
                     distanceMeters: entry.distanceMeters,
-                    order: index
+                    order: index,
+                    restDurationOverride: entry.restDurationOverride
                 )
             }
 
@@ -182,7 +183,7 @@ final class WorkoutStore {
         }
 
         #if DEBUG
-        print("[WorkoutDuplicate] ok source=\(source.id) copy=\(copy.id) name=\(copy.name) entries=\(copiedExercises.count)")
+        print("[WorkoutDuplicate] ok sourceEntries=\(copiedExercises.count)")
         #endif
         onCreate?()
         onMutation?()
@@ -245,6 +246,34 @@ final class WorkoutStore {
         }
         save()
         onMutation?()
+    }
+
+    /// Applies exercise list updates to many workouts, then persists once.
+    /// Skips unknown ids / drafts. Preserves workout ids, names, and list order.
+    @discardableResult
+    func applyExerciseListUpdates(_ updates: [UUID: [WorkoutExerciseEntry]]) -> Int {
+        guard !updates.isEmpty else { return 0 }
+        var changed = 0
+        for (id, exercises) in updates {
+            guard let index = workouts.firstIndex(where: { $0.id == id && !$0.isDraft }) else { continue }
+            workouts[index].exercises = exercises
+            workouts[index].updatedAt = .now
+            if workouts[index].ownerId.isEmpty {
+                workouts[index].ownerId = ownershipProvider?() ?? ""
+            }
+            changed += 1
+        }
+        guard changed > 0 else { return 0 }
+        save()
+        onMutation?()
+        return changed
+    }
+
+    /// Saved (non-draft) plans that contain at least one entry with `exerciseId`.
+    func savedWorkoutsContaining(exerciseId: String) -> [Workout] {
+        workouts.filter { workout in
+            !workout.isDraft && workout.exercises.contains { $0.exerciseId == exerciseId }
+        }
     }
 
     func deleteWorkout(id: UUID) {
@@ -371,6 +400,7 @@ final class WorkoutStore {
     }
 
     /// Fans out the global prescription onto every plan that contains this exercise.
+    /// Set counts are per-workout-entry and are not overwritten unless `updateSets` is true.
     @discardableResult
     func applyPrescription(
         for exerciseId: String,
@@ -378,12 +408,15 @@ final class WorkoutStore {
         reps: Int,
         sets: Int,
         durationSeconds: Int,
-        distanceMeters: Double
+        distanceMeters: Double,
+        updateSets: Bool = false
     ) -> Bool {
         applyToAllEntries(exerciseId: exerciseId) { entry in
             entry.startingWeight = weightKg
             entry.reps = reps
-            entry.sets = max(1, sets)
+            if updateSets {
+                entry.sets = max(1, sets)
+            }
             entry.durationSeconds = durationSeconds
             entry.distanceMeters = distanceMeters
         }

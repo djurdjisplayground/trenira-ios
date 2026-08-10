@@ -57,6 +57,12 @@ enum ProgressionTrainingCategory: String, Codable, CaseIterable, Identifiable {
 
     static func category(for exercise: Exercise) -> ProgressionTrainingCategory {
         let profile = exercise.trackingProfile
+        // Duration-first tracking (planks, holds, Farmer's Carry) — not strength reps.
+        if profile.supports(.time),
+           profile.primaryProgressionMetric == .time,
+           !profile.supports(.reps) {
+            return .timed
+        }
         if profile.supports(.time), !profile.supports(.weight), !profile.supports(.reps), !profile.supports(.distance) {
             return .timed
         }
@@ -67,8 +73,10 @@ enum ProgressionTrainingCategory: String, Codable, CaseIterable, Identifiable {
             return .timed
         }
         switch exercise.measurementUnit {
-        case .weight, .repsWithOptionalWeight, .weightAndTime, .distance:
+        case .weight, .repsWithOptionalWeight, .distance:
             return .strength
+        case .weightAndTime:
+            return .timed
         case .reps, .bodyweight:
             return .bodyweight
         case .time:
@@ -105,7 +113,7 @@ struct ProgressionCategoryDefaults: Codable, Equatable {
         defaultRepIncrement: 1,
         defaultDurationIncrementSeconds: 5,
         defaultDistanceIncrementMeters: 5,
-        strengthTargetSets: 4,
+        strengthTargetSets: 3,
         strengthStartingReps: 8,
         strengthThresholdReps: 15
     )
@@ -191,7 +199,7 @@ struct ProgressionCategoryDefaults: Codable, Equatable {
         defaultRepIncrement = try container.decodeIfPresent(Int.self, forKey: .defaultRepIncrement) ?? 1
         defaultDurationIncrementSeconds = try container.decodeIfPresent(Int.self, forKey: .defaultDurationIncrementSeconds) ?? 5
         defaultDistanceIncrementMeters = try container.decodeIfPresent(Double.self, forKey: .defaultDistanceIncrementMeters) ?? 5
-        strengthTargetSets = try container.decodeIfPresent(Int.self, forKey: .strengthTargetSets) ?? 4
+        strengthTargetSets = try container.decodeIfPresent(Int.self, forKey: .strengthTargetSets) ?? 3
         strengthStartingReps = try container.decodeIfPresent(Int.self, forKey: .strengthStartingReps) ?? 8
         strengthThresholdReps = try container.decodeIfPresent(Int.self, forKey: .strengthThresholdReps) ?? 15
     }

@@ -96,17 +96,18 @@ final class UserDataCoordinator {
            detached != accountOwner.rawValue,
            previousOwner.rawValue == detached {
             try? AccountDataVault.save(localSnapshot)
+            sessionStore.endSession(markWeeklyCompletion: false)
             if let other = AccountDataVault.load(ownerId: accountOwner.rawValue) {
-                applySnapshot(other)
+                applySnapshot(other, clearMissingBlobs: true)
             } else {
-                applySnapshot(.empty(ownerId: accountOwner.rawValue))
+                applySnapshot(.empty(ownerId: accountOwner.rawValue), clearMissingBlobs: true)
             }
             AccountDataVault.detachedAccountOwnerId = nil
             currentOwner = accountOwner
             AccountDataVault.activeOwnerId = accountOwner.rawValue
             wireOwnershipProviders()
             await pushSync(allowDownloadMerge: true)
-            lastMigrationMessage = "Signed in. Your account data is ready on this device."
+            lastMigrationMessage = "Signed in. Your data for this account is ready on this device."
             return
         }
 
@@ -177,12 +178,13 @@ final class UserDataCoordinator {
             wireOwnershipProviders()
             ensureLegacyRecordsOwned()
             syncStatus = syncEngine.status
-            lastMigrationMessage = "Your workouts and progress are now backed up."
+            lastMigrationMessage = "Your workouts and progress stay with this account on this device."
         }
         wireOwnershipProviders()
     }
 
-    /// Sign-out: sync if possible, keep data visible, detach ownership from future guest merges.
+    /// Sign-out: vault the account snapshot, keep data on disk, detach ownership from future guest merges.
+    /// Live stores are not wiped — workouts remain until Erase All Local Data or an account swap.
     func prepareForSignOut() async {
         guard currentOwner.isAccount else { return }
         let snapshot = captureSnapshot(ownerId: currentOwner.rawValue)
@@ -191,14 +193,21 @@ final class UserDataCoordinator {
         AccountDataVault.detachedAccountOwnerId = currentOwner.rawValue
         AccountDataVault.activeOwnerId = currentOwner.rawValue
         syncStatus = syncEngine.status
-        // Data remains in live stores — never cleared.
+        // Data remains in live stores — never cleared on logout.
     }
 
     func handleContinueAsGuest() {
-        // If detached account data is on screen, keep it (preferred MVP) but do not start a new guest workspace merge.
-        if let detached = AccountDataVault.detachedAccountOwnerId {
-            currentOwner = DataOwnerID(rawValue: detached)
-            AccountDataVault.activeOwnerId = detached
+        if AccountDataVault.detachedAccountOwnerId != nil {
+            // Account snapshot was already vaulted at logout. Start a clean guest workspace so a
+            // different person choosing Guest cannot browse the previous account's live records.
+            // The prior account's vault file remains for the same Apple/Google identity to restore.
+            AccountDataVault.detachedAccountOwnerId = nil
+            let guest = DataOwnerID.guest(GuestIdentityStore.localGuestID())
+            sessionStore.endSession(markWeeklyCompletion: false)
+            applySnapshot(.empty(ownerId: guest.rawValue), clearMissingBlobs: true)
+            currentOwner = guest
+            AccountDataVault.activeOwnerId = guest.rawValue
+            syncEngine.setGuestLocalOnly()
             syncStatus = .localOnly
             wireOwnershipProviders()
             return
@@ -241,8 +250,6 @@ final class UserDataCoordinator {
         guard case .apple = authState else {
             if case .google = authState {
                 await pushSync(allowDownloadMerge: true)
-            } else if case .email = authState {
-                await pushSync(allowDownloadMerge: true)
             }
             return
         }
@@ -261,6 +268,44 @@ final class UserDataCoordinator {
 
     func clearMigrationMessage() {
         lastMigrationMessage = nil
+    }
+
+    // MARK: - Local erasure
+
+    /// Deletes all Trenira-owned local data via `LocalDataErasureService`.
+    /// On failure before wipe completes, the service throws and leaves remaining data intact where possible.
+    func deleteAllUserData(authState: AuthState) async throws {
+        _ = authState
+        try LocalDataErasureService.eraseAllLocalData(dataCoordinator: self)
+    }
+
+    /// Clears in-memory / store-backed user content as part of centralized erasure.
+    func applyFullLocalWipeForErasure() {
+        pendingSyncTask?.cancel()
+        pendingSyncTask = nil
+        sessionStore.endSession(markWeeklyCompletion: false)
+        applySnapshot(.empty(ownerId: currentOwner.rawValue), clearMissingBlobs: true)
+        progressionStore.clearAll()
+        globalProgressStore.clearAll()
+        settingsStore.resetToDefaults()
+        GymEquipmentProfileStore.wipePersistedData()
+        saveTombstones([])
+        didShowFirstWorkoutBackupHint = false
+        lastMigrationMessage = nil
+        conflictFlags = []
+        AccountDataVault.clearOwnershipPointers()
+        ExerciseCatalog.syncCustomExercises([])
+    }
+
+    /// Rebinds ownership to a freshly rotated guest identity after erasure.
+    func bindToFreshGuestAfterErasure() {
+        let guest = DataOwnerID.guest(GuestIdentityStore.localGuestID())
+        currentOwner = guest
+        AccountDataVault.activeOwnerId = guest.rawValue
+        syncEngine.setGuestLocalOnly()
+        syncStatus = .localOnly
+        wireOwnershipProviders()
+        ExerciseCatalog.syncCustomExercises([])
     }
 
     // MARK: - Snapshot
@@ -282,7 +327,7 @@ final class UserDataCoordinator {
         )
     }
 
-    func applySnapshot(_ snapshot: UserDataSnapshot) {
+    func applySnapshot(_ snapshot: UserDataSnapshot, clearMissingBlobs: Bool = false) {
         workoutStore.replaceAllForSync(snapshot.workouts)
         historyStore.replaceAllForSync(snapshot.weightHistory)
         sessionStore.replaceAllForSync(
@@ -292,12 +337,18 @@ final class UserDataCoordinator {
         customExerciseStore.replaceAllForSync(snapshot.customExercises)
         if let blob = snapshot.progressionBlob {
             progressionStore.importSyncBlob(blob)
+        } else if clearMissingBlobs {
+            progressionStore.clearAll()
         }
         if let blob = snapshot.globalProgressBlob {
             globalProgressStore.importSyncBlob(blob)
+        } else if clearMissingBlobs {
+            globalProgressStore.clearAll()
         }
         if let blob = snapshot.userSettingsBlob {
             settingsStore.importSyncBlob(blob)
+        } else if clearMissingBlobs {
+            settingsStore.resetToDefaults()
         }
         saveTombstones(snapshot.tombstones)
         ExerciseCatalog.syncCustomExercises(customExerciseStore.exercises)
@@ -353,7 +404,7 @@ final class UserDataCoordinator {
         didShowFirstWorkoutBackupHint = true
         UserDefaults.standard.set(true, forKey: firstWorkoutHintKey)
         lastMigrationMessage =
-            "Your workouts are currently stored on this device. Sign in to back them up and access them on other devices."
+            "Your workouts are currently stored on this device only."
     }
 
     private func loadTombstones() -> [DataTombstone] {

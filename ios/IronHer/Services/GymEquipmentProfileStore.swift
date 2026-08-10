@@ -101,6 +101,17 @@ final class GymEquipmentProfileStore {
         save()
     }
 
+    /// Clears persisted gym profiles (account deletion). Seeds defaults on next load.
+    static func wipePersistedData() {
+        UserDefaults.standard.removeObject(forKey: "gymEquipmentProfiles.v1")
+        UserDefaults.standard.removeObject(forKey: "gymEquipmentProfiles.activeId.v1")
+    }
+
+    func resetToDefaults() {
+        Self.wipePersistedData()
+        seedDefaults()
+    }
+
     /// Equipment available for generation/adaptation right now.
     func currentEquipment(
         fallback: Set<GymEquipmentKind> = GymEquipmentPreset.fullGym.equipment

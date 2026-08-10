@@ -108,63 +108,6 @@ struct HistoryView: View {
     }
 }
 
-struct ExerciseProgressDetailView: View {
-    @Environment(LocalizationStore.self) private var l10n
-
-    let overview: ExerciseProgressOverview
-
-    private var exercise: Exercise? {
-        ExerciseCatalog.exercise(id: overview.exerciseId)
-    }
-
-    var body: some View {
-        List {
-            Section {
-                if let exercise {
-                    HStack(alignment: .top, spacing: 14) {
-                        if exercise.hasVisualAsset {
-                            ExerciseThumbnailView(exercise: exercise, size: 64)
-                        }
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(exercise.localizedName(using: l10n))
-                                .font(SheLiftsFont.section)
-                            Text(exercise.listSubtitle)
-                                .font(SheLiftsFont.subheadline)
-                                .foregroundStyle(IronHerTheme.secondaryText)
-                        }
-                    }
-                }
-            }
-
-            Section {
-                progressValueRow(label: l10n.t(.progress_started), value: overview.startedValue)
-                progressValueRow(label: l10n.t(.progress_current), value: overview.currentValue)
-                progressValueRow(label: l10n.t(.progress_date_range), value: overview.dateRangeLabel)
-            } footer: {
-                Text(l10n.t(.progress_detail_footer))
-                    .font(SheLiftsFont.caption)
-            }
-        }
-        .listStyle(.insetGrouped)
-        .background(IronHerTheme.groupedBackground)
-        .navigationTitle(exercise.map { $0.localizedName(using: l10n) } ?? l10n.t(.progress_history))
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func progressValueRow(label: String, value: String) -> some View {
-        HStack {
-            Text(label)
-                .foregroundStyle(IronHerTheme.secondaryText)
-            Spacer()
-            Text(value)
-                .font(SheLiftsFont.bodyMedium)
-                .foregroundStyle(IronHerTheme.primaryText)
-                .multilineTextAlignment(.trailing)
-        }
-    }
-}
-
 #Preview {
     NavigationStack {
         HistoryView()

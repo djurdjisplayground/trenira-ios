@@ -203,11 +203,14 @@ struct AdaptWorkoutView: View {
                     .font(SheLiftsFont.body)
                     .foregroundStyle(IronHerTheme.secondaryText)
             } else {
-                WorkoutAdaptationProposalsSection(
-                    proposals: proposals,
-                    actionTitle: l10n.t(.adapt_save_action)
-                ) {
-                    applyAdaptation()
+                VStack(alignment: .leading, spacing: 12) {
+                    RecommendationDisclaimerBanner()
+                    WorkoutAdaptationProposalsSection(
+                        proposals: proposals,
+                        actionTitle: l10n.t(.adapt_save_action)
+                    ) {
+                        applyAdaptation()
+                    }
                 }
             }
         }
@@ -274,6 +277,7 @@ struct AdaptWorkoutView: View {
             proposals: proposals,
             mode: mode
         )
+        guard !adapted.exercises.isEmpty else { return }
         workoutStore.createWorkout(named: adapted.name, exercises: adapted.exercises)
         dismiss()
     }

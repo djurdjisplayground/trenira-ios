@@ -205,12 +205,13 @@ enum WorkoutAdaptationService {
             suffix = " (Adapted)"
         }
 
-        let exercises = proposals.enumerated().map { index, proposal in
-            WorkoutExerciseEntry(
+        let exercises = proposals.enumerated().compactMap { index, proposal -> WorkoutExerciseEntry? in
+            guard ExerciseCatalog.exercise(id: proposal.proposedExerciseId) != nil else { return nil }
+            return WorkoutExerciseEntry(
                 exerciseId: proposal.proposedExerciseId,
-                sets: proposal.sets,
-                reps: proposal.reps,
-                startingWeight: proposal.startingWeight,
+                sets: min(10, max(1, proposal.sets)),
+                reps: min(50, max(1, proposal.reps)),
+                startingWeight: max(0, proposal.startingWeight),
                 order: index
             )
         }
@@ -273,9 +274,9 @@ enum WorkoutAdaptationService {
                 proposedExerciseId: proposed.id,
                 proposedName: proposed.name,
                 proposedEquipment: proposed.equipment.label,
-                sets: entry.sets,
-                reps: entry.reps,
-                startingWeight: entry.startingWeight,
+                sets: min(10, max(1, entry.sets)),
+                reps: min(50, max(1, entry.reps)),
+                startingWeight: max(0, entry.startingWeight),
                 isVarietySwap: proposed.id != original.id
             )
         }
@@ -355,8 +356,7 @@ enum WorkoutAdaptationService {
 
             usedExerciseIds.insert(proposed.id)
 
-            // Preserve progression weight only when keeping the same exercise.
-            let weight = proposed.id == original.id ? entry.startingWeight : 0
+            let weight = proposed.id == original.id ? max(0, entry.startingWeight) : 0
 
             return WorkoutAdaptationProposal(
                 originalExerciseId: original.id,
@@ -364,8 +364,8 @@ enum WorkoutAdaptationService {
                 proposedExerciseId: proposed.id,
                 proposedName: proposed.name,
                 proposedEquipment: proposed.equipment.label,
-                sets: entry.sets,
-                reps: entry.reps,
+                sets: min(10, max(1, entry.sets)),
+                reps: min(50, max(1, entry.reps)),
                 startingWeight: weight,
                 isVarietySwap: isSwap
             )

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Choose how to create a workout — manual first, AI as an optional enhancement.
+/// Choose how to create a workout — manual first, generation as an optional enhancement.
 struct CreateWorkoutOptionsView: View {
     @Environment(SubscriptionStore.self) private var subscriptionStore
     @Environment(LocalizationStore.self) private var l10n
@@ -19,9 +19,9 @@ struct CreateWorkoutOptionsView: View {
 
                 NavigationLink(value: WorkoutRoute.generate) {
                     optionRow(
-                        title: l10n.t(.generate_with_ai),
+                        title: l10n.t(.generate_workout_option),
                         subtitle: l10n.t(.generate_workout_subtitle),
-                        systemImage: "sparkles",
+                        systemImage: "list.bullet.rectangle.portrait",
                         showsPremium: !subscriptionStore.hasAccess(to: .generateWorkout)
                     )
                 }

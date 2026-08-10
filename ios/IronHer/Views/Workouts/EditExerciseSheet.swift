@@ -14,9 +14,23 @@ struct EditExerciseSheet: View {
     @State var startingWeight: Double
     @State var durationSeconds: Int
     @State var distanceMeters: Double
-    let onSave: (Int, Int, Double, Int, Double) -> Void
+    @State var restDurationOverride: TimeInterval?
+    let onSave: (Int, Int, Double, Int, Double, TimeInterval?) -> Void
 
     @State private var weightInput = 0.0
+    @State private var restSelection: RestPickerChoice = .useDefault
+
+    private enum RestPickerChoice: Hashable {
+        case useDefault
+        case duration(RestDurationOption)
+
+        var override: TimeInterval? {
+            switch self {
+            case .useDefault: return nil
+            case .duration(let option): return option.timeInterval
+            }
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -60,6 +74,18 @@ struct EditExerciseSheet: View {
                     )
                 }
 
+                Section("Rest between sets") {
+                    Picker("Rest", selection: $restSelection) {
+                        Text("Use Default").tag(RestPickerChoice.useDefault)
+                        ForEach(RestDurationOption.allCases) { option in
+                            Text(option.label).tag(RestPickerChoice.duration(option))
+                        }
+                    }
+                    Text("Overrides the automatic rest timer for this exercise only.")
+                        .font(SheLiftsFont.caption)
+                        .foregroundStyle(IronHerTheme.secondaryText)
+                }
+
                 Section {
                     Button("Save changes") {
                         let unit = globalProgressStore.resolvedWeightUnit(
@@ -67,7 +93,7 @@ struct EditExerciseSheet: View {
                             defaultUnit: settingsStore.weightUnit
                         )
                         let weightKg = WeightFormatter.kilograms(from: weightInput, unit: unit)
-                        onSave(sets, reps, weightKg, durationSeconds, distanceMeters)
+                        onSave(sets, reps, weightKg, durationSeconds, distanceMeters, restSelection.override)
                         dismiss()
                     }
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -87,6 +113,13 @@ struct EditExerciseSheet: View {
                     defaultUnit: settingsStore.weightUnit
                 )
                 weightInput = WeightFormatter.displayValue(kg: startingWeight, unit: unit)
+                if let restDurationOverride,
+                   let option = RestDurationOption(rawValue: Int(restDurationOverride.rounded()))
+                {
+                    restSelection = .duration(option)
+                } else {
+                    restSelection = .useDefault
+                }
             }
         }
     }
@@ -110,7 +143,7 @@ struct ExerciseProgressionSettingsView: View {
 
     init(exercise: Exercise) {
         self.exercise = exercise
-        let defaultIncrement = EquipmentDefaults.defaultIncrementKg(for: exercise.equipment)
+        let defaultIncrement = WeightProgressionCalculator.defaultIncrementKg
         _rule = State(
             initialValue: ExerciseProgressionRule.recommended(
                 for: exercise,
@@ -445,7 +478,7 @@ struct ExerciseProgressionSettingsView: View {
             0.25,
             rule.weightIncrementKg > 0
                 ? rule.weightIncrementKg
-                : settingsStore.incrementKg(for: exercise)
+                : settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg)
         )
         let seconds = max(
             1,
@@ -476,7 +509,7 @@ struct ExerciseProgressionSettingsView: View {
     private func load() {
         rule = progressionStore.rule(
             for: exercise,
-            weightIncrementKg: settingsStore.incrementKg(for: exercise)
+            weightIncrementKg: settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg)
         )
         stepInputs = rule.normalizedRepSteps.map(String.init)
         durationInputs = rule.normalizedDurationSteps.map(String.init)
@@ -498,7 +531,7 @@ struct ExerciseProgressionSettingsView: View {
         rule = .preset(
             preset,
             sets: rule.targetSets,
-            weightIncrementKg: settingsStore.incrementKg(for: exercise),
+            weightIncrementKg: settingsStore.incrementKg(for: exercise, categoryDefaultKg: progressionStore.categoryDefaults.normalized.defaultWeightIncrementKg),
             method: method
         )
         stepInputs = rule.normalizedRepSteps.map(String.init)
@@ -545,8 +578,9 @@ struct ExerciseProgressionSettingsView: View {
         reps: 10,
         startingWeight: 40,
         durationSeconds: 0,
-        distanceMeters: 0
-    ) { _, _, _, _, _ in }
+        distanceMeters: 0,
+        restDurationOverride: nil
+    ) { _, _, _, _, _, _ in }
     .environment(UserSettingsStore())
     .environment(ExerciseProgressionStore())
     .environment(GlobalExerciseProgressStore())

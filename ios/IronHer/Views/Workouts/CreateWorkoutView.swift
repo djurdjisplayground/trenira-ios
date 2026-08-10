@@ -60,14 +60,16 @@ struct CreateWorkoutView: View {
                 reps: draft.reps,
                 startingWeight: draft.startingWeight,
                 durationSeconds: draft.durationSeconds,
-                distanceMeters: draft.distanceMeters
-            ) { sets, reps, weight, duration, distance in
+                distanceMeters: draft.distanceMeters,
+                restDurationOverride: draft.restDurationOverride
+            ) { sets, reps, weight, duration, distance, restOverride in
                 if let index = draftExercises.firstIndex(where: { $0.id == draft.id }) {
                     draftExercises[index].sets = sets
                     draftExercises[index].reps = reps
                     draftExercises[index].startingWeight = weight
                     draftExercises[index].durationSeconds = duration
                     draftExercises[index].distanceMeters = distance
+                    draftExercises[index].restDurationOverride = restOverride
 
                     let record = globalProgressStore.syncFromTemplateEdit(
                         exerciseId: draft.exercise.id,
@@ -82,11 +84,14 @@ struct CreateWorkoutView: View {
 
                     for draftIndex in draftExercises.indices
                     where draftExercises[draftIndex].exercise.id == draft.exercise.id {
-                        draftExercises[draftIndex].sets = record.targetSets
                         draftExercises[draftIndex].reps = record.targetReps
                         draftExercises[draftIndex].startingWeight = record.workingWeightKg
                         draftExercises[draftIndex].durationSeconds = record.targetDurationSeconds
                         draftExercises[draftIndex].distanceMeters = record.targetDistanceMeters
+                    }
+                    // Keep the edited entry's set count as configured for this workout.
+                    if let index = draftExercises.firstIndex(where: { $0.id == draft.id }) {
+                        draftExercises[index].sets = sets
                     }
                     autosaveDraft()
                 }
@@ -233,7 +238,8 @@ struct CreateWorkoutView: View {
                 reps: entry.reps,
                 startingWeight: entry.startingWeight,
                 durationSeconds: entry.durationSeconds,
-                distanceMeters: entry.distanceMeters
+                distanceMeters: entry.distanceMeters,
+                restDurationOverride: entry.restDurationOverride
             )
         }
     }
@@ -255,7 +261,8 @@ struct CreateWorkoutView: View {
                 startingWeight: draft.startingWeight,
                 durationSeconds: draft.durationSeconds,
                 distanceMeters: draft.distanceMeters,
-                order: index
+                order: index,
+                restDurationOverride: draft.restDurationOverride
             )
         }
     }

@@ -19,7 +19,6 @@ struct AddExerciseSheet: View {
     @State private var durationSeconds = 60
     @State private var distanceMeters = 40.0
     @State private var showCreateCustom = false
-    @State private var speechService = SpeechSearchService()
     @FocusState private var isSearchFocused: Bool
     @State private var filterEquipment: EquipmentType?
     @State private var filterMuscle: MuscleGroup?
@@ -89,13 +88,6 @@ struct AddExerciseSheet: View {
                     }
                 }
             }
-            .onChange(of: speechService.transcript) { _, transcript in
-                guard !transcript.isEmpty else { return }
-                searchText = transcript
-            }
-            .onDisappear {
-                speechService.stopListening()
-            }
             .sheet(isPresented: $showCreateCustom) {
                 CreateCustomExerciseSheet(initialName: searchText) { exercise in
                     selectExercise(exercise)
@@ -137,15 +129,6 @@ struct AddExerciseSheet: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .focused($isSearchFocused)
-
-                Button {
-                    toggleVoiceSearch()
-                } label: {
-                    Image(systemName: speechService.isListening ? "mic.fill" : "mic")
-                        .foregroundStyle(speechService.isListening ? IronHerTheme.primaryText : IronHerTheme.secondaryText)
-                        .symbolEffect(.pulse, isActive: speechService.isListening)
-                }
-                .buttonStyle(.plain)
             }
             .padding(14)
             .background(IronHerTheme.groupedBackground)
@@ -394,16 +377,12 @@ struct AddExerciseSheet: View {
     }
 
     private func selectExercise(_ exercise: Exercise) {
-        speechService.stopListening()
         selectedExercise = exercise
         let philosophy = progressionStore.configuration(for: exercise.id)
-        sets = philosophy.targetSets
+        sets = globalProgressStore.targetSets(for: exercise.id)
+            ?? max(1, philosophy.targetSets)
         durationSeconds = ExerciseTrackingFormatter.defaultDurationSeconds(for: exercise)
         distanceMeters = ExerciseTrackingFormatter.defaultDistanceMeters(for: exercise)
-
-        if let savedSets = globalProgressStore.targetSets(for: exercise.id) {
-            sets = savedSets
-        }
 
         if let savedReps = globalProgressStore.targetReps(for: exercise.id) ?? workoutStore.knownReps(for: exercise.id) {
             reps = savedReps
@@ -452,23 +431,6 @@ struct AddExerciseSheet: View {
                 }
         }
         .buttonStyle(.plain)
-    }
-
-    private func toggleVoiceSearch() {
-        if speechService.isListening {
-            speechService.stopListening()
-            return
-        }
-        Task {
-            if speechService.authorizationStatus == .notDetermined {
-                await speechService.requestAuthorization()
-            }
-            guard speechService.authorizationStatus == .authorized else {
-                speechService.setErrorMessage("Microphone access is needed for voice search.")
-                return
-            }
-            speechService.startListening()
-        }
     }
 }
 

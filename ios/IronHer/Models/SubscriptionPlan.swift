@@ -54,10 +54,10 @@ enum SubscriptionFeature: CaseIterable, Hashable {
         case .unlimitedWorkoutPlans: return "Unlimited workouts"
         case .smartProgressHistory: return "Advanced progress insights"
         case .progressTrends: return "Progress trends"
-        case .smarterProgressionAnalysis: return "Smarter progression analysis"
+        case .smarterProgressionAnalysis: return "Automatic progression analysis"
         case .adaptWorkout: return "Adapt workouts"
-        case .replaceExercise: return "Exercise substitutions"
-        case .generateWorkout: return "AI workout generation"
+        case .replaceExercise: return "Exercise recommendations"
+        case .generateWorkout: return "Smart workout generation"
         case .regenerateWorkout: return "Adapt workouts"
         }
     }
@@ -83,13 +83,13 @@ enum SubscriptionFeature: CaseIterable, Hashable {
         case .progressTrends:
             return "Follow how your strength changes over time."
         case .smarterProgressionAnalysis:
-            return "Understand what’s working — without noise or clutter."
+            return "Clearer progression analysis without noise or clutter."
         case .adaptWorkout:
             return "Adapt a workout you already have — equipment, setting, or fresh variety."
         case .replaceExercise:
-            return "Swap a movement when needed — progression stays with you."
+            return "Smart exercise recommendations when you need a swap — progression stays with you."
         case .generateWorkout:
-            return "Describe your goal and get a structured plan you can still edit."
+            return "Automatically generate workout plans from your goals and equipment — you stay in control."
         case .regenerateWorkout:
             return "Adapt a workout you already have — equipment, setting, or fresh variety."
         case .unlimitedWorkoutPlans:
@@ -126,13 +126,13 @@ enum SubscriptionFeature: CaseIterable, Hashable {
         case .smartProgressHistory, .progressTrends, .smarterProgressionAnalysis:
             return "Go beyond session logs with insights, trends, and clearer progression analysis."
         case .generateWorkout:
-            return "Let trenira draft a plan around what you want to achieve — you stay in control."
+            return "Automatically generate a structured plan around what you want to achieve — review and edit before you train."
         case .regenerateWorkout, .adaptWorkout:
-            return "Change equipment or available time while keeping your progression intact."
+            return "Adapt workouts to your available equipment while keeping your progression intact."
         case .replaceExercise:
-            return "Swap exercises when equipment isn’t available — without losing your overall plan."
+            return "Get exercise recommendations when equipment isn’t available — without losing your overall plan."
         default:
-            return "Premium expands what trenira can do: deeper insights, smarter adaptations, and unlimited workouts."
+            return "Premium expands what trenira can do: deeper insights, workout adaptation, and unlimited workouts."
         }
     }
 
@@ -142,7 +142,7 @@ enum SubscriptionFeature: CaseIterable, Hashable {
         case .customProgression: return "slider.horizontal.3"
         case .exerciseSync: return "arrow.triangle.2.circlepath"
         case .smartProgressHistory, .progressTrends, .smarterProgressionAnalysis: return "chart.xyaxis.line"
-        case .generateWorkout: return "sparkles"
+        case .generateWorkout: return "list.bullet.rectangle.portrait"
         case .regenerateWorkout: return "arrow.triangle.2.circlepath"
         case .adaptWorkout: return "arrow.triangle.branch"
         case .replaceExercise: return "arrow.left.arrow.right"

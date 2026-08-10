@@ -205,7 +205,7 @@ enum BetaConfig {
     static var unlocksPremium: Bool { isClosedBeta }
     static var hidesMonetization: Bool { isClosedBeta }
 
-    static let feedbackEmail = "durdijatunguz@gmail.com"
+    static let feedbackEmail = AppConfiguration.feedbackEmail
 
     static var feedbackMailtoURL: URL {
         var components = URLComponents()
@@ -214,7 +214,7 @@ enum BetaConfig {
         components.queryItems = [
             URLQueryItem(
                 name: "subject",
-                value: "trenira beta feedback — \(AppVersion.label)"
+                value: FeedbackService.subject
             ),
         ]
         return components.url ?? URL(string: "mailto:\(feedbackEmail)")!

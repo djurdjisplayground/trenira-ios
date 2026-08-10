@@ -97,11 +97,14 @@ struct RegenerateWorkoutView: View {
                     .font(SheLiftsFont.body)
                     .foregroundStyle(IronHerTheme.secondaryText)
             } else {
-                WorkoutAdaptationProposalsSection(
-                    proposals: proposals,
-                    actionTitle: "Save regenerated workout"
-                ) {
-                    applyRefresh()
+                VStack(alignment: .leading, spacing: 12) {
+                    RecommendationDisclaimerBanner()
+                    WorkoutAdaptationProposalsSection(
+                        proposals: proposals,
+                        actionTitle: "Save refreshed workout"
+                    ) {
+                        applyRefresh()
+                    }
                 }
             }
         }
@@ -135,6 +138,7 @@ struct RegenerateWorkoutView: View {
             proposals: proposals,
             mode: mode
         )
+        guard !refreshed.exercises.isEmpty else { return }
         workoutStore.createWorkout(named: refreshed.name, exercises: refreshed.exercises)
         dismiss()
     }

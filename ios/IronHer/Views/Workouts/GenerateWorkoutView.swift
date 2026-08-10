@@ -41,7 +41,7 @@ struct GenerateWorkoutView: View {
     }
 
     private var introSection: some View {
-        Text("Describe your goal and available equipment. trenira drafts a plan you can still edit.")
+        Text("Choose a goal and available equipment. trenira drafts a plan automatically — review and edit before you train.")
             .font(SheLiftsFont.body)
             .foregroundStyle(IronHerTheme.secondaryText)
     }
@@ -157,6 +157,8 @@ struct GenerateWorkoutView: View {
                 .font(.headline)
                 .foregroundStyle(IronHerTheme.primaryText)
 
+            RecommendationDisclaimerBanner()
+
             Text(workout.name)
                 .font(SheLiftsFont.bodyMedium)
                 .foregroundStyle(IronHerTheme.primaryText)
@@ -184,6 +186,7 @@ struct GenerateWorkoutView: View {
                 Text("Save workout")
             }
             .buttonStyle(PrimaryButtonStyle())
+            .disabled(workout.exercises.isEmpty)
         }
     }
 
@@ -269,5 +272,6 @@ struct GenerateWorkoutView: View {
             .environment(WorkoutStore())
             .environment(WeightHistoryStore())
             .environment(SubscriptionStore())
+            .environment(LocalizationStore())
     }
 }

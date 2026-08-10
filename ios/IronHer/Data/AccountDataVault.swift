@@ -33,16 +33,13 @@ enum AccountDataVault {
     static func save(_ snapshot: UserDataSnapshot) throws {
         let url = try fileURL(for: snapshot.ownerId)
         let data = try JSONEncoder().encode(snapshot)
-        try FileManager.default.createDirectory(
-            at: url.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-        )
-        try data.write(to: url, options: [.atomic])
+        try ProtectedFileWriter.writeAtomically(data, to: url)
     }
 
     static func load(ownerId: String) -> UserDataSnapshot? {
-        guard let url = try? fileURL(for: ownerId),
-              let data = try? Data(contentsOf: url),
+        guard let url = try? fileURL(for: ownerId) else { return nil }
+        ProtectedFileWriter.ensureProtectionIfPresent(at: url)
+        guard let data = try? Data(contentsOf: url),
               let decoded = try? JSONDecoder().decode(UserDataSnapshot.self, from: data) else {
             return nil
         }
@@ -55,6 +52,16 @@ enum AccountDataVault {
 
     static func markMigrationCompleted(from guestOwnerId: String, to accountOwnerId: String) {
         UserDefaults.standard.set(true, forKey: migrationKey(from: guestOwnerId, to: accountOwnerId))
+    }
+
+    static func delete(ownerId: String) {
+        guard let url = try? fileURL(for: ownerId) else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    static func clearOwnershipPointers() {
+        activeOwnerId = nil
+        detachedAccountOwnerId = nil
     }
 
     private static func migrationKey(from guestOwnerId: String, to accountOwnerId: String) -> String {

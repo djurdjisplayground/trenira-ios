@@ -151,8 +151,10 @@ final class GlobalExerciseProgressStore {
         targetReps(for: exerciseId) ?? entryReps
     }
 
+    /// Prefer the workout entry’s planned set count. Global/progression set targets
+    /// inform defaults when adding exercises, but do not override a template’s count.
     func resolvedSets(for exerciseId: String, entrySets: Int) -> Int {
-        targetSets(for: exerciseId) ?? entrySets
+        max(1, entrySets)
     }
 
     func resolvedDurationSeconds(for exerciseId: String, entryDurationSeconds: Int) -> Int {
@@ -406,7 +408,8 @@ final class GlobalExerciseProgressStore {
         }
     }
 
-    /// Align planned set counts for specific exercises (e.g. after changing a preset).
+    /// Align planned set counts in the global record only.
+    /// Does not rewrite workout templates — set counts stay per-workout-entry.
     func applyTargetSets(_ sets: Int, for exerciseIds: [String], into workoutStore: WorkoutStore) {
         let normalized = max(1, sets)
         var didChange = false
@@ -416,19 +419,16 @@ final class GlobalExerciseProgressStore {
                 record.targetSets = normalized
                 record.lastUpdated = .now
                 records[exerciseId] = record
-                apply(record, for: exerciseId, into: workoutStore)
                 didChange = true
             } else {
                 let weight = workoutStore.knownStartingWeight(for: exerciseId) ?? 0
                 let reps = workoutStore.knownReps(for: exerciseId) ?? 8
-                _ = workoutStore.applyPrescription(
-                    for: exerciseId,
-                    weightKg: weight,
-                    reps: reps,
-                    sets: normalized,
-                    durationSeconds: 0,
-                    distanceMeters: 0
+                records[exerciseId] = GlobalExerciseProgress(
+                    workingWeightKg: weight,
+                    targetReps: reps,
+                    targetSets: normalized
                 )
+                didChange = true
             }
         }
         if didChange {
@@ -461,7 +461,8 @@ final class GlobalExerciseProgressStore {
             reps: record.targetReps,
             sets: record.targetSets,
             durationSeconds: record.targetDurationSeconds,
-            distanceMeters: record.targetDistanceMeters
+            distanceMeters: record.targetDistanceMeters,
+            updateSets: false
         )
     }
 

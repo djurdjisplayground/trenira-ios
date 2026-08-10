@@ -6,6 +6,7 @@ protocol RemoteUserDataStore: Sendable {
     var isConfigured: Bool { get }
     func fetchSnapshot(ownerId: String) async throws -> UserDataSnapshot?
     func uploadSnapshot(_ snapshot: UserDataSnapshot) async throws
+    func deleteSnapshot(ownerId: String) async throws
 }
 
 /// Default until CloudKit / Firebase (or similar) is wired.
@@ -36,21 +37,28 @@ final class LocalMirrorRemoteUserDataStore: RemoteUserDataStore, @unchecked Send
         lock.unlock()
     }
 
+    func deleteSnapshot(ownerId: String) async throws {
+        lock.lock()
+        pendingUploads[ownerId] = nil
+        lock.unlock()
+        let url = try fileURL(for: ownerId)
+        if FileManager.default.fileExists(atPath: url.path) {
+            try FileManager.default.removeItem(at: url)
+        }
+    }
+
     private func loadFromDisk(ownerId: String) throws -> UserDataSnapshot? {
         let url = try fileURL(for: ownerId)
         guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        ProtectedFileWriter.ensureProtectionIfPresent(at: url)
         let data = try Data(contentsOf: url)
         return try JSONDecoder().decode(UserDataSnapshot.self, from: data)
     }
 
     private func persistToDisk(_ snapshot: UserDataSnapshot) throws {
         let url = try fileURL(for: snapshot.ownerId)
-        try FileManager.default.createDirectory(
-            at: url.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-        )
         let data = try JSONEncoder().encode(snapshot)
-        try data.write(to: url, options: [.atomic])
+        try ProtectedFileWriter.writeAtomically(data, to: url)
     }
 
     private func fileURL(for ownerId: String) throws -> URL {
@@ -78,6 +86,10 @@ struct UnconfiguredRemoteUserDataStore: RemoteUserDataStore {
     }
 
     func uploadSnapshot(_ snapshot: UserDataSnapshot) async throws {
+        throw RemoteUserDataError.notConfigured
+    }
+
+    func deleteSnapshot(ownerId: String) async throws {
         throw RemoteUserDataError.notConfigured
     }
 }

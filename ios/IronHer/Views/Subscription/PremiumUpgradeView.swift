@@ -139,8 +139,8 @@ struct PremiumUpgradeView: View {
     private var benefitsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             benefitRow("Unlimited workout plans")
-            benefitRow("Generate workouts with AI")
-            benefitRow("Adapt workouts you already have")
+            benefitRow("Automatically generate workout plans")
+            benefitRow("Adapt workouts to your available equipment")
         }
         .padding(18)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -389,16 +389,28 @@ struct PremiumUpgradeView: View {
                 .multilineTextAlignment(.center)
 
             HStack(spacing: 16) {
-                Link("Privacy Policy", destination: LegalLinks.privacyPolicy)
+                if let privacy = LegalLinks.privacyPolicy {
+                    Link("Privacy Policy", destination: privacy)
+                } else {
+                    NavigationLink("Privacy Policy") {
+                        PrivacyPolicyView()
+                    }
+                }
                 Text("·")
                     .foregroundStyle(IronHerTheme.secondaryText)
-                Link("Terms of Use", destination: LegalLinks.termsOfUse)
+                if let terms = LegalLinks.termsOfUse {
+                    Link("Terms of Use", destination: terms)
+                } else {
+                    NavigationLink("Terms of Use") {
+                        TermsAndConditionsView()
+                    }
+                }
             }
             .font(SheLiftsFont.caption)
             .foregroundStyle(IronHerTheme.secondaryText)
 
             if !LegalLinks.areConfigured {
-                Text("Privacy Policy and Terms links are placeholders until live pages are published.")
+                Text("Full legal documents are available in Settings → Legal & Privacy.")
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText.opacity(0.8))
                     .multilineTextAlignment(.center)

@@ -160,6 +160,27 @@ final class ExerciseProgressionStore {
             return custom
         }
 
+        let profile = exercise.trackingProfile
+        let effectiveWeight = weightIncrementKg > 0
+            ? WeightProgressionCalculator.normalize(weightIncrementKg)
+            : WeightProgressionCalculator.normalize(categoryDefaults.normalized.defaultWeightIncrementKg)
+
+        // Timed / carry exercises must never inherit strength rep progression.
+        // Farmer's Carry and similar weight+time work use durationCycle (+ weight after ladder).
+        if profile.supports(.time),
+           !profile.supports(.reps),
+           profile.primaryProgressionMetric == .time {
+            var recommended = ExerciseProgressionRule.recommended(
+                for: exercise,
+                weightIncrementKg: effectiveWeight
+            )
+            let config = configuration(for: exercise.id)
+            if config.targetSets > 0 {
+                recommended.targetSets = config.targetSets
+            }
+            return recommended
+        }
+
         var defaults = categoryDefaults.normalized
         // Prefer ladder endpoints from the legacy default configuration when present.
         let config = configuration(for: exercise.id)
@@ -168,9 +189,6 @@ final class ExerciseProgressionStore {
         defaults.strengthThresholdReps = config.thresholdReps
 
         let dimension = dimension(for: exercise)
-        let effectiveWeight = weightIncrementKg > 0
-            ? weightIncrementKg
-            : defaults.defaultWeightIncrementKg
 
         return ExerciseProgressionRule.from(
             dimension: dimension,
@@ -181,6 +199,10 @@ final class ExerciseProgressionStore {
 
     func hasCustomRule(for exerciseId: String) -> Bool {
         rules[exerciseId] != nil
+    }
+
+    func ruleIfCustom(for exerciseId: String) -> ExerciseProgressionRule? {
+        rules[exerciseId]
     }
 
     var customRuleExerciseIds: [String] {
