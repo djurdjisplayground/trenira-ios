@@ -186,7 +186,7 @@
 		A10000020000000000000004 /* AuthenticationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationManager.swift; sourceTree = "<group>"; };
 		A10000020000000000000005 /* Color+IronHer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+IronHer.swift"; sourceTree = "<group>"; };
 		A10000020000000000000006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A10000020000000000000007 /* IronHer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IronHer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000020000000000000007 /* trenira.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = trenira.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000020000000000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A10000020000000000000009 /* IronHer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = IronHer.entitlements; sourceTree = "<group>"; };
 		A1000002000000000000000A /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
@@ -400,7 +400,7 @@
 		A10000040000000000000003 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A10000020000000000000007 /* IronHer.app */,
+				A10000020000000000000007 /* trenira.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -724,9 +724,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A10000050000000000000001 /* IronHer */ = {
+		A10000050000000000000001 /* trenira */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A10000080000000000000003 /* Build configuration list for PBXNativeTarget "IronHer" */;
+			buildConfigurationList = A10000080000000000000003 /* Build configuration list for PBXNativeTarget "trenira" */;
 			buildPhases = (
 				A10000060000000000000001 /* Sources */,
 				A10000030000000000000001 /* Frameworks */,
@@ -736,12 +736,12 @@
 			);
 			dependencies = (
 			);
-			name = IronHer;
+			name = trenira;
 			packageProductDependencies = (
 				A100000B0000000000000002 /* GoogleSignIn */,
 			);
 			productName = IronHer;
-			productReference = A10000020000000000000007 /* IronHer.app */;
+			productReference = A10000020000000000000007 /* trenira.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -759,7 +759,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A10000080000000000000001 /* Build configuration list for PBXProject "IronHer" */;
+			buildConfigurationList = A10000080000000000000001 /* Build configuration list for PBXProject "trenira" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -775,7 +775,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A10000050000000000000001 /* IronHer */,
+				A10000050000000000000001 /* trenira */,
 			);
 		};
 /* End PBXProject section */
@@ -1157,7 +1157,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A10000080000000000000001 /* Build configuration list for PBXProject "IronHer" */ = {
+		A10000080000000000000001 /* Build configuration list for PBXProject "trenira" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A100000A0000000000000001 /* Debug */,
@@ -1166,7 +1166,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A10000080000000000000003 /* Build configuration list for PBXNativeTarget "IronHer" */ = {
+		A10000080000000000000003 /* Build configuration list for PBXNativeTarget "trenira" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A100000A0000000000000003 /* Debug */,

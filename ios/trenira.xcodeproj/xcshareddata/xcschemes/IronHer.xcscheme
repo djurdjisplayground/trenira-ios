@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "A10000050000000000000001"
-               BuildableName = "IronHer.app"
-               BlueprintName = "IronHer"
-               ReferencedContainer = "container:IronHer.xcodeproj">
+               BuildableName = "trenira.app"
+               BlueprintName = "trenira"
+               ReferencedContainer = "container:trenira.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -44,9 +44,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A10000050000000000000001"
-            BuildableName = "IronHer.app"
-            BlueprintName = "IronHer"
-            ReferencedContainer = "container:IronHer.xcodeproj">
+            BuildableName = "trenira.app"
+            BlueprintName = "trenira"
+            ReferencedContainer = "container:trenira.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <StoreKitConfigurationFileReference
@@ -64,9 +64,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "A10000050000000000000001"
-            BuildableName = "IronHer.app"
-            BlueprintName = "IronHer"
-            ReferencedContainer = "container:IronHer.xcodeproj">
+            BuildableName = "trenira.app"
+            BlueprintName = "trenira"
+            ReferencedContainer = "container:trenira.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
