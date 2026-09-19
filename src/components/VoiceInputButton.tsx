@@ -1,5 +1,3 @@
-import { Button } from './Button'
-
 interface VoiceInputButtonProps {
   listening: boolean
   supported: boolean

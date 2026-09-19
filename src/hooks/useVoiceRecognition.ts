@@ -31,6 +31,10 @@ export function useVoiceRecognition({
 
     const SpeechRecognitionCtor =
       window.SpeechRecognition ?? window.webkitSpeechRecognition
+    if (!SpeechRecognitionCtor) {
+      onError?.('Voice input is not supported in this browser. Try Chrome or Safari.')
+      return
+    }
     const recognition = new SpeechRecognitionCtor()
     recognition.lang = 'en-US'
     recognition.interimResults = true
@@ -62,7 +66,7 @@ export function useVoiceRecognition({
       }
     }
 
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+    recognition.onerror = (event) => {
       if (event.error !== 'aborted') {
         onError?.(`Voice error: ${event.error}`)
       }

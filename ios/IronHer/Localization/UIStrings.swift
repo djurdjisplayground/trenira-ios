@@ -16,6 +16,8 @@ enum L10nKey: String, CaseIterable {
     case cancel = "cancel"
     case early_beta_title = "early_beta_title"
     case early_beta_notice = "early_beta_notice"
+    case local_storage_title = "local_storage_title"
+    case local_storage_notice = "local_storage_notice"
 
     // MARK: - Home
     case good_morning = "good_morning"
@@ -234,6 +236,7 @@ enum L10nKey: String, CaseIterable {
     case exercise_details_technique = "exercise_details_technique"
     case exercise_details_common_mistake = "exercise_details_common_mistake"
     case exercise_details_progression_link = "exercise_details_progression_link"
+    case exercise_watch_demonstration = "exercise_watch_demonstration"
     case exercise_info_accessibility = "exercise_info_accessibility"
     case how_to_perform = "how_to_perform"
 
@@ -263,7 +266,7 @@ enum L10nKey: String, CaseIterable {
     case sign_in_title = "sign_in_title"
     case premium_badge = "premium_badge"
 
-    // MARK: - Local data erasure
+    // MARK: - Local data erasure / account deletion
     case account = "account"
     case erase_local_data = "erase_local_data"
     case erase_local_data_title = "erase_local_data_title"
@@ -276,6 +279,15 @@ enum L10nKey: String, CaseIterable {
     case erase_local_data_final_message = "erase_local_data_final_message"
     case erase_data = "erase_data"
     case local_data_erased = "local_data_erased"
+    case delete_account = "delete_account"
+    case delete_account_title = "delete_account_title"
+    case delete_account_body = "delete_account_body"
+    case delete_account_provider_note = "delete_account_provider_note"
+    case delete_account_type_delete = "delete_account_type_delete"
+    case delete_account_confirm_title = "delete_account_confirm_title"
+    case delete_account_confirm_message = "delete_account_confirm_message"
+    case delete_account_footer = "delete_account_footer"
+    case delete_account_settings_footer = "delete_account_settings_footer"
 
     // MARK: - Workout settings
     case workout_settings = "workout_settings"
@@ -317,8 +329,10 @@ enum UIStrings {
             .continue_with_google: "Continue with Google",
             .continue_as_guest: "Continue as Guest",
             .cancel: "Cancel",
-            .early_beta_title: "Early Beta",
-            .early_beta_notice: "Your workout data is currently stored only on this device.\n\nIf you delete the app or switch devices, your workout history will be lost.\n\nCloud backup and synchronisation are coming in a future update.",
+            .early_beta_title: "Stored on this device",
+            .early_beta_notice: "Your workout data is currently stored only on this device.\n\nIf you delete the app or switch devices, your workout history will be lost.\n\nCloud backup and synchronisation are planned for a future update.",
+            .local_storage_title: "Stored on this device",
+            .local_storage_notice: "Your workout data is currently stored only on this device.\n\nIf you delete the app or switch devices, your workout history will be lost.\n\nCloud backup and synchronisation are planned for a future update.",
 
             // Home
             .good_morning: "Good morning",
@@ -459,6 +473,7 @@ enum UIStrings {
             .exercise_details_technique: "Technique",
             .exercise_details_common_mistake: "Common mistake",
             .exercise_details_progression_link: "Progression & units",
+            .exercise_watch_demonstration: "Watch demonstration",
             .exercise_info_accessibility: "Exercise details",
             .how_to_perform: "How to perform",
 
@@ -566,19 +581,28 @@ enum UIStrings {
             .sign_in_title: "Sign in to trenira",
             .premium_badge: "Premium",
 
-            // Local data erasure
+            // Local data erasure / account deletion
             .account: "Account",
-            .erase_local_data: "Erase All Local Data",
-            .erase_local_data_title: "Erase all local data?",
-            .erase_local_data_body: "Permanently deletes all workouts, workout history, progression data, gym profiles, equipment settings, preferences, local account pointers, and other trenira data stored on this device.\n\nThis cannot be undone.\n\nThis does not delete your Apple ID or Google Account.",
+            .erase_local_data: "Delete Account & Data",
+            .erase_local_data_title: "Delete Account & Data",
+            .erase_local_data_body: "This permanently deletes your trenira account data stored on this device, including your workouts, progress, custom exercises, and settings. This action cannot be undone.",
             .erase_local_data_type_delete: "Type DELETE to confirm",
-            .erase_local_data_confirm_title: "Erase all trenira data from this device?",
-            .erase_local_data_confirm_message: "This permanently deletes trenira workouts, history, progression, and settings on this device. Signing in again with Apple or Google will not restore erased local data. Your Apple ID and Google Account are not deleted.",
+            .erase_local_data_confirm_title: "Delete Account & Data?",
+            .erase_local_data_confirm_message: "This permanently deletes trenira workouts, history, progression, and settings on this device. Signing in again with Apple or Google will not restore deleted local data. Your Apple ID and Google Account are not deleted.",
             .erase_local_data_footer: "This does not delete your Apple ID or Google Account.",
             .erase_local_data_final_title: "Final confirmation",
-            .erase_local_data_final_message: "This permanently erases trenira data on this device. You cannot undo this.",
-            .erase_data: "Erase Data",
-            .local_data_erased: "Local data erased.",
+            .erase_local_data_final_message: "This permanently deletes trenira data on this device. You cannot undo this.",
+            .erase_data: "Delete Account & Data",
+            .local_data_erased: "Account data deleted.",
+            .delete_account: "Delete Account & Data",
+            .delete_account_title: "Delete Account & Data",
+            .delete_account_body: "This permanently deletes your trenira account data stored on this device, including your workouts, progress, custom exercises, and settings. This action cannot be undone.",
+            .delete_account_provider_note: "This does not delete your Apple ID or Google Account.",
+            .delete_account_type_delete: "Type DELETE to confirm",
+            .delete_account_confirm_title: "Delete Account & Data?",
+            .delete_account_confirm_message: "This permanently deletes trenira workouts, history, progression, and settings on this device. Signing in again with Apple or Google will not restore deleted local data.",
+            .delete_account_footer: "This does not delete your Apple ID or Google Account.",
+            .delete_account_settings_footer: "Permanently deletes trenira data for this identity on this device. Log Out keeps your workouts for when you sign back in.",
 
             // Workout settings
             .workout_settings: "Workout",

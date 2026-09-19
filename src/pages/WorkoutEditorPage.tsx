@@ -108,6 +108,27 @@ export function WorkoutEditorPage() {
     }
   }
 
+  async function handleSwapSuggestion(index: number, exercise: Exercise) {
+    setSuggestions((prev) => {
+      if (!prev) return prev
+      return prev.map((suggestion, i) => {
+        if (i !== index) return suggestion
+        const keptOriginal = exercise.id === suggestion.originalExerciseId
+        return {
+          ...suggestion,
+          exerciseId: exercise.id,
+          exerciseName: exercise.name,
+          muscleGroup: exercise.muscleGroup,
+          equipment: exercise.equipment,
+          rationale: keptOriginal
+            ? `Keeping ${exercise.name}.`
+            : `You chose ${exercise.name} instead of the suggested swap.`,
+          replacedExerciseName: keptOriginal ? undefined : suggestion.originalExerciseName,
+        }
+      })
+    })
+  }
+
   async function handleApplyRegeneration(exercises: SuggestedExercise[]) {
     if (!id) return
     setRegenLoading(true)
@@ -269,6 +290,7 @@ export function WorkoutEditorPage() {
           usedAi={usedAi}
           onGenerate={handleGenerate}
           onApply={handleApplyRegeneration}
+          onSwap={handleSwapSuggestion}
           onClose={() => {
             setShowRegenerate(false)
             setSuggestions(null)

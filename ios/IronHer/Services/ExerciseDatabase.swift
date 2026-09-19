@@ -23,9 +23,12 @@ enum ExerciseDatabase {
         + fullBodyExercises
 
     // MARK: - Chest
+    // Starter YouTube links on a few catalog IDs — replace with your final curated videos
+    // before relying on them in production (see barbell-bench-press, barbell-back-squat,
+    // goblet-squat, hip-thrust, romanian-deadlift).
 
     private static let chestExercises: [Exercise] = [
-        ex("barbell-bench-press", "Barbell Bench Press", .chest, .barbell, .push, .horizontalPush, secondary: [.shoulders, .triceps]),
+        ex("barbell-bench-press", "Barbell Bench Press", .chest, .barbell, .push, .horizontalPush, secondary: [.shoulders, .triceps], demoVideoURL: "https://www.youtube.com/watch?v=vcBig73ojpE"),
         ex("dumbbell-bench-press", "Dumbbell Bench Press", .chest, .dumbbell, .push, .horizontalPush, secondary: [.shoulders, .triceps]),
         ex("incline-barbell-press", "Incline Barbell Press", .chest, .barbell, .push, .horizontalPush, secondary: [.shoulders, .triceps]),
         ex("incline-dumbbell-press", "Incline Dumbbell Press", .chest, .dumbbell, .push, .horizontalPush, secondary: [.shoulders, .triceps]),
@@ -121,19 +124,20 @@ enum ExerciseDatabase {
     // MARK: - Quads & glutes
 
     private static let quadGluteExercises: [Exercise] = [
-        ex("barbell-back-squat", "Barbell Back Squat", .quads, .barbell, .squat, .squat, secondary: [.glutes, .hamstrings]),
+        ex("barbell-back-squat", "Barbell Back Squat", .quads, .barbell, .squat, .squat, secondary: [.glutes, .hamstrings], demoVideoURL: "https://www.youtube.com/watch?v=bEv6CCg2BC8"),
         ex("front-squat", "Front Squat", .quads, .barbell, .squat, .squat, secondary: [.glutes, .core]),
-        ex("goblet-squat", "Goblet Squat", .quads, .dumbbell, .squat, .squat, secondary: [.glutes]),
+        ex("goblet-squat", "Goblet Squat", .quads, .dumbbell, .squat, .squat, secondary: [.glutes], demoVideoURL: "https://www.youtube.com/watch?v=nfX7IFK9UNI"),
         ex("hack-squat", "Hack Squat", .quads, .machine, .squat, .squat, secondary: [.glutes]),
         ex("leg-press", "Leg Press", .quads, .machine, .squat, .squat, secondary: [.glutes]),
         ex("belt-squat", "Belt Squat", .quads, .machine, .squat, .squat, secondary: [.glutes]),
         ex("smith-squat", "Smith Machine Squat", .quads, .machine, .squat, .squat, secondary: [.glutes]),
         ex("pendulum-squat", "Pendulum Squat", .quads, .machine, .squat, .squat, secondary: [.glutes]),
         ex("leg-extension", "Leg Extension", .quads, .machine, .isolation, .isolation),
-        ex("hip-thrust", "Hip Thrust (Barbell)", .glutes, .barbell, .hinge, .hinge, secondary: [.hamstrings], aliases: ["hip thrust", "barbell hip thrust", "glute"], measurement: .repsWithOptionalWeight, overload: true),
+        ex("hip-thrust", "Hip Thrust (Barbell)", .glutes, .barbell, .hinge, .hinge, secondary: [.hamstrings], aliases: ["hip thrust", "barbell hip thrust", "glute"], measurement: .repsWithOptionalWeight, overload: true, demoVideoURL: "https://www.youtube.com/watch?v=xDmFkJxPzeM"),
         ex("smith-hip-thrust", "Hip Thrust (Smith)", .glutes, .machine, .hinge, .hinge, secondary: [.hamstrings], aliases: ["smith hip thrust", "smith machine hip thrust", "hip thrust", "glute"]),
         ex("glute-bridge", "Glute Bridge (Bodyweight)", .glutes, .bodyweight, .hinge, .hinge, secondary: [.hamstrings], aliases: ["glute bridge", "bridge", "glute"], measurement: .repsWithOptionalWeight, overload: false),
         ex("single-leg-glute-bridge", "Single-Leg Glute Bridge", .glutes, .bodyweight, .hinge, .hinge, secondary: [.hamstrings], laterality: .unilateral, measurement: .repsWithOptionalWeight, overload: false),
+        ex("single-leg-hip-thrust", "Single-Leg Hip Thrust", .glutes, .bodyweight, .hinge, .hinge, secondary: [.hamstrings], laterality: .unilateral, aliases: ["single leg hip thrust", "1-leg hip thrust", "unilateral hip thrust"], measurement: .repsWithOptionalWeight, overload: false, family: .hipThrust, suggestedAlternatives: ["hip-thrust", "single-leg-glute-bridge", "dumbbell-hip-thrust"]),
         ex("cable-kickback", "Glute Kickback (Cable)", .glutes, .cable, .isolation, .isolation, laterality: .unilateral, aliases: ["cable kickback", "cable glute kickback", "glute kickback", "kickback"]),
         ex("hip-abduction", "Hip Abduction", .glutes, .machine, .isolation, .isolation, laterality: .unilateral),
         ex("hip-adduction", "Hip Adduction", .quads, .machine, .isolation, .isolation, laterality: .unilateral),
@@ -148,7 +152,7 @@ enum ExerciseDatabase {
     // MARK: - Hamstrings
 
     private static let hamstringExercises: [Exercise] = [
-        ex("romanian-deadlift", "Romanian Deadlift (Barbell)", .hamstrings, .barbell, .hinge, .hinge, secondary: [.glutes], aliases: ["RDL", "rdl", "romanian deadlift", "barbell rdl"]),
+        ex("romanian-deadlift", "Romanian Deadlift (Barbell)", .hamstrings, .barbell, .hinge, .hinge, secondary: [.glutes], aliases: ["RDL", "rdl", "romanian deadlift", "barbell rdl"], demoVideoURL: "https://www.youtube.com/watch?v=_oyxCn2iSjU"),
         ex("dumbbell-rdl", "Romanian Deadlift (Dumbbell)", .hamstrings, .dumbbell, .hinge, .hinge, secondary: [.glutes], aliases: ["dumbbell rdl", "db rdl", "dumbbell romanian deadlift"]),
         ex("single-leg-rdl", "Single-Leg Romanian Deadlift", .hamstrings, .dumbbell, .hinge, .hinge, secondary: [.glutes], laterality: .unilateral, aliases: ["single leg RDL", "single leg rdl"]),
         ex("stiff-leg-deadlift", "Stiff-Leg Deadlift", .hamstrings, .barbell, .hinge, .hinge, secondary: [.glutes]),
@@ -250,7 +254,11 @@ enum ExerciseDatabase {
         measurement: MeasurementUnit? = nil,
         progression: ProgressionMethod? = nil,
         overload: Bool? = nil,
-        tracking: ExerciseTrackingProfile? = nil
+        tracking: ExerciseTrackingProfile? = nil,
+        family: MovementFamily = .other,
+        required: [GymEquipmentKind] = [],
+        suggestedAlternatives: [String] = [],
+        demoVideoURL: String? = nil
     ) -> Exercise {
         Exercise(
             id: id,
@@ -265,7 +273,11 @@ enum ExerciseDatabase {
             measurementUnit: measurement,
             trackingProfile: tracking,
             progressionMethod: progression,
-            supportsProgressiveOverload: overload
+            supportsProgressiveOverload: overload,
+            movementFamily: family,
+            requiredEquipment: required,
+            suggestedAlternatives: suggestedAlternatives,
+            demoVideoURL: demoVideoURL
         )
     }
 }

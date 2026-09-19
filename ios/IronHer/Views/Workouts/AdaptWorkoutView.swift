@@ -206,7 +206,7 @@ struct AdaptWorkoutView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     RecommendationDisclaimerBanner()
                     WorkoutAdaptationProposalsSection(
-                        proposals: proposals,
+                        proposals: $proposals,
                         actionTitle: l10n.t(.adapt_save_action)
                     ) {
                         applyAdaptation()

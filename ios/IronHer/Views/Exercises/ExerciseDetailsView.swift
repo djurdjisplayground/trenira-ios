@@ -7,6 +7,7 @@ import SwiftUI
 /// No AI animations, placeholders, or inaccurate substitutes.
 struct ExerciseDetailsView: View {
     @Environment(LocalizationStore.self) private var l10n
+    @Environment(\.openURL) private var openURL
 
     let exercise: Exercise
     /// When true, offers a link into progression / unit settings for this exercise.
@@ -38,6 +39,15 @@ struct ExerciseDetailsView: View {
 
                 if showsDemonstration {
                     ExerciseDemonstrationView(exercise: exercise)
+                }
+
+                if let url = exercise.watchableDemoURL {
+                    Button {
+                        openURL(url)
+                    } label: {
+                        Text(l10n.t(.exercise_watch_demonstration))
+                    }
+                    .buttonStyle(OutlineButtonStyle())
                 }
 
                 metadataSection

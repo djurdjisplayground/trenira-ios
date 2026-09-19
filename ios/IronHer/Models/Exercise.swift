@@ -26,6 +26,8 @@ struct Exercise: Identifiable, Codable, Hashable {
     /// Related exercise IDs preferred as substitutions.
     let suggestedAlternatives: [String]
     let weightInterpretation: WeightInterpretation
+    /// Optional curated YouTube demonstration. Missing on most exercises; never required.
+    let demoVideoURL: String?
     /// `guest:…` / `account:…` for custom exercises. Built-ins leave this empty.
     var ownerId: String
 
@@ -50,6 +52,7 @@ struct Exercise: Identifiable, Codable, Hashable {
         requiredEquipment: [GymEquipmentKind] = [],
         suggestedAlternatives: [String] = [],
         weightInterpretation: WeightInterpretation? = nil,
+        demoVideoURL: String? = nil,
         ownerId: String = ""
     ) {
         let resolvedMeasurement = measurementUnit
@@ -89,6 +92,7 @@ struct Exercise: Identifiable, Codable, Hashable {
                 measurement: resolvedMeasurement,
                 id: id
             )
+        self.demoVideoURL = Self.normalizedDemoVideoURL(demoVideoURL)
         self.ownerId = ownerId
     }
 
@@ -125,6 +129,9 @@ struct Exercise: Identifiable, Codable, Hashable {
                 id: id
             )
         ownerId = try container.decodeIfPresent(String.self, forKey: .ownerId) ?? ""
+        demoVideoURL = Self.normalizedDemoVideoURL(
+            try container.decodeIfPresent(String.self, forKey: .demoVideoURL)
+        )
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -132,6 +139,7 @@ struct Exercise: Identifiable, Codable, Hashable {
         case category, movementPattern, laterality, measurementUnit, trackingProfile, progressionMethod
         case supportsProgressiveOverload, isCustom, imageAssetName, animationAssetName
         case movementFamily, requiredEquipment, suggestedAlternatives, weightInterpretation, ownerId
+        case demoVideoURL
     }
 
     static func defaultWeightInterpretation(
@@ -156,6 +164,21 @@ struct Exercise: Identifiable, Codable, Hashable {
             return totalWeightExceptions.contains(id) ? .totalLoad : .perHand
         }
         return .totalLoad
+    }
+
+    static func normalizedDemoVideoURL(_ raw: String?) -> String? {
+        guard let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+            return nil
+        }
+        return trimmed
+    }
+
+    /// Valid http(s) URL for opening a curated demonstration, if one exists.
+    var watchableDemoURL: URL? {
+        guard let raw = demoVideoURL, let url = URL(string: raw) else { return nil }
+        let scheme = url.scheme?.lowercased()
+        guard scheme == "http" || scheme == "https" else { return nil }
+        return url
     }
 
     /// True when every required equipment kind is present in `available`.
@@ -223,6 +246,7 @@ struct Exercise: Identifiable, Codable, Hashable {
         try container.encode(suggestedAlternatives, forKey: .suggestedAlternatives)
         try container.encode(weightInterpretation, forKey: .weightInterpretation)
         try container.encode(ownerId, forKey: .ownerId)
+        try container.encodeIfPresent(demoVideoURL, forKey: .demoVideoURL)
     }
 
     var listSubtitle: String {

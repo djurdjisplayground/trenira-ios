@@ -6,17 +6,49 @@ enum WorkoutRefreshMode: Equatable {
     case detailedEquipment(Set<GymEquipmentKind>)
 }
 
-struct WorkoutAdaptationProposal: Identifiable {
-    let id = UUID()
+struct WorkoutAdaptationProposal: Identifiable, Hashable {
+    let id: UUID
     let originalExerciseId: String
     let originalName: String
-    let proposedExerciseId: String
-    let proposedName: String
-    let proposedEquipment: String
+    var proposedExerciseId: String
+    var proposedName: String
+    var proposedEquipment: String
     let sets: Int
     let reps: Int
-    let startingWeight: Double
-    let isVarietySwap: Bool
+    var startingWeight: Double
+    var isVarietySwap: Bool
+
+    init(
+        id: UUID = UUID(),
+        originalExerciseId: String,
+        originalName: String,
+        proposedExerciseId: String,
+        proposedName: String,
+        proposedEquipment: String,
+        sets: Int,
+        reps: Int,
+        startingWeight: Double,
+        isVarietySwap: Bool
+    ) {
+        self.id = id
+        self.originalExerciseId = originalExerciseId
+        self.originalName = originalName
+        self.proposedExerciseId = proposedExerciseId
+        self.proposedName = proposedName
+        self.proposedEquipment = proposedEquipment
+        self.sets = sets
+        self.reps = reps
+        self.startingWeight = startingWeight
+        self.isVarietySwap = isVarietySwap
+    }
+
+    /// Updates only this suggestion. The saved workout is unchanged until Apply.
+    mutating func applyManualSwap(to exercise: Exercise) {
+        proposedExerciseId = exercise.id
+        proposedName = exercise.name
+        proposedEquipment = exercise.equipment.label
+        isVarietySwap = exercise.id != originalExerciseId
+    }
 }
 
 enum WorkoutAdaptationService {

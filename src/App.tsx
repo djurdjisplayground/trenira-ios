@@ -5,7 +5,10 @@ import { HomePage } from './pages/HomePage'
 import { WorkoutEditorPage } from './pages/WorkoutEditorPage'
 import { WorkoutSessionPage } from './pages/WorkoutSessionPage'
 import { AiPage } from './pages/AiPage'
-import { registerSW } from 'virtual:pwa-register'
+
+function registerSW(_options?: { onNeedRefresh?: () => void }) {
+  return async (_reloadPage?: boolean) => {}
+}
 
 const updateSW = registerSW({
   onNeedRefresh() {

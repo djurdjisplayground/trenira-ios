@@ -74,7 +74,6 @@ enum ExerciseDatabaseExpansion {
         ex("cable-face-pull", "Cable Face Pull", .shoulders, .cable, .isolation, .isolation, family: .other, required: [.cableStation, .highPulley, .cableAttachments], secondary: [.back], aliases: ["face pull cable"]),
         ex("band-face-pull", "Band Face Pull", .shoulders, .bodyweight, .isolation, .isolation, family: .other, required: [.resistanceBands], secondary: [.back], measurement: .reps),
         ex("machine-hip-thrust", "Hip Thrust (Machine)", .glutes, .machine, .hinge, .hinge, family: .hipThrust, required: [.hipThrustMachine], secondary: [.hamstrings], aliases: ["machine hip thrust", "hip thrust", "glute"], weightInterpretation: .machineSetting),
-        ex("single-leg-hip-thrust", "Single-Leg Hip Thrust", .glutes, .bodyweight, .hinge, .hinge, family: .hipThrust, required: [.bodyweight, .flatBench], secondary: [.hamstrings], laterality: .unilateral, measurement: .reps),
         ex("dumbbell-hip-thrust", "Hip Thrust (Dumbbell)", .glutes, .dumbbell, .hinge, .hinge, family: .hipThrust, required: [.dumbbells, .flatBench], secondary: [.hamstrings], aliases: ["dumbbell hip thrust", "db hip thrust", "hip thrust", "glute"]),
         ex("cable-crunch-kneeling", "Kneeling Cable Crunch", .core, .cable, .core, .core, family: .core, required: [.cableStation, .highPulley]),
         ex("hanging-knee-raise", "Hanging Knee Raise", .core, .bodyweight, .core, .core, family: .core, required: [.pullUpBar], measurement: .reps),

@@ -41,6 +41,8 @@ export interface SuggestedExercise {
   reps: number
   weight: number
   rationale: string
+  originalExerciseId: string
+  originalExerciseName: string
   replacedExerciseName?: string
 }
 

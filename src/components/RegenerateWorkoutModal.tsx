@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Button } from './Button'
+import { ExercisePicker } from './ExercisePicker'
+import type { Exercise } from '../types'
 import type { GymEquipment, SuggestedExercise } from '../types/ai'
 import { DEFAULT_GYM_EQUIPMENT } from '../types/ai'
 
@@ -9,6 +11,7 @@ interface RegenerateWorkoutModalProps {
     equipment: GymEquipment,
   ) => Promise<void>
   onApply: (exercises: SuggestedExercise[]) => Promise<void>
+  onSwap: (index: number, exercise: Exercise) => void
   onClose: () => void
   loading: boolean
   suggestions: SuggestedExercise[] | null
@@ -26,6 +29,7 @@ const EQUIPMENT_OPTIONS: Array<{ key: keyof GymEquipment; label: string }> = [
 export function RegenerateWorkoutModal({
   onGenerate,
   onApply,
+  onSwap,
   onClose,
   loading,
   suggestions,
@@ -33,6 +37,7 @@ export function RegenerateWorkoutModal({
 }: RegenerateWorkoutModalProps) {
   const [reason, setReason] = useState<'new_gym' | 'bored' | 'plateau'>('bored')
   const [equipment, setEquipment] = useState<GymEquipment>({ ...DEFAULT_GYM_EQUIPMENT })
+  const [swapIndex, setSwapIndex] = useState<number | null>(null)
 
   function toggleEquipment(key: keyof GymEquipment) {
     setEquipment((prev) => ({ ...prev, [key]: !prev[key] }))
@@ -121,9 +126,9 @@ export function RegenerateWorkoutModal({
                 {usedAi ? 'AI-generated suggestions' : 'Smart local suggestions'} — review before applying:
               </p>
               <ul className="flex flex-col gap-3">
-                {suggestions.map((s) => (
+                {suggestions.map((s, index) => (
                   <li
-                    key={s.exerciseId}
+                    key={`${s.originalExerciseId}-${index}`}
                     className="rounded-xl bg-rose-50/60 p-3 ring-1 ring-rose-100"
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -135,11 +140,18 @@ export function RegenerateWorkoutModal({
                       </div>
                       {s.replacedExerciseName && (
                         <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-xs text-rose-600">
-                          ↻ from {s.replacedExerciseName}
+                          from {s.replacedExerciseName}
                         </span>
                       )}
                     </div>
                     <p className="mt-2 text-xs leading-relaxed text-slate-600">{s.rationale}</p>
+                    <button
+                      type="button"
+                      onClick={() => setSwapIndex(index)}
+                      className="mt-3 rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-850 ring-1 ring-rose-200"
+                    >
+                      Swap
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -164,6 +176,21 @@ export function RegenerateWorkoutModal({
           )}
         </div>
       </div>
+      {swapIndex !== null && suggestions?.[swapIndex] && (
+        <ExercisePicker
+          title="Swap exercise"
+          subtitle={`Choose a replacement for ${suggestions[swapIndex].originalExerciseName}. Cancel to keep the current suggestion.`}
+          excludeIds={[
+            suggestions[swapIndex].originalExerciseId,
+            ...suggestions.map((item) => item.exerciseId),
+          ]}
+          onSelect={(exercise) => {
+            onSwap(swapIndex, exercise)
+            setSwapIndex(null)
+          }}
+          onClose={() => setSwapIndex(null)}
+        />
+      )}
     </div>
   )
 }

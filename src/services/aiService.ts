@@ -84,7 +84,7 @@ function buildRationale(
   current: ProgressionSnapshot,
   picked: Exercise,
   reason: RegenerateWorkoutRequest['reason'],
-  sets: number,
+  _sets: number,
   reps: number,
 ): string {
   if (picked.id === current.exerciseId) {
@@ -134,6 +134,8 @@ async function regenerateWorkoutLocal(
       reps,
       weight: prog.currentWeight,
       rationale: buildRationale(prog, picked, request.reason, sets, reps),
+      originalExerciseId: prog.exerciseId,
+      originalExerciseName: prog.exerciseName,
       replacedExerciseName: picked.id !== prog.exerciseId ? prog.exerciseName : undefined,
     })
   }
@@ -198,7 +200,16 @@ Only use exercise IDs from the provided list. Preserve muscle-group balance and 
   if (!result?.exercises?.length) return null
 
   const validIds = new Set(available.map((e) => e.id))
-  const validated = result.exercises.filter((e) => validIds.has(e.exerciseId))
+  const validated = result.exercises
+    .filter((e) => validIds.has(e.exerciseId))
+    .map((e, index) => {
+      const original = request.currentExercises[index]
+      return {
+        ...e,
+        originalExerciseId: e.originalExerciseId || original?.exerciseId || e.exerciseId,
+        originalExerciseName: e.originalExerciseName || original?.exerciseName || e.replacedExerciseName || e.exerciseName,
+      }
+    })
   if (validated.length === 0) return null
 
   return { suggestedExercises: validated, usedAi: true }

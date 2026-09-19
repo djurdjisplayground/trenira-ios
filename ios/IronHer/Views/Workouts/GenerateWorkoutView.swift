@@ -8,8 +8,9 @@ struct GenerateWorkoutView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var request = WorkoutGenerationRequest()
-    @State private var generatedWorkout: Workout?
+    @State private var generatedWorkouts: [Workout] = []
     @State private var showPremiumUpgrade = false
+    @State private var swapTarget: GeneratedExerciseSwapTarget?
 
     var body: some View {
         ScrollView {
@@ -23,8 +24,8 @@ struct GenerateWorkoutView: View {
                 muscleSection
                 generateButton
 
-                if let generatedWorkout {
-                    previewSection(generatedWorkout)
+                if !generatedWorkouts.isEmpty {
+                    previewSection(generatedWorkouts)
                 }
             }
             .padding(.horizontal, 24)
@@ -38,23 +39,42 @@ struct GenerateWorkoutView: View {
                 PremiumUpgradeView(highlightFeature: .generateWorkout)
             }
         }
+        .sheet(item: $swapTarget) { target in
+            AdaptSwapExercisePicker(
+                originalName: target.originalName,
+                originalExerciseId: target.entry.exerciseId,
+                excludedIds: excludedIds(in: target.workoutID, replacing: target.entry.exerciseId),
+                compatibleEquipment: request.availableEquipment
+            ) { exercise in
+                applyGeneratedSwap(target: target, exercise: exercise)
+            }
+        }
     }
 
     private var introSection: some View {
-        Text("Choose a goal and available equipment. trenira drafts a plan automatically — review and edit before you train.")
+        Text("Choose your goals, equipment, and how many days you train. trenira drafts one complementary workout for each training day — review and edit before you save.")
             .font(SheLiftsFont.body)
             .foregroundStyle(IronHerTheme.secondaryText)
     }
 
     private var goalSection: some View {
-        pickerSection(title: "Training goal") {
-            ForEach(WorkoutTrainingGoal.allCases) { goal in
-                selectionChip(
-                    title: goal.label,
-                    isSelected: request.goal == goal
-                ) {
-                    request.goal = goal
-                    generatedWorkout = nil
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Training goals")
+                .font(.headline)
+                .foregroundStyle(IronHerTheme.primaryText)
+
+            Text("Select every goal this session should cover. You can tap a selected goal to deselect it.")
+                .font(SheLiftsFont.caption)
+                .foregroundStyle(IronHerTheme.secondaryText)
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 130))], spacing: 10) {
+                ForEach(WorkoutTrainingGoal.allCases) { goal in
+                    selectionChip(
+                        title: goal.label,
+                        isSelected: request.goals.contains(goal)
+                    ) {
+                        toggleGoal(goal)
+                    }
                 }
             }
         }
@@ -68,7 +88,7 @@ struct GenerateWorkoutView: View {
                     isSelected: request.experience == level
                 ) {
                     request.experience = level
-                    generatedWorkout = nil
+                    generatedWorkouts = []
                 }
             }
         }
@@ -82,7 +102,7 @@ struct GenerateWorkoutView: View {
                     isSelected: request.duration == duration
                 ) {
                     request.duration = duration
-                    generatedWorkout = nil
+                    generatedWorkouts = []
                 }
             }
         }
@@ -102,21 +122,31 @@ struct GenerateWorkoutView: View {
                 get: { request.availableEquipment },
                 set: {
                     request.availableEquipment = $0
-                    generatedWorkout = nil
+                    generatedWorkouts = []
                 }
             ))
         }
     }
 
     private var trainingDaysSection: some View {
-        pickerSection(title: "Training days / week") {
-            ForEach([2, 3, 4, 5, 6], id: \.self) { days in
-                selectionChip(
-                    title: "\(days) days",
-                    isSelected: request.trainingDays == days
-                ) {
-                    request.trainingDays = days
-                    generatedWorkout = nil
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Training days / week")
+                .font(.headline)
+                .foregroundStyle(IronHerTheme.primaryText)
+
+            Text("trenira creates one workout for each day so the week is a complete plan, not a single session.")
+                .font(SheLiftsFont.caption)
+                .foregroundStyle(IronHerTheme.secondaryText)
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 130))], spacing: 10) {
+                ForEach([2, 3, 4, 5, 6], id: \.self) { days in
+                    selectionChip(
+                        title: "\(days) days",
+                        isSelected: request.trainingDays == days
+                    ) {
+                        request.trainingDays = days
+                        generatedWorkouts = []
+                    }
                 }
             }
         }
@@ -145,48 +175,80 @@ struct GenerateWorkoutView: View {
         Button {
             generate()
         } label: {
-            Text("Generate Workout")
+            Text("Generate \(request.trainingDays)-day plan")
         }
         .buttonStyle(PrimaryButtonStyle())
-        .disabled(request.availableEquipment.isEmpty || request.muscleGroups.isEmpty)
+        .disabled(request.goals.isEmpty || request.availableEquipment.isEmpty || request.muscleGroups.isEmpty)
     }
 
-    private func previewSection(_ workout: Workout) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Suggested plan")
+    private func previewSection(_ workouts: [Workout]) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Suggested \(workouts.count)-day plan")
                 .font(.headline)
                 .foregroundStyle(IronHerTheme.primaryText)
 
+            Text("Each day is a separate workout you can start independently.")
+                .font(SheLiftsFont.caption)
+                .foregroundStyle(IronHerTheme.secondaryText)
+
             RecommendationDisclaimerBanner()
 
-            Text(workout.name)
-                .font(SheLiftsFont.bodyMedium)
-                .foregroundStyle(IronHerTheme.primaryText)
+            ForEach(Array(workouts.enumerated()), id: \.element.id) { _, workout in
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(workout.name)
+                        .font(SheLiftsFont.bodyMedium)
+                        .foregroundStyle(IronHerTheme.primaryText)
 
-            ForEach(workout.exercises.sorted { $0.order < $1.order }) { entry in
-                if let exercise = ExerciseCatalog.exercise(id: entry.exerciseId) {
-                    HStack {
-                        Text(exercise.name)
-                            .font(.body)
-                            .foregroundStyle(IronHerTheme.primaryText)
-                        Spacer()
-                        Text("\(entry.sets)×\(entry.reps)")
-                            .font(.caption)
-                            .foregroundStyle(IronHerTheme.secondaryText)
+                    ForEach(workout.exercises.sorted { $0.order < $1.order }) { entry in
+                        if let exercise = ExerciseCatalog.exercise(id: entry.exerciseId) {
+                            VStack(alignment: .leading, spacing: 10) {
+                                HStack {
+                                    Text(exercise.name)
+                                        .font(.body)
+                                        .foregroundStyle(IronHerTheme.primaryText)
+                                    Spacer()
+                                    Text("\(entry.sets)×\(entry.reps)")
+                                        .font(.caption)
+                                        .foregroundStyle(IronHerTheme.secondaryText)
+                                }
+
+                                Button {
+                                    swapTarget = GeneratedExerciseSwapTarget(
+                                        workoutID: workout.id,
+                                        entry: entry,
+                                        originalName: exercise.name
+                                    )
+                                } label: {
+                                    Text("Swap")
+                                        .font(SheLiftsFont.caption)
+                                        .foregroundStyle(IronHerTheme.primaryText)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(IronHerTheme.groupedBackground)
+                                        .clipShape(Capsule())
+                                        .overlay {
+                                            Capsule()
+                                                .stroke(IronHerTheme.separator.opacity(0.85), lineWidth: 0.5)
+                                        }
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Swap \(exercise.name)")
+                            }
+                            .padding(14)
+                            .background(IronHerTheme.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        }
                     }
-                    .padding(14)
-                    .background(IronHerTheme.cardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 }
             }
 
             Button {
-                saveWorkout(workout)
+                saveWorkouts(workouts)
             } label: {
-                Text("Save workout")
+                Text(workouts.count == 1 ? "Save workout" : "Save \(workouts.count) workouts")
             }
             .buttonStyle(PrimaryButtonStyle())
-            .disabled(workout.exercises.isEmpty)
+            .disabled(workouts.contains { $0.exercises.isEmpty })
         }
     }
 
@@ -224,42 +286,78 @@ struct GenerateWorkoutView: View {
         .buttonStyle(.plain)
     }
 
+    private func toggleGoal(_ goal: WorkoutTrainingGoal) {
+        if request.goals.contains(goal) {
+            request.goals.remove(goal)
+        } else {
+            request.goals.insert(goal)
+        }
+        generatedWorkouts = []
+    }
+
     private func toggleMuscle(_ group: MuscleGroup) {
         if request.muscleGroups.contains(group) {
             request.muscleGroups.remove(group)
         } else {
             request.muscleGroups.insert(group)
         }
-        generatedWorkout = nil
+        generatedWorkouts = []
     }
 
     private func generate() {
-        generatedWorkout = WorkoutGenerationService.generateWorkout(from: request)
+        generatedWorkouts = WorkoutGenerationService.generateWorkouts(from: request)
     }
 
-    private func saveWorkout(_ workout: Workout) {
-        guard subscriptionStore.canCreateWorkoutPlan(currentCount: workoutStore.savedWorkoutCount) else {
+    private func excludedIds(in workoutID: UUID, replacing exerciseId: String) -> Set<String> {
+        var ids = Set(
+            generatedWorkouts
+                .first(where: { $0.id == workoutID })?
+                .exercises.map(\.exerciseId) ?? []
+        )
+        ids.insert(exerciseId)
+        return ids
+    }
+
+    private func applyGeneratedSwap(target: GeneratedExerciseSwapTarget, exercise: Exercise) {
+        guard let workoutIndex = generatedWorkouts.firstIndex(where: { $0.id == target.workoutID }),
+              let entryIndex = generatedWorkouts[workoutIndex].exercises.firstIndex(where: { $0.id == target.entry.id })
+        else { return }
+
+        generatedWorkouts[workoutIndex].exercises[entryIndex] = WorkoutGenerationService.replacingGeneratedEntry(
+            generatedWorkouts[workoutIndex].exercises[entryIndex],
+            with: exercise,
+            request: request
+        )
+    }
+
+    private func saveWorkouts(_ workouts: [Workout]) {
+        let needed = workouts.count
+        let allowed = subscriptionStore.hasPremiumAccess
+            || workoutStore.savedWorkoutCount + needed <= SubscriptionStore.freeWorkoutPlanLimit
+        guard allowed else {
             showPremiumUpgrade = true
             return
         }
 
-        workoutStore.createWorkout(named: workout.name, exercises: workout.exercises)
-        for entry in workout.exercises {
-            let measurement = ExerciseCatalog.exercise(id: entry.exerciseId)?.measurementUnit ?? .weight
-            globalProgressStore.syncFromTemplateEdit(
-                exerciseId: entry.exerciseId,
-                measurement: measurement,
-                weightKg: entry.startingWeight,
-                reps: entry.reps,
-                sets: entry.sets,
-                durationSeconds: entry.durationSeconds,
-                distanceMeters: entry.distanceMeters,
-                into: workoutStore
-            )
-            if entry.startingWeight > 0,
-               measurement != .reps,
-               measurement != .bodyweight {
-                historyStore.recordInitial(exerciseId: entry.exerciseId, weightKg: entry.startingWeight)
+        for workout in workouts.reversed() {
+            workoutStore.createWorkout(named: workout.name, exercises: workout.exercises)
+            for entry in workout.exercises {
+                let measurement = ExerciseCatalog.exercise(id: entry.exerciseId)?.measurementUnit ?? .weight
+                globalProgressStore.syncFromTemplateEdit(
+                    exerciseId: entry.exerciseId,
+                    measurement: measurement,
+                    weightKg: entry.startingWeight,
+                    reps: entry.reps,
+                    sets: entry.sets,
+                    durationSeconds: entry.durationSeconds,
+                    distanceMeters: entry.distanceMeters,
+                    into: workoutStore
+                )
+                if entry.startingWeight > 0,
+                   measurement != .reps,
+                   measurement != .bodyweight {
+                    historyStore.recordInitial(exerciseId: entry.exerciseId, weightKg: entry.startingWeight)
+                }
             }
         }
         dismiss()
@@ -273,5 +371,15 @@ struct GenerateWorkoutView: View {
             .environment(WeightHistoryStore())
             .environment(SubscriptionStore())
             .environment(LocalizationStore())
+            .environment(CustomExerciseStore())
+            .environment(GlobalExerciseProgressStore())
     }
+}
+
+private struct GeneratedExerciseSwapTarget: Identifiable {
+    let workoutID: UUID
+    let entry: WorkoutExerciseEntry
+    let originalName: String
+
+    var id: UUID { entry.id }
 }

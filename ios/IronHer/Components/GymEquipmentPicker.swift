@@ -15,22 +15,12 @@ struct GymEquipmentPicker: View {
 
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 110))], spacing: 8) {
                         ForEach(GymEquipmentPreset.allCases) { preset in
-                            Button {
+                            equipmentOptionChip(
+                                title: preset.label,
+                                isSelected: selection == preset.equipment
+                            ) {
                                 selection = preset.equipment
-                            } label: {
-                                Text(preset.label)
-                                    .font(SheLiftsFont.caption)
-                                    .foregroundStyle(IronHerTheme.primaryText)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 8)
-                                    .background(IronHerTheme.cardBackground)
-                                    .clipShape(Capsule())
-                                    .overlay {
-                                        Capsule()
-                                            .stroke(IronHerTheme.separator.opacity(0.6), lineWidth: 0.5)
-                                    }
                             }
-                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -54,28 +44,39 @@ struct GymEquipmentPicker: View {
 
     private func equipmentChip(_ kind: GymEquipmentKind) -> some View {
         let selected = selection.contains(kind)
-        return Button {
+        return equipmentOptionChip(title: kind.label, isSelected: selected) {
+            var next = selection
             if selected {
-                selection.remove(kind)
+                next.remove(kind)
             } else {
-                selection.insert(kind)
+                next.insert(kind)
             }
-        } label: {
-            Text(kind.label)
-                .font(SheLiftsFont.caption)
-                .foregroundStyle(selected ? IronHerTheme.accentForeground : IronHerTheme.primaryText)
+            selection = next
+        }
+    }
+
+    private func equipmentOptionChip(
+        title: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(isSelected ? IronHerTheme.accentForeground : IronHerTheme.primaryText)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(selected ? IronHerTheme.accent : IronHerTheme.cardBackground)
+                .padding(.vertical, 10)
+                .background(isSelected ? IronHerTheme.accent : IronHerTheme.groupedBackground)
                 .clipShape(Capsule())
                 .overlay {
-                    if !selected {
+                    if !isSelected {
                         Capsule()
-                            .stroke(IronHerTheme.separator.opacity(0.6), lineWidth: 0.5)
+                            .stroke(IronHerTheme.separator.opacity(0.85), lineWidth: 0.5)
                     }
                 }
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 

@@ -1,6 +1,6 @@
 import Foundation
 
-enum WorkoutTrainingGoal: String, CaseIterable, Identifiable {
+enum WorkoutTrainingGoal: String, CaseIterable, Identifiable, Hashable {
     case buildMuscle
     case getStronger
     case tone
@@ -55,7 +55,7 @@ enum WorkoutDuration: Int, CaseIterable, Identifiable {
 }
 
 struct WorkoutGenerationRequest {
-    var goal: WorkoutTrainingGoal = .buildMuscle
+    var goals: Set<WorkoutTrainingGoal> = [.buildMuscle]
     var experience: TrainingExperience = .intermediate
     var duration: WorkoutDuration = .fortyFive
     /// Fine-grained available equipment for this generation.
@@ -65,7 +65,7 @@ struct WorkoutGenerationRequest {
     var includeExerciseIds: Set<String> = []
     /// Optional exercise IDs to avoid.
     var avoidExerciseIds: Set<String> = []
-    /// Number of training days (informational for naming / future split plans).
+    /// Weekly training frequency. Each day becomes its own saved workout.
     var trainingDays: Int = 3
 
     /// Legacy bridge from coarse equipment chips.
@@ -89,10 +89,61 @@ struct WorkoutGenerationRequest {
             availableEquipment = kinds
         }
     }
+
+    /// Stable display order matching `WorkoutTrainingGoal.allCases`.
+    var orderedGoals: [WorkoutTrainingGoal] {
+        WorkoutTrainingGoal.allCases.filter { goals.contains($0) }
+    }
 }
 
 enum WorkoutGenerationService {
+    /// Builds one complementary session per training day. Falls back to a single
+    /// session when frequency is 1 (not currently offered in the UI).
+    static func generateWorkouts(from request: WorkoutGenerationRequest) -> [Workout] {
+        let days = max(1, min(6, request.trainingDays))
+        guard days > 1 else {
+            return generateWorkout(from: request).map { [$0] } ?? []
+        }
+
+        let focuses = dayFocuses(trainingDays: days)
+        let splits = muscleSplits(selected: request.muscleGroups, focuses: focuses)
+
+        var usedExerciseIds = request.avoidExerciseIds
+        var workouts: [Workout] = []
+
+        for (index, focus) in focuses.enumerated() {
+            let dayMuscles = splits[index]
+            guard !dayMuscles.isEmpty else { continue }
+
+            var dayRequest = request
+            dayRequest.muscleGroups = dayMuscles
+            dayRequest.avoidExerciseIds = usedExerciseIds
+            dayRequest.includeExerciseIds = request.includeExerciseIds.subtracting(usedExerciseIds)
+
+            var workout = generateWorkout(from: dayRequest)
+            if workout == nil || workout?.exercises.isEmpty == true {
+                dayRequest.avoidExerciseIds = request.avoidExerciseIds
+                workout = generateWorkout(from: dayRequest)
+            }
+            guard var session = workout, !session.exercises.isEmpty else { continue }
+
+            let preferredHit = focus.preferred.intersection(request.muscleGroups)
+            let label: String
+            if preferredHit.isEmpty {
+                label = dayMuscles.sorted { $0.label < $1.label }.prefix(2).map(\.label).joined(separator: " & ")
+            } else {
+                label = focus.label
+            }
+            session.name = "Day \(index + 1) · \(label)"
+            usedExerciseIds.formUnion(session.exercises.map(\.exerciseId))
+            workouts.append(session)
+        }
+
+        return workouts
+    }
+
     static func generateWorkout(from request: WorkoutGenerationRequest) -> Workout? {
+        guard !request.goals.isEmpty else { return nil }
         guard !request.muscleGroups.isEmpty else { return nil }
         guard !request.availableEquipment.isEmpty else { return nil }
 
@@ -114,7 +165,8 @@ enum WorkoutGenerationService {
             from: candidates,
             count: targetCount,
             experience: request.experience,
-            muscleGroups: request.muscleGroups
+            muscleGroups: request.muscleGroups,
+            goals: request.goals
         )
 
         // Prefer including requested exercises when compatible.
@@ -131,15 +183,16 @@ enum WorkoutGenerationService {
         selected = selected.filter { ExerciseCatalog.exercise(id: $0.id) != nil }
         guard !selected.isEmpty else { return nil }
 
-        let (rawSets, rawReps) = defaultPrescription(for: request.goal, experience: request.experience)
-        let sets = min(10, max(1, rawSets))
-        let reps = min(50, max(1, rawReps))
-
         let entries = selected.enumerated().map { index, exercise in
-            WorkoutExerciseEntry(
+            let (rawSets, rawReps) = prescription(
+                for: exercise,
+                goals: request.goals,
+                experience: request.experience
+            )
+            return WorkoutExerciseEntry(
                 exerciseId: exercise.id,
-                sets: sets,
-                reps: reps,
+                sets: min(10, max(1, rawSets)),
+                reps: min(50, max(1, rawReps)),
                 startingWeight: 0,
                 order: index
             )
@@ -151,11 +204,36 @@ enum WorkoutGenerationService {
         )
     }
 
+    /// Rebuilds one generated slot after the user picks a different catalog exercise.
+    static func replacingGeneratedEntry(
+        _ entry: WorkoutExerciseEntry,
+        with exercise: Exercise,
+        request: WorkoutGenerationRequest
+    ) -> WorkoutExerciseEntry {
+        let (rawSets, rawReps) = prescription(
+            for: exercise,
+            goals: request.goals,
+            experience: request.experience
+        )
+        return WorkoutExerciseEntry(
+            id: entry.id,
+            exerciseId: exercise.id,
+            sets: min(10, max(1, rawSets)),
+            reps: min(50, max(1, rawReps)),
+            startingWeight: 0,
+            durationSeconds: 0,
+            distanceMeters: 0,
+            order: entry.order,
+            restDurationOverride: entry.restDurationOverride
+        )
+    }
+
     private static func pickExercises(
         from candidates: [Exercise],
         count: Int,
         experience: TrainingExperience,
-        muscleGroups: Set<MuscleGroup>
+        muscleGroups: Set<MuscleGroup>,
+        goals: Set<WorkoutTrainingGoal>
     ) -> [Exercise] {
         var picked: [Exercise] = []
         var usedIds = Set<String>()
@@ -166,7 +244,7 @@ enum WorkoutGenerationService {
                 $0.primaryMuscleGroup == group && !usedIds.contains($0.id)
             }
             let sorted = groupCandidates.sorted { lhs, rhs in
-                score(lhs, experience: experience) > score(rhs, experience: experience)
+                score(lhs, experience: experience, goals: goals) > score(rhs, experience: experience, goals: goals)
             }
             if let exercise = sorted.first {
                 picked.append(exercise)
@@ -178,7 +256,7 @@ enum WorkoutGenerationService {
         if picked.count < count {
             let remaining = candidates
                 .filter { !usedIds.contains($0.id) }
-                .sorted { score($0, experience: experience) > score($1, experience: experience) }
+                .sorted { score($0, experience: experience, goals: goals) > score($1, experience: experience, goals: goals) }
 
             for exercise in remaining {
                 picked.append(exercise)
@@ -190,18 +268,37 @@ enum WorkoutGenerationService {
         return picked
     }
 
-    private static func score(_ exercise: Exercise, experience: TrainingExperience) -> Int {
+    private static func isCompound(_ exercise: Exercise) -> Bool {
         let compoundCategories: Set<ExerciseCategory> = [.push, .pull, .squat, .hinge, .lunge]
-        let isCompound = compoundCategories.contains(exercise.category)
+        return compoundCategories.contains(exercise.category)
+    }
 
+    private static func score(
+        _ exercise: Exercise,
+        experience: TrainingExperience,
+        goals: Set<WorkoutTrainingGoal>
+    ) -> Int {
+        let compound = isCompound(exercise)
+
+        var value: Int
         switch experience {
         case .beginner:
-            return isCompound ? 3 : 1
+            value = compound ? 3 : 1
         case .intermediate:
-            return isCompound ? 2 : 2
+            value = 2
         case .advanced:
-            return isCompound ? 1 : 3
+            value = compound ? 1 : 3
         }
+
+        // Extra bias only when combining goals so a single-goal session
+        // keeps the previous ranking.
+        if goals.count > 1 {
+            if goals.contains(.getStronger), compound { value += 2 }
+            if goals.contains(.tone), !compound { value += 2 }
+            if goals.contains(.buildMuscle), compound { value += 1 }
+        }
+
+        return value
     }
 
     private static func defaultPrescription(
@@ -220,6 +317,28 @@ enum WorkoutGenerationService {
         }
     }
 
+    /// Single goal: same sets/reps for every exercise as before.
+    /// Multiple goals: compounds use the lower-rep prescription, accessories the higher-rep one.
+    private static func prescription(
+        for exercise: Exercise,
+        goals: Set<WorkoutTrainingGoal>,
+        experience: TrainingExperience
+    ) -> (sets: Int, reps: Int) {
+        let selected = goals.isEmpty ? Set([WorkoutTrainingGoal.buildMuscle]) : goals
+        let options = selected.map { defaultPrescription(for: $0, experience: experience) }
+        guard let first = options.first else { return (3, 8) }
+        if options.count == 1 { return first }
+
+        if isCompound(exercise) {
+            return options.min { lhs, rhs in
+                lhs.reps != rhs.reps ? lhs.reps < rhs.reps : lhs.sets > rhs.sets
+            } ?? first
+        }
+        return options.max { lhs, rhs in
+            lhs.reps != rhs.reps ? lhs.reps < rhs.reps : lhs.sets < rhs.sets
+        } ?? first
+    }
+
     private static func workoutName(for request: WorkoutGenerationRequest) -> String {
         let muscles = request.muscleGroups
             .sorted { $0.label < $1.label }
@@ -227,9 +346,57 @@ enum WorkoutGenerationService {
             .map(\.label)
             .joined(separator: " & ")
 
+        let goalPart = request.orderedGoals.map(\.label).joined(separator: " + ")
+        let resolvedGoals = goalPart.isEmpty ? WorkoutTrainingGoal.buildMuscle.label : goalPart
+
         if muscles.isEmpty {
-            return "\(request.goal.label) · \(request.duration.label)"
+            return "\(resolvedGoals) · \(request.duration.label)"
         }
-        return "\(muscles) · \(request.goal.label)"
+        return "\(muscles) · \(resolvedGoals)"
+    }
+
+    private struct DayFocus {
+        let label: String
+        let preferred: Set<MuscleGroup>
+    }
+
+    private static func dayFocuses(trainingDays: Int) -> [DayFocus] {
+        let push = DayFocus(label: "Push", preferred: [.chest, .shoulders, .triceps])
+        let pull = DayFocus(label: "Pull", preferred: [.back, .biceps])
+        let legs = DayFocus(label: "Legs", preferred: [.quads, .hamstrings, .glutes, .calves])
+        let upper = DayFocus(label: "Upper", preferred: [.chest, .back, .shoulders, .biceps, .triceps])
+        let lower = DayFocus(label: "Lower", preferred: [.quads, .hamstrings, .glutes, .calves])
+
+        switch trainingDays {
+        case 2:
+            return [upper, lower]
+        case 3:
+            return [push, pull, legs]
+        case 4:
+            return [upper, lower, upper, lower]
+        case 5:
+            return [push, pull, legs, upper, lower]
+        default:
+            return [push, pull, legs, push, pull, legs]
+        }
+    }
+
+    private static func muscleSplits(
+        selected: Set<MuscleGroup>,
+        focuses: [DayFocus]
+    ) -> [Set<MuscleGroup>] {
+        let extras: Set<MuscleGroup> = selected.intersection([.core, .fullBody])
+        var splits = focuses.map { focus in
+            focus.preferred.intersection(selected).union(extras)
+        }
+
+        let ordered = selected.sorted { $0.label < $1.label }
+        guard !ordered.isEmpty else { return splits }
+
+        for index in splits.indices where splits[index].isEmpty {
+            splits[index] = [ordered[index % ordered.count]]
+        }
+
+        return splits
     }
 }

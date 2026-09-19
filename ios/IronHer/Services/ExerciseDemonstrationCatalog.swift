@@ -75,6 +75,7 @@ enum ExerciseDemonstrationCatalog {
         "walking-lunge": Spec(.walkingLunge, .dumbbells, .standing, .side, true, .verified),
         "step-up": Spec(.stepUp, .dumbbells, .standing, .side, true, .verified),
         "single-leg-glute-bridge": Spec(.singleLegGluteBridge, .none, .lying, .side, true, .verified),
+        "single-leg-hip-thrust": Spec(.hipThrust, .none, .lying, .side, true, .needsRefinement),
         "glute-bridge": Spec(.hipThrust, .none, .lying, .side, false, .needsRefinement),
         "hip-thrust": Spec(.hipThrust, .barbell, .lying, .side, false, .needsRefinement),
         "leg-press": Spec(.legPress, .machine, .seated, .side, false, .needsRefinement),
@@ -396,6 +397,7 @@ enum ExerciseDemonstrationCatalog {
             requiredEquipment: exercise.requiredEquipment,
             suggestedAlternatives: exercise.suggestedAlternatives,
             weightInterpretation: exercise.weightInterpretation,
+            demoVideoURL: exercise.demoVideoURL,
             ownerId: exercise.ownerId
         )
     }
