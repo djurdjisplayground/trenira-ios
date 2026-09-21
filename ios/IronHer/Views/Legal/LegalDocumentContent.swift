@@ -1,6 +1,6 @@
 import Foundation
 
-/// In-app Privacy Policy and Terms & Conditions copy for the TestFlight beta.
+/// In-app Privacy Policy and Terms & Conditions copy.
 enum LegalDocumentContent {
     static var privacyTitle: String { "Privacy Policy" }
     static var termsTitle: String { "Terms & Conditions" }
@@ -16,7 +16,7 @@ enum LegalDocumentContent {
         **Contact:** \(AppConfiguration.supportEmail)
         **Availability:** \(AppConfiguration.serviceAvailability)
 
-        This Privacy Policy describes how \(AppConfiguration.appName) processes information during the current TestFlight beta.
+        This Privacy Policy describes how \(AppConfiguration.appName) processes information.
 
         ## 1. Who We Are
 
@@ -34,9 +34,9 @@ enum LegalDocumentContent {
         - workout plans, set logs and progression preferences stored on your device,
         - commercial or technical purchase status through Apple when StoreKit is used,
         - consultation request details that you choose to place in an email,
-        - optional beta feedback that you choose to send by email.
+        - optional feedback that you choose to send by email.
 
-        \(AppConfiguration.appName) does not collect Apple or Google passwords. The current beta does not use advertising, behavioural tracking, analytics SDKs or crash-reporting SDKs.
+        \(AppConfiguration.appName) does not collect Apple or Google passwords. The app does not use advertising, behavioural tracking, analytics SDKs or crash-reporting SDKs.
 
         ## 4. Account and Authentication Data
 
@@ -46,11 +46,11 @@ enum LegalDocumentContent {
 
         ## 5. Workout and Fitness Information
 
-        Workout templates, completed sets, progression settings and related training information are primarily stored locally on your device. The current beta does not upload workout information to a \(AppConfiguration.appName) backend.
+        Workout templates, completed sets, progression settings and related training information are primarily stored locally on your device. The app does not upload workout information to a \(AppConfiguration.appName) backend.
 
         ## 6. Commercial and Technical Information
 
-        During sandbox or App Store testing, Apple’s StoreKit may process subscription or purchase status. \(AppConfiguration.appName) does not sell personal information.
+        When StoreKit is used, Apple may process subscription or purchase status. \(AppConfiguration.appName) does not sell personal information.
 
         ## 7. Consultation Requests
 
@@ -75,11 +75,11 @@ enum LegalDocumentContent {
         - provide workout organisation and progression features on your device,
         - maintain your local session after sign-in,
         - respond to consultation or feedback emails you choose to send,
-        - operate and improve the beta product based on messages you send.
+        - operate and improve the product based on messages you send.
 
         ## 9. Local Data Storage
 
-        Core training data for the beta remains on your device. You can erase local \(AppConfiguration.appName) data from Settings. Erasing local data does not delete emails you already sent, nor does it delete your Apple ID or Google account.
+        Core training data remains on your device. You can delete your \(AppConfiguration.appName) account data from Settings → Account → Delete Account & Data. Deleting account data does not delete emails you already sent, nor does it delete your Apple ID or Google Account.
 
         ## 10. Email and Third-Party Processing
 
@@ -91,15 +91,15 @@ enum LegalDocumentContent {
 
         ## 12. Data Retention
 
-        Local app data remains on your device until you delete it, uninstall the app, or erase local data in Settings. Emails you send are retained according to the relevant email providers and the operator’s ordinary inbox practices.
+        Local app data remains on your device until you delete it, uninstall the app, or use Delete Account & Data in Settings. Emails you send are retained according to the relevant email providers and the operator’s ordinary inbox practices.
 
         ## 13. User Rights
 
-        Depending on where you live, you may have rights to access, correct or delete personal information. For requests related to emails you sent to \(AppConfiguration.supportEmail), contact \(AppConfiguration.operatorName) at that address. For local workout data, use the in-app erase options or remove the app from your device.
+        Depending on where you live, you may have rights to access, correct or delete personal information. For requests related to emails you sent to \(AppConfiguration.supportEmail), contact \(AppConfiguration.operatorName) at that address. For local workout and account data, use Delete Account & Data in Settings or remove the app from your device.
 
-        ## 14. Data Deletion
+        ## 14. Account Deletion
 
-        You can erase local \(AppConfiguration.appName) data from Settings. This removes workouts, progression state, consultation drafts and related local content on the device. It does not revoke Apple or Google accounts and does not recall emails already sent.
+        You can delete your \(AppConfiguration.appName) account data from Settings → Account → Delete Account & Data. This removes workouts, progression state, consultation drafts, local account identifiers and related local content on the device. It does not revoke or delete Apple or Google accounts themselves and does not recall emails already sent. For Google Sign-In, the app also disconnects trenira’s Google authorisation when available. For Sign in with Apple, you can further manage app access in iOS Settings → Apple Account → Sign in with Apple.
 
         ## 15. Data Security
 
@@ -115,7 +115,7 @@ enum LegalDocumentContent {
 
         ## 18. Changes to the Policy
 
-        This policy may change as the beta evolves. The effective date above will be updated when material changes are published in the app.
+        This policy may change as the product evolves. The effective date above will be updated when material changes are published in the app.
 
         ## 19. Contact
 
@@ -134,7 +134,7 @@ enum LegalDocumentContent {
         **Brand:** \(AppConfiguration.appName)
         **Contact:** \(AppConfiguration.supportEmail)
 
-        These Terms explain how you may use \(AppConfiguration.appName) during the TestFlight beta.
+        These Terms explain how you may use \(AppConfiguration.appName).
 
         ## 1. About trenira
 
@@ -158,11 +158,11 @@ enum LegalDocumentContent {
 
         ## 6. Founder Consultations
 
-        Founder consultations are optional educational and organisational discussions based on lived training experience. They are not medical advice, physiotherapy, diagnosis, rehabilitation or professional nutritional treatment. Booking and payment details, when offered, are arranged separately outside StoreKit for the current beta.
+        Founder consultations are optional educational and organisational discussions based on lived training experience. They are not medical advice, physiotherapy, diagnosis, rehabilitation or professional nutritional treatment. Booking and payment details, when offered, are arranged separately outside StoreKit.
 
         ## 7. Subscriptions and Purchases
 
-        Digital purchases may be processed by Apple. TestFlight purchases use Apple’s sandbox environment. Premium features may be unlocked for all testers during closed beta without requiring a purchase.
+        Digital purchases may be processed by Apple through StoreKit when purchase features are enabled. Premium access may also be provided by the app without a purchase while monetisation UI is not offered.
 
         ## 8. Acceptable Use
 
@@ -176,31 +176,27 @@ enum LegalDocumentContent {
 
         Features may change, be interrupted or be unavailable. Worldwide availability does not guarantee identical features in every region.
 
-        ## 11. Beta and TestFlight Versions
+        ## 11. Limitation of Liability
 
-        Beta software may contain bugs, change or be removed. Data may be lost during beta testing. Please keep backups of any information that matters to you outside the app if needed.
+        To the extent permitted by applicable law, \(AppConfiguration.operatorName) is not liable for indirect or consequential losses arising from use of the app. Nothing in these Terms excludes or limits liability that cannot legally be excluded. Mandatory consumer rights remain unaffected.
 
-        ## 12. Limitation of Liability
+        ## 12. Termination and Account Deletion
 
-        To the extent permitted by applicable law, \(AppConfiguration.operatorName) is not liable for indirect or consequential losses arising from use of the beta app. Nothing in these Terms excludes or limits liability that cannot legally be excluded. Mandatory consumer rights remain unaffected.
+        You may stop using \(AppConfiguration.appName) at any time. You may delete your local \(AppConfiguration.appName) account data from Settings → Account → Delete Account & Data. Logging out keeps local workout data associated with your identity on this device until you delete it. \(AppConfiguration.operatorName) may discontinue access to the service.
 
-        ## 13. Termination
-
-        You may stop using \(AppConfiguration.appName) at any time and erase local data from Settings. \(AppConfiguration.operatorName) may discontinue beta access.
-
-        ## 14. Privacy
+        ## 13. Privacy
 
         Personal information is described in the Privacy Policy.
 
-        ## 15. Changes to the Terms
+        ## 14. Changes to the Terms
 
-        These Terms may be updated as the beta evolves. Continued use after an in-app update constitutes acceptance of the revised Terms to the extent permitted by law.
+        These Terms may be updated as the product evolves. Continued use after an in-app update constitutes acceptance of the revised Terms to the extent permitted by law.
 
-        ## 16. Governing Law
+        ## 15. Governing Law
 
         These Terms are governed by the laws applicable to the business operations of \(AppConfiguration.operatorName), subject to mandatory consumer protection rights that may apply in the user’s country of residence.
 
-        ## 17. Contact
+        ## 16. Contact
 
         \(AppConfiguration.operatorName)
         \(AppConfiguration.supportEmail)

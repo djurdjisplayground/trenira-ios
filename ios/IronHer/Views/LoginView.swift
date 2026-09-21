@@ -97,12 +97,12 @@ struct WelcomeAuthView: View {
                 .padding(.top, 1)
 
             VStack(alignment: .leading, spacing: 6) {
-                Text(l10n.t(.early_beta_title))
+                Text(l10n.t(.local_storage_title))
                     .font(SheLiftsFont.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(IronHerTheme.primaryText)
 
-                Text(l10n.t(.early_beta_notice))
+                Text(l10n.t(.local_storage_notice))
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)

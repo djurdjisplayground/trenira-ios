@@ -124,32 +124,41 @@ final class AuthenticationManager: NSObject {
         }
     }
 
-    /// Erases all Trenira local data on this device, then signs out.
-    /// Does not delete the user's Apple ID or Google account.
-    func eraseAllLocalData(dataCoordinator: UserDataCoordinator) async throws {
+    /// Permanently deletes trenira-controlled account data on this device, then signs out.
+    /// Does not delete the user's Apple ID or Google Account.
+    func deleteAccount(dataCoordinator: UserDataCoordinator) async throws {
         let logger = Logger(subsystem: "com.trenira.app", category: "LocalDataErasure")
         guard authState.isSignedIn else {
             throw LocalDataErasureAuthError.notSignedIn
         }
 
+        let shouldDisconnectGoogle: Bool = {
+            if case .google = authState { return true }
+            return false
+        }()
+
         do {
-            logger.info("Local erasure requested provider=\(self.authProviderLabel(self.authState), privacy: .public)")
+            logger.info("Account deletion requested provider=\(self.authProviderLabel(self.authState), privacy: .public)")
             try LocalDataErasureService.eraseAllLocalData(dataCoordinator: dataCoordinator)
         } catch {
-            logger.error("Local erasure failed: \(error.localizedDescription, privacy: .public)")
+            logger.error("Account deletion failed: \(error.localizedDescription, privacy: .public)")
             throw LocalDataErasureAuthError.erasureFailed(
                 (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             )
         }
 
+        if shouldDisconnectGoogle {
+            await GoogleSignInService.disconnect()
+        }
+
         performSignOut()
-        statusMessage = "Local data erased."
-        logger.info("Local erasure finished and session cleared")
+        statusMessage = "Account data deleted."
+        logger.info("Account deletion finished and session cleared")
     }
 
-    /// Legacy name — routes to local erasure. Does not delete Apple/Google accounts.
-    func deleteAccount(dataCoordinator: UserDataCoordinator) async throws {
-        try await eraseAllLocalData(dataCoordinator: dataCoordinator)
+    /// Routes to account deletion (same local wipe). Kept for older call sites.
+    func eraseAllLocalData(dataCoordinator: UserDataCoordinator) async throws {
+        try await deleteAccount(dataCoordinator: dataCoordinator)
     }
 
     private func authProviderLabel(_ state: AuthState) -> String {

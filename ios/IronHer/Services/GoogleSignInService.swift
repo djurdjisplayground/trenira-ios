@@ -36,6 +36,16 @@ enum GoogleSignInService {
     static func signOut() {
         GIDSignIn.sharedInstance.signOut()
     }
+
+    /// Revokes trenira's Google authorization and ends the SDK session.
+    /// Uses `GIDSignIn.disconnect(completion:)` from GoogleSignIn-iOS 8.x.
+    static func disconnect() async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            GIDSignIn.sharedInstance.disconnect { _ in
+                continuation.resume()
+            }
+        }
+    }
 }
 
 enum GoogleSignInError: LocalizedError {

@@ -95,6 +95,7 @@ enum ExerciseLocalizations {
             "smith-hip-thrust": "Hip Thrust (Smith)",
             "glute-bridge": "Glute Bridge (Bodyweight)",
             "single-leg-glute-bridge": "Single-Leg Glute Bridge",
+            "single-leg-hip-thrust": "Single-Leg Hip Thrust",
             "cable-kickback": "Glute Kickback (Cable)",
             "hip-abduction": "Hip Abduction",
             "hip-adduction": "Hip Adduction",

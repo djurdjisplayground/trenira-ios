@@ -17,25 +17,25 @@ struct PremiumUpgradeView: View {
 
     var body: some View {
         Group {
-            if BetaConfig.hidesMonetization {
-                betaUnlockedContent
+            if ProductAccessConfig.hidesMonetization {
+                premiumAccessContent
             } else {
                 paywallContent
             }
         }
     }
 
-    /// Closed beta: no pricing, purchases, or upgrade CTA.
-    private var betaUnlockedContent: some View {
+    /// Purchase UI hidden while monetization is unfinished. No tester/beta wording.
+    private var premiumAccessContent: some View {
         VStack(spacing: 24) {
             Spacer()
 
             VStack(spacing: 10) {
-                Text("Full access unlocked")
+                Text("Full access")
                     .font(SheLiftsFont.title)
                     .foregroundStyle(IronHerTheme.primaryText)
 
-                Text("Premium features are available to all testers during closed beta. Thanks for helping test trenira.")
+                Text("Premium features are available in this version of trenira.")
                     .font(SheLiftsFont.subheadline)
                     .foregroundStyle(IronHerTheme.secondaryText)
                     .multilineTextAlignment(.center)
@@ -52,10 +52,10 @@ struct PremiumUpgradeView: View {
             .padding(.bottom, 32)
         }
         .background(IronHerTheme.background)
-        .navigationTitle("Beta")
+        .navigationTitle("Premium")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            PaywallDebug.log("Paywall suppressed (closed beta unlock)")
+            PaywallDebug.log("Paywall suppressed (purchase UI hidden)")
         }
     }
 

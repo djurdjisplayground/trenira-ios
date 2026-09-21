@@ -1,17 +1,17 @@
 import Foundation
 import UIKit
 
-/// Builds beta feedback email payloads without attaching workout or account PII.
+/// Builds production-neutral feedback email payloads without attaching workout or account PII.
 enum FeedbackService {
     static var recipient: String { AppConfiguration.feedbackEmail }
 
-    static let subject = "trenira beta feedback"
+    static let subject = "trenira feedback"
 
     static func emailBody() -> String {
         """
         Hello,
 
-        I’m testing trenira and would like to share feedback.
+        I would like to share feedback about trenira.
 
         What I was trying to do:
 
