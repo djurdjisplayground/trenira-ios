@@ -14,7 +14,7 @@ struct StrengthCalibrationSettingsView: View {
     var body: some View {
         List {
             Section {
-                Text("These starting weights are used only when an exercise has no workout history yet. Progression after that stays automatic.")
+                Text("trenira uses these samples to estimate starting weights for related exercises. Workout history always wins after you train an exercise.")
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
 

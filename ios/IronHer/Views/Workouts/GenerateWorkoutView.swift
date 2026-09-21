@@ -329,7 +329,7 @@ struct GenerateWorkoutView: View {
             to: WorkoutGenerationService.generateWorkouts(from: request),
             progressFor: { globalProgressStore.progress(for: $0) },
             historyFor: { historyStore.entries(for: $0) },
-            calibrationFor: { calibrationStore.calibration(for: $0) }
+            calibrations: calibrationStore.records
         )
     }
 
@@ -357,9 +357,10 @@ struct GenerateWorkoutView: View {
         generatedWorkouts[workoutIndex].exercises[entryIndex].startingWeight =
             StrengthCalibrationResolver.startingWeightKg(
                 exerciseId: entry.exerciseId,
+                targetReps: max(1, entry.reps),
                 progress: globalProgressStore.progress(for: entry.exerciseId),
                 historyEntries: historyStore.entries(for: entry.exerciseId),
-                calibration: calibrationStore.calibration(for: entry.exerciseId)
+                calibrations: calibrationStore.records
             )
     }
 

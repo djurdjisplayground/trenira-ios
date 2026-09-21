@@ -110,13 +110,13 @@ enum StrengthCalibrationSelfTests {
             ) == 22.5
         )
 
-        // 6. Skipping one exercise does not apply its weight to others
+        // 6. Related exercises infer from the family baseline
         let workouts = [
             Workout(
                 name: "Test",
                 exercises: [
-                    WorkoutExerciseEntry(exerciseId: goblet, sets: 3, reps: 8, startingWeight: 0, order: 0),
-                    WorkoutExerciseEntry(exerciseId: splitSquat, sets: 3, reps: 8, startingWeight: 0, order: 1),
+                    WorkoutExerciseEntry(exerciseId: goblet, sets: 3, reps: 10, startingWeight: 0, order: 0),
+                    WorkoutExerciseEntry(exerciseId: splitSquat, sets: 3, reps: 10, startingWeight: 0, order: 1),
                 ]
             )
         ]
@@ -124,15 +124,91 @@ enum StrengthCalibrationSelfTests {
             to: workouts,
             progressFor: { _ in nil },
             historyFor: { _ in [] },
-            calibrationFor: { $0 == goblet ? calibration : nil }
+            calibrations: [goblet: calibration]
         )
+        let inferredSplit = stamped[0].exercises.first { $0.exerciseId == splitSquat }?.startingWeight ?? 0
         check(
-            "skipped sibling keeps fallback",
-            stamped[0].exercises.first { $0.exerciseId == splitSquat }?.startingWeight == 0
+            "bulgarian split squat infers a positive load from goblet squat",
+            inferredSplit > 0
         )
         check(
             "calibrated exercise stamped",
             stamped[0].exercises.first { $0.exerciseId == goblet }?.startingWeight == 20
+        )
+
+        let bench = "dumbbell-bench-press"
+        let incline = "incline-dumbbell-press"
+        let benchCalibration = ExerciseCalibration(exerciseId: bench, weightKg: 8, reps: 10)
+        let inferredIncline = StrengthCalibrationResolver.startingWeightKg(
+            exerciseId: incline,
+            targetReps: 10,
+            progress: nil,
+            historyEntries: [],
+            calibrations: [bench: benchCalibration]
+        )
+        check("incline dumbbell press infers from db bench", inferredIncline == 6)
+        check(
+            "bulgarian split squat infers 11 kg from 20 kg goblet squat",
+            inferredSplit == 11
+        )
+        check(
+            "incline source is inferred",
+            StrengthCalibrationResolver.source(
+                exerciseId: incline,
+                targetReps: 10,
+                progress: nil,
+                historyEntries: [],
+                calibrations: [bench: benchCalibration]
+            ) == .inferred(weightKg: inferredIncline)
+        )
+
+        check(
+            "explicit user weight wins over inference",
+            StrengthCalibrationResolver.startingWeightKg(
+                exerciseId: incline,
+                targetReps: 10,
+                explicitWeightKg: 14,
+                progress: nil,
+                historyEntries: [],
+                calibrations: [bench: benchCalibration]
+            ) == 14
+        )
+
+        let eightRepEquivalent = StrengthLoadNormalizer.tenRepEquivalentKg(weightKg: 20, reps: 8)
+        let twelveRepEquivalent = StrengthLoadNormalizer.tenRepEquivalentKg(weightKg: 20, reps: 12)
+        check("20kg x 8 is not treated as 20kg x 12", eightRepEquivalent != twelveRepEquivalent)
+
+        check(
+            "no relevant calibration falls back",
+            StrengthCalibrationResolver.startingWeightKg(
+                exerciseId: incline,
+                targetReps: 10,
+                progress: nil,
+                historyEntries: [],
+                calibrations: [:]
+            ) == 0
+        )
+
+        check(
+            "bodyweight exercise does not get an inferred load",
+            StrengthCalibrationResolver.startingWeightKg(
+                exerciseId: "incline-push-up",
+                targetReps: 10,
+                progress: nil,
+                historyEntries: [],
+                calibrations: [bench: benchCalibration]
+            ) == 0
+        )
+
+        check(
+            "duration exercise does not get an inferred load",
+            StrengthCalibrationResolver.startingWeightKg(
+                exerciseId: "plank",
+                targetReps: 10,
+                progress: nil,
+                historyEntries: [],
+                calibrations: [goblet: calibration]
+            ) == 0
         )
 
         // 7. Partial calibration persists independently of onboarding
@@ -174,16 +250,27 @@ enum StrengthCalibrationSelfTests {
         check("stored completion flag is not reset", OnboardingStore.hasCompletedOnboarding)
 
         check(
-            "deferred calibration still shows workouts card",
-            store.showsWorkoutsSetupCard
+            "recorded calibration hides home setup nag",
+            !store.showsWorkoutsSetupCard
         )
-        store.dismissSetupCard()
-        check("explicit dismiss hides workouts card", !store.showsWorkoutsSetupCard)
-        check("explicit dismiss hides home card", !store.showsHomeSetupCard)
         check(
-            "create-workout prompt remains after dismiss",
-            store.showsCreateWorkoutSetupPrompt
+            "recorded calibration hides create-workout nag",
+            !store.showsCreateWorkoutSetupPrompt
         )
+
+        let emptySuite = "trenira.calibrationSelfTests.empty.\(UUID().uuidString)"
+        let emptyDefaults = UserDefaults(suiteName: emptySuite)!
+        emptyDefaults.removePersistentDomain(forName: emptySuite)
+        let emptyStore = StrengthCalibrationStore(defaults: emptyDefaults)
+        check("empty store shows home setup card", emptyStore.showsHomeSetupCard)
+        emptyStore.dismissSetupCard()
+        check("explicit dismiss hides workouts card", !emptyStore.showsWorkoutsSetupCard)
+        check("explicit dismiss hides home card", !emptyStore.showsHomeSetupCard)
+        check(
+            "create-workout prompt remains after dismiss until a sample exists",
+            emptyStore.showsCreateWorkoutSetupPrompt
+        )
+        emptyDefaults.removePersistentDomain(forName: emptySuite)
 
         // 9. Priority: history > calibration > fallback
         check(
@@ -207,13 +294,14 @@ enum StrengthCalibrationSelfTests {
 
         // Related exercises must not inherit V1 weights
         check(
-            "related exercise does not inherit goblet squat calibration",
+            "related exercise infers from goblet squat calibration",
             StrengthCalibrationResolver.startingWeightKg(
                 exerciseId: splitSquat,
+                targetReps: 10,
                 progress: nil,
                 historyEntries: [],
-                calibration: calibration
-            ) == 0
+                calibrations: [goblet: calibration]
+            ) > 0
         )
 
         check(

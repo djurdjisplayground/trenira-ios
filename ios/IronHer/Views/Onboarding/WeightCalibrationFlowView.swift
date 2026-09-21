@@ -140,7 +140,7 @@ struct WeightCalibrationFlowView: View {
                 .foregroundStyle(IronHerTheme.primaryText)
                 .accessibilityAddTraits(.isHeader)
 
-            Text("trenira will use these as your starting point and adjust your training as you progress.")
+            Text("trenira will use these results to estimate starting weights across your exercises, including ones you did not test. After that, your training history takes over.")
                 .font(SheLiftsFont.body)
                 .foregroundStyle(IronHerTheme.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)

@@ -13,6 +13,7 @@ struct ExerciseTrackingFields: View {
 
     /// When true, weightInput is already in the exercise's resolved display unit.
     var usesDisplayUnits: Bool = true
+    var suggestedWeightCaption: String? = nil
 
     private var profile: ExerciseTrackingProfile { exercise.trackingProfile }
 
@@ -45,6 +46,7 @@ struct ExerciseTrackingFields: View {
                     weightField(label: exercise.weightFieldLabel)
                     unitPicker
                     weightCaption
+                    suggestedCaption
                 }
             }
             if profile.supports(.time) {
@@ -143,6 +145,16 @@ struct ExerciseTrackingFields: View {
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
             }
+            suggestedCaption
+        }
+    }
+
+    @ViewBuilder
+    private var suggestedCaption: some View {
+        if let suggestedWeightCaption, !suggestedWeightCaption.isEmpty {
+            Text(suggestedWeightCaption)
+                .font(SheLiftsFont.caption)
+                .foregroundStyle(IronHerTheme.secondaryText)
         }
     }
 

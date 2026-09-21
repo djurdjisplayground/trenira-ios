@@ -186,6 +186,8 @@
 		A100000E000000000000018F /* StrengthCalibrationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E000000000000018E /* StrengthCalibrationSettingsView.swift */; };
 		A100000E0000000000000191 /* FirstLaunchOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000190 /* FirstLaunchOnboardingView.swift */; };
 		A100000E0000000000000193 /* StrengthSetupPromptCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000192 /* StrengthSetupPromptCard.swift */; };
+		A100000E0000000000000195 /* StrengthProfileCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000194 /* StrengthProfileCatalog.swift */; };
+		A100000E0000000000000197 /* StrengthProfileInference.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000196 /* StrengthProfileInference.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -372,6 +374,8 @@
 		A100000E000000000000018E /* StrengthCalibrationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthCalibrationSettingsView.swift; sourceTree = "<group>"; };
 		A100000E0000000000000190 /* FirstLaunchOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstLaunchOnboardingView.swift; sourceTree = "<group>"; };
 		A100000E0000000000000192 /* StrengthSetupPromptCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthSetupPromptCard.swift; sourceTree = "<group>"; };
+		A100000E0000000000000194 /* StrengthProfileCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthProfileCatalog.swift; sourceTree = "<group>"; };
+		A100000E0000000000000196 /* StrengthProfileInference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthProfileInference.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -632,6 +636,8 @@
 				A100000E0000000000000184 /* StrengthCalibrationCatalog.swift */,
 				A100000E0000000000000186 /* StrengthCalibrationStore.swift */,
 				A100000E0000000000000188 /* StrengthCalibrationResolver.swift */,
+				A100000E0000000000000194 /* StrengthProfileCatalog.swift */,
+				A100000E0000000000000196 /* StrengthProfileInference.swift */,
 				A10000020000000000000062 /* ReturnAfterBreak.swift */,
 				A10000020000000000000065 /* TestingTimeStore.swift */,
 			);
@@ -919,6 +925,8 @@
 				A100000E000000000000018F /* StrengthCalibrationSettingsView.swift in Sources */,
 				A100000E0000000000000191 /* FirstLaunchOnboardingView.swift in Sources */,
 				A100000E0000000000000193 /* StrengthSetupPromptCard.swift in Sources */,
+				A100000E0000000000000195 /* StrengthProfileCatalog.swift in Sources */,
+				A100000E0000000000000197 /* StrengthProfileInference.swift in Sources */,
 				A100000E00000000000000F0 /* ProtectedFileWriter.swift in Sources */,
 				A100000E00000000000000F2 /* LocalDataErasureService.swift in Sources */,
 				A100000E00000000000000F4 /* LocalDataProtectionSelfTests.swift in Sources */,

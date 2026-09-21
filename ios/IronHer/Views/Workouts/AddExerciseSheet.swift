@@ -8,6 +8,8 @@ struct AddExerciseSheet: View {
     @Environment(GlobalExerciseProgressStore.self) private var globalProgressStore
     @Environment(ExerciseProgressionStore.self) private var progressionStore
     @Environment(LocalizationStore.self) private var l10n
+    @Environment(StrengthCalibrationStore.self) private var calibrationStore
+    @Environment(WeightHistoryStore.self) private var historyStore
 
     let onAdd: (DraftWorkoutExercise) -> Void
 
@@ -16,6 +18,7 @@ struct AddExerciseSheet: View {
     @State private var sets = 3
     @State private var reps = 10
     @State private var startingWeightInput = 0.0
+    @State private var suggestedWeightKg = 0.0
     @State private var durationSeconds = 60
     @State private var distanceMeters = 40.0
     @State private var showCreateCustom = false
@@ -306,7 +309,8 @@ struct AddExerciseSheet: View {
                     reps: $reps,
                     weightInput: $startingWeightInput,
                     durationSeconds: $durationSeconds,
-                    distanceMeters: $distanceMeters
+                    distanceMeters: $distanceMeters,
+                    suggestedWeightCaption: suggestedWeightCaption(for: exercise)
                 )
 
                 if usesWeightInput(for: exercise.measurementUnit) {
@@ -376,6 +380,16 @@ struct AddExerciseSheet: View {
         measurement == .weight || measurement == .weightAndTime || measurement == .repsWithOptionalWeight
     }
 
+    private func suggestedWeightCaption(for exercise: Exercise) -> String? {
+        guard suggestedWeightKg > 0, usesWeightInput(for: exercise.measurementUnit) else { return nil }
+        let unit = globalProgressStore.resolvedWeightUnit(
+            for: exercise.id,
+            defaultUnit: settingsStore.weightUnit
+        )
+        let formatted = WeightFormatter.format(kg: suggestedWeightKg, unit: unit)
+        return "Suggested: \(formatted)"
+    }
+
     private func selectExercise(_ exercise: Exercise) {
         selectedExercise = exercise
         let philosophy = progressionStore.configuration(for: exercise.id)
@@ -391,16 +405,42 @@ struct AddExerciseSheet: View {
         }
 
         if exercise.showsWeightDuringSession {
-            if let saved = globalProgressStore.workingWeightKg(for: exercise.id) ?? workoutStore.knownStartingWeight(for: exercise.id) {
-                let unit = globalProgressStore.resolvedWeightUnit(
-                    for: exercise.id,
-                    defaultUnit: settingsStore.weightUnit
-                )
-                startingWeightInput = WeightFormatter.displayValue(kg: saved, unit: unit)
+            let unit = globalProgressStore.resolvedWeightUnit(
+                for: exercise.id,
+                defaultUnit: settingsStore.weightUnit
+            )
+            let savedKg = globalProgressStore.workingWeightKg(for: exercise.id)
+                ?? workoutStore.knownStartingWeight(for: exercise.id)
+            let source = StrengthCalibrationResolver.source(
+                exerciseId: exercise.id,
+                targetReps: max(1, reps),
+                explicitWeightKg: (savedKg ?? 0) > 0 ? savedKg : nil,
+                progress: globalProgressStore.progress(for: exercise.id),
+                historyEntries: historyStore.entries(for: exercise.id),
+                calibrations: calibrationStore.records
+            )
+            let resolvedKg = StrengthCalibrationResolver.startingWeightKg(
+                exerciseId: exercise.id,
+                targetReps: max(1, reps),
+                explicitWeightKg: (savedKg ?? 0) > 0 ? savedKg : nil,
+                progress: globalProgressStore.progress(for: exercise.id),
+                historyEntries: historyStore.entries(for: exercise.id),
+                calibrations: calibrationStore.records
+            )
+            switch source {
+            case .inferred(let kg), .calibration(let kg):
+                suggestedWeightKg = kg
+            default:
+                suggestedWeightKg = 0
+            }
+            suggestedWeightKg = resolvedKg
+            if resolvedKg > 0 {
+                startingWeightInput = WeightFormatter.displayValue(kg: resolvedKg, unit: unit)
             } else {
                 startingWeightInput = 0
             }
         } else {
+            suggestedWeightKg = 0
             startingWeightInput = 0
         }
 
@@ -442,4 +482,6 @@ struct AddExerciseSheet: View {
         .environment(GlobalExerciseProgressStore())
         .environment(ExerciseProgressionStore())
         .environment(LocalizationStore())
+        .environment(StrengthCalibrationStore())
+        .environment(WeightHistoryStore())
 }

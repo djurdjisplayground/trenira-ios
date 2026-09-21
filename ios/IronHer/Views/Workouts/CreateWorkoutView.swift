@@ -6,6 +6,7 @@ struct CreateWorkoutView: View {
     @Environment(SubscriptionStore.self) private var subscriptionStore
     @Environment(GlobalExerciseProgressStore.self) private var globalProgressStore
     @Environment(LocalizationStore.self) private var l10n
+    @Environment(StrengthCalibrationStore.self) private var calibrationStore
     @Environment(\.dismiss) private var dismiss
 
     /// When resuming, load this draft id. Autosave writes into the same id.
@@ -291,7 +292,25 @@ struct CreateWorkoutView: View {
             return
         }
 
-        let entries = makeEntries()
+        let entries = makeEntries().map { entry -> WorkoutExerciseEntry in
+            var next = entry
+            if next.startingWeight <= 0 {
+                let measurement = ExerciseCatalog.exercise(id: entry.exerciseId)?.measurementUnit ?? .weight
+                switch measurement {
+                case .weight, .weightAndTime, .repsWithOptionalWeight:
+                    next.startingWeight = StrengthCalibrationResolver.startingWeightKg(
+                        exerciseId: entry.exerciseId,
+                        targetReps: max(1, entry.reps),
+                        progress: globalProgressStore.progress(for: entry.exerciseId),
+                        historyEntries: historyStore.entries(for: entry.exerciseId),
+                        calibrations: calibrationStore.records
+                    )
+                default:
+                    break
+                }
+            }
+            return next
+        }
         let published: Workout?
         if let draftId {
             published = workoutStore.publishDraft(id: draftId, name: workoutName, exercises: entries)
@@ -335,5 +354,7 @@ struct CreateWorkoutView: View {
             .environment(SubscriptionStore())
             .environment(CustomExerciseStore())
             .environment(LocalizationStore())
+            .environment(GlobalExerciseProgressStore())
+            .environment(StrengthCalibrationStore())
     }
 }

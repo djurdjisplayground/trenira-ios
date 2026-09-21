@@ -7,6 +7,8 @@ struct EditExerciseSheet: View {
     @Environment(GlobalExerciseProgressStore.self) private var globalProgressStore
     @Environment(WorkoutStore.self) private var workoutStore
     @Environment(LocalizationStore.self) private var l10n
+    @Environment(StrengthCalibrationStore.self) private var calibrationStore
+    @Environment(WeightHistoryStore.self) private var historyStore
 
     let exercise: Exercise
     @State var sets: Int
@@ -19,6 +21,22 @@ struct EditExerciseSheet: View {
 
     @State private var weightInput = 0.0
     @State private var restSelection: RestPickerChoice = .useDefault
+
+    private var suggestedWeightCaption: String? {
+        let kg = StrengthCalibrationResolver.startingWeightKg(
+            exerciseId: exercise.id,
+            targetReps: max(1, reps),
+            progress: globalProgressStore.progress(for: exercise.id),
+            historyEntries: historyStore.entries(for: exercise.id),
+            calibrations: calibrationStore.records
+        )
+        guard kg > 0 else { return nil }
+        let unit = globalProgressStore.resolvedWeightUnit(
+            for: exercise.id,
+            defaultUnit: settingsStore.weightUnit
+        )
+        return "Suggested: \(WeightFormatter.format(kg: kg, unit: unit))"
+    }
 
     private enum RestPickerChoice: Hashable {
         case useDefault
@@ -61,7 +79,8 @@ struct EditExerciseSheet: View {
                         reps: $reps,
                         weightInput: $weightInput,
                         durationSeconds: $durationSeconds,
-                        distanceMeters: $distanceMeters
+                        distanceMeters: $distanceMeters,
+                        suggestedWeightCaption: suggestedWeightCaption
                     )
                 }
 
@@ -112,7 +131,20 @@ struct EditExerciseSheet: View {
                     for: exercise.id,
                     defaultUnit: settingsStore.weightUnit
                 )
-                weightInput = WeightFormatter.displayValue(kg: startingWeight, unit: unit)
+                var kg = startingWeight
+                if kg <= 0 {
+                    kg = StrengthCalibrationResolver.startingWeightKg(
+                        exerciseId: exercise.id,
+                        targetReps: max(1, reps),
+                        progress: globalProgressStore.progress(for: exercise.id),
+                        historyEntries: historyStore.entries(for: exercise.id),
+                        calibrations: calibrationStore.records
+                    )
+                    if kg > 0 {
+                        startingWeight = kg
+                    }
+                }
+                weightInput = WeightFormatter.displayValue(kg: kg, unit: unit)
                 if let restDurationOverride,
                    let option = RestDurationOption(rawValue: Int(restDurationOverride.rounded()))
                 {
@@ -586,4 +618,6 @@ struct ExerciseProgressionSettingsView: View {
     .environment(GlobalExerciseProgressStore())
     .environment(WorkoutStore())
     .environment(LocalizationStore())
+    .environment(StrengthCalibrationStore())
+    .environment(WeightHistoryStore())
 }

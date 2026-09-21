@@ -1,8 +1,7 @@
 import Foundation
 
 /// Persistent starting-weight sample for one catalog exercise.
-/// V1 matching is exact `exerciseId` only. `movementPattern` / `movementFamily`
-/// are stored so related-exercise estimation can be added later without a rewrite.
+/// Exact ID still wins; family metadata supports inferred starting weights.
 struct ExerciseCalibration: Codable, Equatable, Hashable, Identifiable {
     var exerciseId: String
     var weightKg: Double

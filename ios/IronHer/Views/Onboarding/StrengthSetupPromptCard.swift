@@ -19,6 +19,11 @@ struct StrengthSetupPromptCard: View {
                 .foregroundStyle(IronHerTheme.secondaryText)
                 .fixedSize(horizontal: false, vertical: true)
 
+            Text("You’ll test a few simple exercises so trenira can estimate your current strength. After that, just choose your exercises and trenira can suggest your starting weights.")
+                .font(SheLiftsFont.body)
+                .foregroundStyle(IronHerTheme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+
             if showsActions {
                 Button("Start strength setup", action: onStart)
                     .buttonStyle(PrimaryButtonStyle())
