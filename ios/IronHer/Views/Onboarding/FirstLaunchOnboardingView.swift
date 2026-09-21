@@ -72,14 +72,14 @@ struct FirstLaunchOnboardingView: View {
 
                     approachCard(
                         title: "I already have a workout",
-                        subtitle: "Add your existing routine and Trenira will help you track and progress it."
+                        subtitle: "Add your existing routine and trenira will help you track and progress it."
                     ) {
                         step = .create
                     }
 
                     approachCard(
                         title: "Create a workout for me",
-                        subtitle: "Tell Trenira how you train and we’ll build your workout."
+                        subtitle: "Tell trenira how you train and we’ll build your workout."
                     ) {
                         step = .generate
                     }
@@ -126,38 +126,23 @@ struct FirstLaunchOnboardingView: View {
     private var calibrationOffer: some View {
         VStack(spacing: 0) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Let’s personalize your starting weights")
-                        .font(SheLiftsFont.title)
-                        .foregroundStyle(IronHerTheme.primaryText)
-                        .accessibilityAddTraits(.isHeader)
-
-                    Text("Everyone starts somewhere different.")
-                        .font(SheLiftsFont.bodyMedium)
-                        .foregroundStyle(IronHerTheme.primaryText)
-
-                    Text("Trenira can learn your current strength and use it to choose better starting weights for your workouts.")
-                        .font(SheLiftsFont.body)
-                        .foregroundStyle(IronHerTheme.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Text("When you're at the gym, perform the calibration exercises for 8–12 controlled reps using a challenging weight.\n\nStop when you feel you could only complete another 1–2 reps with good form.")
-                        .font(SheLiftsFont.body)
-                        .foregroundStyle(IronHerTheme.secondaryText)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                StrengthSetupPromptCard(
+                    onStart: { step = .calibrationSession },
+                    onMaybeLater: { finishOnboarding(openWorkouts: true) },
+                    showsActions: false
+                )
                 .padding(.horizontal, IronHerTheme.screenPadding)
                 .padding(.top, 36)
                 .padding(.bottom, 24)
             }
 
             VStack(spacing: 12) {
-                Button("Set up my weights") {
+                Button("Start strength setup") {
                     step = .calibrationSession
                 }
                 .buttonStyle(PrimaryButtonStyle())
 
-                Button("Do this later") {
+                Button("Maybe later") {
                     finishOnboarding(openWorkouts: true)
                 }
                 .buttonStyle(OutlineButtonStyle())

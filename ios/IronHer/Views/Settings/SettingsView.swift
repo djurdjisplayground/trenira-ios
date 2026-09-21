@@ -203,10 +203,10 @@ struct SettingsView: View {
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
 
-                NavigationLink("Starting weights") {
+                NavigationLink("Strength setup") {
                     StrengthCalibrationSettingsView()
                 }
-                Text("Optional calibration used only when an exercise has no workout history yet.")
+                Text("Optional strength calibration used when an exercise has no workout history yet.")
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
 

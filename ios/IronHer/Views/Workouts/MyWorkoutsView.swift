@@ -30,23 +30,10 @@ struct MyWorkoutsView: View {
         List {
             if calibrationStore.showsWorkoutsSetupCard {
                 Section {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Complete your strength setup")
-                            .font(SheLiftsFont.bodyMedium)
-                            .foregroundStyle(IronHerTheme.primaryText)
-                        Text("Calibrate your starting weights so Trenira can personalize your workouts.")
-                            .font(SheLiftsFont.caption)
-                            .foregroundStyle(IronHerTheme.secondaryText)
-                        Button("Start calibration") {
-                            showCalibration = true
-                        }
-                        .buttonStyle(PrimaryButtonStyle())
-                        Button("Dismiss") {
-                            calibrationStore.dismissSetupCard()
-                        }
-                        .font(SheLiftsFont.caption)
-                        .foregroundStyle(IronHerTheme.secondaryText)
-                    }
+                    StrengthSetupPromptCard(
+                        onStart: { showCalibration = true },
+                        onMaybeLater: { calibrationStore.dismissSetupCard() }
+                    )
                     .padding(.vertical, 4)
                 }
             }

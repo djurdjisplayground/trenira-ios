@@ -17,6 +17,10 @@ struct StrengthCalibrationSettingsView: View {
                 Text("These starting weights are used only when an exercise has no workout history yet. Progression after that stays automatic.")
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
+
+                Button("Start strength setup") {
+                    showFlow = true
+                }
             }
 
             Section("Exercises") {
@@ -53,7 +57,7 @@ struct StrengthCalibrationSettingsView: View {
         }
         .listStyle(.insetGrouped)
         .background(IronHerTheme.groupedBackground)
-        .navigationTitle("Starting weights")
+        .navigationTitle("Strength setup")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showFlow) {
             WeightCalibrationFlowView(onExit: { _ in showFlow = false })

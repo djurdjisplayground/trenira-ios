@@ -4,9 +4,19 @@ import SwiftUI
 struct CreateWorkoutOptionsView: View {
     @Environment(SubscriptionStore.self) private var subscriptionStore
     @Environment(LocalizationStore.self) private var l10n
+    @Environment(StrengthCalibrationStore.self) private var calibrationStore
+
+    @State private var showStrengthSetup = false
 
     var body: some View {
         List {
+            if calibrationStore.showsCreateWorkoutSetupPrompt {
+                Section {
+                    StrengthSetupPromptCard(onStart: { showStrengthSetup = true })
+                        .padding(.vertical, 4)
+                }
+            }
+
             Section {
                 NavigationLink(value: WorkoutRoute.create) {
                     optionRow(
@@ -34,6 +44,11 @@ struct CreateWorkoutOptionsView: View {
         .background(IronHerTheme.groupedBackground)
         .navigationTitle(l10n.t(.create_workout))
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showStrengthSetup) {
+            WeightCalibrationFlowView { _ in
+                showStrengthSetup = false
+            }
+        }
     }
 
     private func optionRow(
@@ -72,5 +87,7 @@ struct CreateWorkoutOptionsView: View {
             .treniraNavigationDestinations()
             .environment(SubscriptionStore())
             .environment(LocalizationStore())
+            .environment(StrengthCalibrationStore())
+            .environment(UserSettingsStore())
     }
 }

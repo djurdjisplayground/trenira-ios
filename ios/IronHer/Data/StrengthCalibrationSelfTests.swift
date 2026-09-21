@@ -179,6 +179,11 @@ enum StrengthCalibrationSelfTests {
         )
         store.dismissSetupCard()
         check("explicit dismiss hides workouts card", !store.showsWorkoutsSetupCard)
+        check("explicit dismiss hides home card", !store.showsHomeSetupCard)
+        check(
+            "create-workout prompt remains after dismiss",
+            store.showsCreateWorkoutSetupPrompt
+        )
 
         // 9. Priority: history > calibration > fallback
         check(

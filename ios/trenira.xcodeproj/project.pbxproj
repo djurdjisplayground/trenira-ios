@@ -185,6 +185,7 @@
 		A100000E000000000000018D /* WeightCalibrationFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E000000000000018C /* WeightCalibrationFlowView.swift */; };
 		A100000E000000000000018F /* StrengthCalibrationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E000000000000018E /* StrengthCalibrationSettingsView.swift */; };
 		A100000E0000000000000191 /* FirstLaunchOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000190 /* FirstLaunchOnboardingView.swift */; };
+		A100000E0000000000000193 /* StrengthSetupPromptCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000192 /* StrengthSetupPromptCard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -370,6 +371,7 @@
 		A100000E000000000000018C /* WeightCalibrationFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightCalibrationFlowView.swift; sourceTree = "<group>"; };
 		A100000E000000000000018E /* StrengthCalibrationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthCalibrationSettingsView.swift; sourceTree = "<group>"; };
 		A100000E0000000000000190 /* FirstLaunchOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstLaunchOnboardingView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000192 /* StrengthSetupPromptCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthSetupPromptCard.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -735,6 +737,7 @@
 				A100000E0000000000000163 /* OnboardingView.swift */,
 				A100000E0000000000000190 /* FirstLaunchOnboardingView.swift */,
 				A100000E000000000000018C /* WeightCalibrationFlowView.swift */,
+				A100000E0000000000000192 /* StrengthSetupPromptCard.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -915,6 +918,7 @@
 				A100000E000000000000018D /* WeightCalibrationFlowView.swift in Sources */,
 				A100000E000000000000018F /* StrengthCalibrationSettingsView.swift in Sources */,
 				A100000E0000000000000191 /* FirstLaunchOnboardingView.swift in Sources */,
+				A100000E0000000000000193 /* StrengthSetupPromptCard.swift in Sources */,
 				A100000E00000000000000F0 /* ProtectedFileWriter.swift in Sources */,
 				A100000E00000000000000F2 /* LocalDataErasureService.swift in Sources */,
 				A100000E00000000000000F4 /* LocalDataProtectionSelfTests.swift in Sources */,

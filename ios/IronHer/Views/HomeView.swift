@@ -8,7 +8,9 @@ struct HomeView: View {
     @Environment(LocalizationStore.self) private var l10n
     @Environment(TestingTimeStore.self) private var testingTimeStore
     @Environment(UserDataCoordinator.self) private var dataCoordinator
+    @Environment(StrengthCalibrationStore.self) private var calibrationStore
     @State private var showSignOutConfirm = false
+    @State private var showStrengthSetup = false
 
     private var startableWorkouts: [Workout] {
         workoutStore.workouts.filter { !$0.isDraft && !$0.exercises.isEmpty }
@@ -55,6 +57,9 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: IronHerTheme.sectionSpacing) {
                 TestModeBanner()
                 headerSection
+                if calibrationStore.showsHomeSetupCard {
+                    strengthSetupCard
+                }
                 primaryAction
                 trackThisWeekCard
             }
@@ -74,6 +79,11 @@ struct HomeView: View {
             }
         }
         .id("\(testingTimeStore.revision)-\(sessionStore.activeSession?.id.uuidString ?? "none")")
+        .sheet(isPresented: $showStrengthSetup) {
+            WeightCalibrationFlowView { _ in
+                showStrengthSetup = false
+            }
+        }
         .confirmationDialog(
             l10n.t(.sign_out_confirm_title),
             isPresented: $showSignOutConfirm,
@@ -105,6 +115,20 @@ struct HomeView: View {
         .padding(.top, 12)
         .padding(.bottom, 4)
         .accessibilityElement(children: .combine)
+    }
+
+    private var strengthSetupCard: some View {
+        StrengthSetupPromptCard(
+            onStart: { showStrengthSetup = true },
+            onMaybeLater: { calibrationStore.dismissSetupCard() }
+        )
+        .padding(18)
+        .background(IronHerTheme.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: IronHerTheme.cornerRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: IronHerTheme.cornerRadius, style: .continuous)
+                .stroke(IronHerTheme.separator.opacity(0.55), lineWidth: 0.5)
+        }
     }
 
     private var primaryAction: some View {

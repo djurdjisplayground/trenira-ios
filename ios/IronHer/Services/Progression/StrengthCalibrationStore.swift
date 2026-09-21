@@ -27,9 +27,17 @@ final class StrengthCalibrationStore {
 
     var hasAnyCalibration: Bool { !state.records.isEmpty }
 
-    /// Incomplete calibration that the user has not dismissed from Workouts.
+    /// Incomplete setup that has not been dismissed from Home / Workouts.
     var showsWorkoutsSetupCard: Bool {
         !hasFinishedOrSkippedFlow && !hasDismissedSetupCard
+    }
+
+    /// Same visibility as Home — existing users land on Home, not My Workouts.
+    var showsHomeSetupCard: Bool { showsWorkoutsSetupCard }
+
+    /// Shown during workout creation until the setup flow is finished, even if Home was dismissed.
+    var showsCreateWorkoutSetupPrompt: Bool {
+        !hasFinishedOrSkippedFlow
     }
 
     func calibration(for exerciseId: String) -> ExerciseCalibration? {
