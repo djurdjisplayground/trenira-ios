@@ -29,6 +29,7 @@ struct UserDataSnapshot: Codable, Sendable {
     /// Opaque JSON bags for progression / settings that already encode as Data in stores.
     var progressionBlob: Data?
     var globalProgressBlob: Data?
+    var calibrationBlob: Data?
     var userSettingsBlob: Data?
 
     static let currentSchemaVersion = 1
@@ -46,6 +47,7 @@ struct UserDataSnapshot: Codable, Sendable {
             tombstones: [],
             progressionBlob: nil,
             globalProgressBlob: nil,
+            calibrationBlob: nil,
             userSettingsBlob: nil
         )
     }
@@ -56,6 +58,7 @@ struct UserDataSnapshot: Codable, Sendable {
             && weeklyCompletions.isEmpty
             && performanceLogs.isEmpty
             && customExercises.isEmpty
+            && (calibrationBlob == nil || calibrationBlob?.isEmpty == true)
     }
 }
 

@@ -44,6 +44,7 @@ enum LocalDataErasureService {
         "progressionCategoryDefaults",
         "progressionDimensionOverrides",
         "globalExerciseProgress",
+        StrengthCalibrationStore.storageKey,
         "userSettings",
         "developerSettings",
         "gymEquipmentProfiles.v1",

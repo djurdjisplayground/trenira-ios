@@ -176,6 +176,15 @@
 		A100000E0000000000000175 /* AppleSignInRequestFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000174 /* AppleSignInRequestFactory.swift */; };
 		A100000E0000000000000177 /* GoogleAccountIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000176 /* GoogleAccountIdentity.swift */; };
 		A100000E0000000000000179 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000178 /* PrivacyInfo.xcprivacy */; };
+		A100000E0000000000000181 /* DeleteAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000180 /* DeleteAccountView.swift */; };
+		A100000E0000000000000183 /* ExerciseCalibration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000182 /* ExerciseCalibration.swift */; };
+		A100000E0000000000000185 /* StrengthCalibrationCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000184 /* StrengthCalibrationCatalog.swift */; };
+		A100000E0000000000000187 /* StrengthCalibrationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000186 /* StrengthCalibrationStore.swift */; };
+		A100000E0000000000000189 /* StrengthCalibrationResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000188 /* StrengthCalibrationResolver.swift */; };
+		A100000E000000000000018B /* StrengthCalibrationSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E000000000000018A /* StrengthCalibrationSelfTests.swift */; };
+		A100000E000000000000018D /* WeightCalibrationFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E000000000000018C /* WeightCalibrationFlowView.swift */; };
+		A100000E000000000000018F /* StrengthCalibrationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E000000000000018E /* StrengthCalibrationSettingsView.swift */; };
+		A100000E0000000000000191 /* FirstLaunchOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000190 /* FirstLaunchOnboardingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -352,6 +361,15 @@
 		A100000E0000000000000174 /* AppleSignInRequestFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInRequestFactory.swift; sourceTree = "<group>"; };
 		A100000E0000000000000176 /* GoogleAccountIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleAccountIdentity.swift; sourceTree = "<group>"; };
 		A100000E0000000000000178 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		A100000E0000000000000180 /* DeleteAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAccountView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000182 /* ExerciseCalibration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseCalibration.swift; sourceTree = "<group>"; };
+		A100000E0000000000000184 /* StrengthCalibrationCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthCalibrationCatalog.swift; sourceTree = "<group>"; };
+		A100000E0000000000000186 /* StrengthCalibrationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthCalibrationStore.swift; sourceTree = "<group>"; };
+		A100000E0000000000000188 /* StrengthCalibrationResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthCalibrationResolver.swift; sourceTree = "<group>"; };
+		A100000E000000000000018A /* StrengthCalibrationSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthCalibrationSelfTests.swift; sourceTree = "<group>"; };
+		A100000E000000000000018C /* WeightCalibrationFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightCalibrationFlowView.swift; sourceTree = "<group>"; };
+		A100000E000000000000018E /* StrengthCalibrationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthCalibrationSettingsView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000190 /* FirstLaunchOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstLaunchOnboardingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -519,6 +537,7 @@
 				A100000200000000000000F1 /* ExerciseTrackingProfile.swift */,
 				A10000020000000000000026 /* AppSettings.swift */,
 				A10000020000000000000027 /* WeightHistoryEntry.swift */,
+				A100000E0000000000000182 /* ExerciseCalibration.swift */,
 				A10000020000000000000040 /* SubscriptionPlan.swift */,
 				A10000020000000000000058 /* TrainingPreferences.swift */,
 				A100000E0000000000000111 /* ConsultationConfig.swift */,
@@ -574,6 +593,8 @@
 				A10000020000000000000035 /* SettingsView.swift */,
 				A100000E000000000000016B /* BetaFeedbackView.swift */,
 				A100000E00000000000000E3 /* EraseLocalDataView.swift */,
+				A100000E0000000000000180 /* DeleteAccountView.swift */,
+				A100000E000000000000018E /* StrengthCalibrationSettingsView.swift */,
 				A100000200000000000000C7 /* EquipmentIncrementsSettingsView.swift */,
 				A100000200000000000000A5 /* GymProfilesSettingsView.swift */,
 			);
@@ -606,6 +627,9 @@
 				A100000200000000000000C8 /* ProgressionDefaults.swift */,
 				A1000002000000000000004B /* ExerciseProgressionStore.swift */,
 				A10000020000000000000057 /* GlobalExerciseProgressStore.swift */,
+				A100000E0000000000000184 /* StrengthCalibrationCatalog.swift */,
+				A100000E0000000000000186 /* StrengthCalibrationStore.swift */,
+				A100000E0000000000000188 /* StrengthCalibrationResolver.swift */,
 				A10000020000000000000062 /* ReturnAfterBreak.swift */,
 				A10000020000000000000065 /* TestingTimeStore.swift */,
 			);
@@ -686,6 +710,7 @@
 				A100000E0000000000000153 /* WeightIncrementRepairMigration.swift */,
 				A100000E0000000000000155 /* WeightProgressionSelfTests.swift */,
 				A100000E000000000000016D /* TestFlightPrepSelfTests.swift */,
+				A100000E000000000000018A /* StrengthCalibrationSelfTests.swift */,
 				A100000E0000000000000170 /* AuthDataMinimizationMigration.swift */,
 				A100000E0000000000000172 /* AuthPrivacySelfTests.swift */,
 			);
@@ -708,6 +733,8 @@
 			isa = PBXGroup;
 			children = (
 				A100000E0000000000000163 /* OnboardingView.swift */,
+				A100000E0000000000000190 /* FirstLaunchOnboardingView.swift */,
+				A100000E000000000000018C /* WeightCalibrationFlowView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -879,6 +906,15 @@
 				A100000E00000000000000CA /* RestTimerControllerSelfTests.swift in Sources */,
 				A100000E00000000000000E0 /* DurationSetTimerController.swift in Sources */,
 				A100000E00000000000000E2 /* EraseLocalDataView.swift in Sources */,
+				A100000E0000000000000181 /* DeleteAccountView.swift in Sources */,
+				A100000E0000000000000183 /* ExerciseCalibration.swift in Sources */,
+				A100000E0000000000000185 /* StrengthCalibrationCatalog.swift in Sources */,
+				A100000E0000000000000187 /* StrengthCalibrationStore.swift in Sources */,
+				A100000E0000000000000189 /* StrengthCalibrationResolver.swift in Sources */,
+				A100000E000000000000018B /* StrengthCalibrationSelfTests.swift in Sources */,
+				A100000E000000000000018D /* WeightCalibrationFlowView.swift in Sources */,
+				A100000E000000000000018F /* StrengthCalibrationSettingsView.swift in Sources */,
+				A100000E0000000000000191 /* FirstLaunchOnboardingView.swift in Sources */,
 				A100000E00000000000000F0 /* ProtectedFileWriter.swift in Sources */,
 				A100000E00000000000000F2 /* LocalDataErasureService.swift in Sources */,
 				A100000E00000000000000F4 /* LocalDataProtectionSelfTests.swift in Sources */,
@@ -1099,7 +1135,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = IronHer/IronHer.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 564T3XKJJB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1112,7 +1148,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = info.trenira.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1130,7 +1166,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = IronHer/IronHer.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 564T3XKJJB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1143,7 +1179,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = info.trenira.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

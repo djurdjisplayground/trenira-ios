@@ -171,6 +171,67 @@ final class GlobalExerciseProgressStore {
         return entryDistanceMeters
     }
 
+    /// Applies an existing prescription to all plans, or seeds one from a generated starting weight.
+    /// Never overwrites established progress with calibration or an unassigned (0 kg) generate.
+    @discardableResult
+    func applyExistingOrSeedInitial(
+        exerciseId: String,
+        measurement: MeasurementUnit,
+        weightKg: Double,
+        reps: Int,
+        sets: Int,
+        durationSeconds: Int,
+        distanceMeters: Double,
+        established: Bool,
+        into workoutStore: WorkoutStore
+    ) -> GlobalExerciseProgress? {
+        if established {
+            if let record = records[exerciseId] {
+                apply(record, for: exerciseId, into: workoutStore)
+                return record
+            }
+            let fallbackWeight: Double
+            switch measurement {
+            case .reps, .bodyweight:
+                fallbackWeight = 0
+            default:
+                fallbackWeight = max(0, weightKg)
+            }
+            guard fallbackWeight > 0 else { return nil }
+            return syncFromTemplateEdit(
+                exerciseId: exerciseId,
+                measurement: measurement,
+                weightKg: fallbackWeight,
+                reps: reps,
+                sets: sets,
+                durationSeconds: durationSeconds,
+                distanceMeters: distanceMeters,
+                into: workoutStore
+            )
+        }
+
+        let normalizedWeight: Double
+        switch measurement {
+        case .reps, .bodyweight:
+            normalizedWeight = 0
+        default:
+            normalizedWeight = max(0, weightKg)
+        }
+
+        guard normalizedWeight > 0 else { return records[exerciseId] }
+
+        return syncFromTemplateEdit(
+            exerciseId: exerciseId,
+            measurement: measurement,
+            weightKg: normalizedWeight,
+            reps: reps,
+            sets: sets,
+            durationSeconds: durationSeconds,
+            distanceMeters: distanceMeters,
+            into: workoutStore
+        )
+    }
+
     /// Template / edit-workflow sync: writes the single progression SoT and fans out to every plan.
     @discardableResult
     func syncFromTemplateEdit(

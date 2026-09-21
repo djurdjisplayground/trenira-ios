@@ -1,7 +1,8 @@
 import SwiftUI
 import UIKit
 
-struct BetaFeedbackView: View {
+/// Production support feedback — user reviews and sends the email themselves.
+struct FeedbackView: View {
     @Environment(\.openURL) private var openURL
 
     @State private var showMailComposer = false
@@ -62,7 +63,7 @@ struct BetaFeedbackView: View {
                 }
             }
         }
-        .navigationTitle("Beta Feedback")
+        .navigationTitle("Send Feedback")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showMailComposer) {
             MailComposeView(
@@ -100,3 +101,6 @@ struct BetaFeedbackView: View {
         }
     }
 }
+
+/// Compatibility alias for older references.
+typealias BetaFeedbackView = FeedbackView

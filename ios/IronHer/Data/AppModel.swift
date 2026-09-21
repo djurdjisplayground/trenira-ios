@@ -12,6 +12,7 @@ final class AppModel {
     let customExerciseStore: CustomExerciseStore
     let progressionStore: ExerciseProgressionStore
     let globalProgressStore: GlobalExerciseProgressStore
+    let calibrationStore: StrengthCalibrationStore
     let sessionStore: WorkoutSessionStore
     let localizationStore = LocalizationStore()
     let testingTimeStore = TestingTimeStore()
@@ -27,6 +28,7 @@ final class AppModel {
         customExerciseStore: CustomExerciseStore,
         progressionStore: ExerciseProgressionStore,
         globalProgressStore: GlobalExerciseProgressStore,
+        calibrationStore: StrengthCalibrationStore,
         sessionStore: WorkoutSessionStore
     ) {
         self.workoutStore = workoutStore
@@ -35,6 +37,7 @@ final class AppModel {
         self.customExerciseStore = customExerciseStore
         self.progressionStore = progressionStore
         self.globalProgressStore = globalProgressStore
+        self.calibrationStore = calibrationStore
         self.sessionStore = sessionStore
 
         let coordinator = UserDataCoordinator(
@@ -44,6 +47,7 @@ final class AppModel {
             customExerciseStore: customExerciseStore,
             progressionStore: progressionStore,
             globalProgressStore: globalProgressStore,
+            calibrationStore: calibrationStore,
             settingsStore: settingsStore
         )
         self.dataCoordinator = coordinator
@@ -90,6 +94,7 @@ final class AppModel {
             customExerciseStore: CustomExerciseStore(),
             progressionStore: ExerciseProgressionStore(),
             globalProgressStore: GlobalExerciseProgressStore(),
+            calibrationStore: StrengthCalibrationStore(),
             sessionStore: WorkoutSessionStore()
         )
     }

@@ -16,6 +16,7 @@ final class UserDataCoordinator {
     private let customExerciseStore: CustomExerciseStore
     private let progressionStore: ExerciseProgressionStore
     private let globalProgressStore: GlobalExerciseProgressStore
+    private let calibrationStore: StrengthCalibrationStore
     private let settingsStore: UserSettingsStore
     private let syncEngine: SyncEngine
 
@@ -29,6 +30,7 @@ final class UserDataCoordinator {
         customExerciseStore: CustomExerciseStore,
         progressionStore: ExerciseProgressionStore,
         globalProgressStore: GlobalExerciseProgressStore,
+        calibrationStore: StrengthCalibrationStore,
         settingsStore: UserSettingsStore,
         syncEngine: SyncEngine? = nil
     ) {
@@ -38,6 +40,7 @@ final class UserDataCoordinator {
         self.customExerciseStore = customExerciseStore
         self.progressionStore = progressionStore
         self.globalProgressStore = globalProgressStore
+        self.calibrationStore = calibrationStore
         self.settingsStore = settingsStore
         self.syncEngine = syncEngine ?? SyncEngine()
 
@@ -287,6 +290,7 @@ final class UserDataCoordinator {
         applySnapshot(.empty(ownerId: currentOwner.rawValue), clearMissingBlobs: true)
         progressionStore.clearAll()
         globalProgressStore.clearAll()
+        calibrationStore.clearAll()
         settingsStore.resetToDefaults()
         GymEquipmentProfileStore.wipePersistedData()
         saveTombstones([])
@@ -323,6 +327,7 @@ final class UserDataCoordinator {
             tombstones: loadTombstones(),
             progressionBlob: progressionStore.exportSyncBlob(),
             globalProgressBlob: globalProgressStore.exportSyncBlob(),
+            calibrationBlob: calibrationStore.exportSyncBlob(),
             userSettingsBlob: settingsStore.exportSyncBlob()
         )
     }
@@ -344,6 +349,11 @@ final class UserDataCoordinator {
             globalProgressStore.importSyncBlob(blob)
         } else if clearMissingBlobs {
             globalProgressStore.clearAll()
+        }
+        if let blob = snapshot.calibrationBlob {
+            calibrationStore.importSyncBlob(blob)
+        } else if clearMissingBlobs {
+            calibrationStore.clearAll()
         }
         if let blob = snapshot.userSettingsBlob {
             settingsStore.importSyncBlob(blob)
@@ -386,6 +396,7 @@ final class UserDataCoordinator {
         historyStore.onMutation = { [weak self] in self?.noteLocalMutation() }
         sessionStore.onMutation = { [weak self] in self?.noteLocalMutation() }
         customExerciseStore.onMutation = { [weak self] in self?.noteLocalMutation() }
+        calibrationStore.onMutation = { [weak self] in self?.noteLocalMutation() }
         workoutStore.onDelete = { [weak self] id in
             self?.recordTombstone(id: id, entityType: "workout")
         }

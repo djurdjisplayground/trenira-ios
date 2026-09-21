@@ -21,6 +21,7 @@ struct IronHerApp: App {
                 .environment(appModel.customExerciseStore)
                 .environment(appModel.progressionStore)
                 .environment(appModel.globalProgressStore)
+                .environment(appModel.calibrationStore)
                 .environment(appModel.sessionStore)
                 .environment(appModel.localizationStore)
                 .environment(appModel.testingTimeStore)

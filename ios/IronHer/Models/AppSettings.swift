@@ -195,15 +195,19 @@ enum DevelopmentConfig {
     }
 }
 
-/// Closed TestFlight / beta switches.
-/// Premium architecture stays in the codebase — flip `isClosedBeta` to `false`
-/// before public App Store launch to restore monetization.
-enum BetaConfig {
-    /// When `true`: unlock all Premium features, hide paywalls and purchase UI.
-    static let isClosedBeta = true
+/// Silent product-access switches for the current build.
+///
+/// These do **not** control beta branding or tester-facing UX (that branding has been removed).
+/// Keep purchase UI hidden and Premium unlocked until StoreKit monetization is ready to ship.
+enum ProductAccessConfig {
+    /// When `true`, Premium features work without a StoreKit purchase. Invisible to users.
+    static let unlocksPremiumWithoutPurchase = true
 
-    static var unlocksPremium: Bool { isClosedBeta }
-    static var hidesMonetization: Bool { isClosedBeta }
+    /// When `true`, membership / paywall / purchase UI is hidden (monetization not ready).
+    static let hidesMonetizationUI = true
+
+    static var unlocksPremium: Bool { unlocksPremiumWithoutPurchase }
+    static var hidesMonetization: Bool { hidesMonetizationUI }
 
     static let feedbackEmail = AppConfiguration.feedbackEmail
 
@@ -220,6 +224,9 @@ enum BetaConfig {
         return components.url ?? URL(string: "mailto:\(feedbackEmail)")!
     }
 }
+
+/// Backward-compatible alias — prefer `ProductAccessConfig` in new code.
+typealias BetaConfig = ProductAccessConfig
 
 enum AppVersion {
     static var marketing: String {

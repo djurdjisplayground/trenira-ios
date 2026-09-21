@@ -48,6 +48,7 @@ enum UserDataMigrationSelfTests {
             tombstones: [],
             progressionBlob: nil,
             globalProgressBlob: nil,
+            calibrationBlob: nil,
             userSettingsBlob: nil
         )
 
@@ -75,6 +76,7 @@ enum UserDataMigrationSelfTests {
             tombstones: [],
             progressionBlob: nil,
             globalProgressBlob: nil,
+            calibrationBlob: nil,
             userSettingsBlob: nil
         )
         let merged = UserDataMergeEngine.merge(local: guest, remote: account, resultingOwnerId: accountOwner)
@@ -142,6 +144,7 @@ enum UserDataMigrationSelfTests {
                 tombstones: [],
                 progressionBlob: nil,
                 globalProgressBlob: nil,
+                calibrationBlob: nil,
                 userSettingsBlob: nil
             ),
             remote: UserDataSnapshot(
@@ -156,6 +159,7 @@ enum UserDataMigrationSelfTests {
                 tombstones: [],
                 progressionBlob: nil,
                 globalProgressBlob: nil,
+                calibrationBlob: nil,
                 userSettingsBlob: nil
             ),
             resultingOwnerId: accountOwner

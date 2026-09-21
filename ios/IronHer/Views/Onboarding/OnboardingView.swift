@@ -2,8 +2,9 @@ import SwiftUI
 
 /// Minimal first-launch introduction for trenira (max three short pages).
 struct OnboardingView: View {
-    /// When true, Get Started only dismisses (Settings → View Introduction).
+    /// When true, Continue / Get Started only dismisses (Settings → View Introduction).
     var isPreview: Bool = false
+    var continueTitle: String = "Get Started"
     var onFinished: () -> Void
 
     @State private var page = 0
@@ -73,11 +74,11 @@ struct OnboardingView: View {
 
             VStack(spacing: 12) {
                 Button(action: finish) {
-                    Text("Get Started")
+                    Text(continueTitle)
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(PrimaryButtonStyle())
-                .accessibilityLabel("Get Started")
+                .accessibilityLabel(continueTitle)
                 .accessibilityHint(
                     isPreview
                         ? "Closes the introduction"

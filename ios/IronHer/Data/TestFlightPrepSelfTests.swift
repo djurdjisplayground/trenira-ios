@@ -43,7 +43,7 @@ enum TestFlightPrepSelfTests {
         OnboardingStore.clear()
         check("onboarding incomplete on first launch", !OnboardingStore.hasCompletedOnboarding)
         OnboardingStore.markCompleted()
-        check("onboarding complete after Get Started", OnboardingStore.hasCompletedOnboarding)
+        check("onboarding complete after journey finishes", OnboardingStore.hasCompletedOnboarding)
         // View Introduction must not clear the flag
         check("view introduction leaves completion flag set", OnboardingStore.hasCompletedOnboarding)
         OnboardingStore.clear()
@@ -52,13 +52,17 @@ enum TestFlightPrepSelfTests {
             "erasure inventory includes onboarding key",
             LocalDataErasureService.userContentUserDefaultsKeys.contains(OnboardingStore.storageKey)
         )
+        check(
+            "erasure inventory includes calibration key",
+            LocalDataErasureService.userContentUserDefaultsKeys.contains(StrengthCalibrationStore.storageKey)
+        )
 
         // Legal / configuration
         check("operator is Durdija Tunguz", AppConfiguration.operatorName == "Durdija Tunguz")
         check("support email is trenira@trenira.info", AppConfiguration.supportEmail == "trenira@trenira.info")
         check("consultation email matches support", AppConfiguration.consultationEmail == AppConfiguration.supportEmail)
         check("feedback email matches support", AppConfiguration.feedbackEmail == AppConfiguration.supportEmail)
-        check("BetaConfig feedback uses AppConfiguration", BetaConfig.feedbackEmail == AppConfiguration.feedbackEmail)
+        check("ProductAccessConfig feedback uses AppConfiguration", ProductAccessConfig.feedbackEmail == AppConfiguration.feedbackEmail)
         check("minimum user age is 16", AppConfiguration.minimumUserAge == 16)
         check("consultation age is 18", AppConfiguration.minimumConsultationAge == 18)
         check("app name is lowercase trenira", AppConfiguration.appName == "trenira")
@@ -70,7 +74,10 @@ enum TestFlightPrepSelfTests {
         check("privacy states minimum age 16", privacy.contains("\(AppConfiguration.minimumUserAge)"))
         check("privacy states consultation age 18", privacy.contains("\(AppConfiguration.minimumConsultationAge)"))
         check("terms contain health disclaimer heading", terms.contains("Health Disclaimer"))
-        check("terms mention beta data loss", terms.lowercased().contains("data may be lost"))
+        check("terms mention account deletion", terms.lowercased().contains("delete account"))
+        check("privacy mentions delete account", privacy.lowercased().contains("delete account"))
+        check("privacy has no beta branding", !privacy.localizedCaseInsensitiveContains("testflight") && !privacy.localizedCaseInsensitiveContains("early beta"))
+        check("terms have no beta branding", !terms.localizedCaseInsensitiveContains("testflight") && !terms.localizedCaseInsensitiveContains("closed beta"))
         check("privacy has no incorrect brand casing", !containsBadBrand(privacy))
         check("terms have no incorrect brand casing", !containsBadBrand(terms))
         check("privacy does not claim GDPR certification", !privacy.lowercased().contains("fully gdpr compliant"))
@@ -104,13 +111,14 @@ enum TestFlightPrepSelfTests {
 
         // Feedback / email
         check("feedback recipient correct", FeedbackService.recipient == "trenira@trenira.info")
-        check("feedback subject correct", FeedbackService.subject == "trenira beta feedback")
+        check("feedback subject correct", FeedbackService.subject == "trenira feedback")
         let body = FeedbackService.emailBody()
         check("feedback body has version", body.contains("App version:"))
         check("feedback body has build", body.contains("Build:"))
         check("feedback body has iOS version", body.contains("iOS version:"))
         check("feedback body has device", body.contains("Device:"))
         check("feedback body excludes workout keywords", !body.lowercased().contains("workout id"))
+        check("feedback body is not beta-branded", !body.localizedCaseInsensitiveContains("i'm testing") && !body.localizedCaseInsensitiveContains("i’m testing"))
         check("feedback clipboard includes recipient", FeedbackService.clipboardPayload().contains("To: \(AppConfiguration.feedbackEmail)"))
         check("feedback mailto builds", FeedbackService.mailtoURL() != nil)
 
@@ -132,7 +140,7 @@ enum TestFlightPrepSelfTests {
 
         // Obsolete emails
         check("no hello@trenira.app in support config", !AppConfiguration.supportEmail.contains("hello@"))
-        check("no durdija gmail as feedback", BetaConfig.feedbackEmail == "trenira@trenira.info")
+        check("no durdija gmail as feedback", ProductAccessConfig.feedbackEmail == "trenira@trenira.info")
 
         return Outcome(passed: passed, failed: failed, lines: lines)
     }

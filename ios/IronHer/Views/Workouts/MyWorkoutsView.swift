@@ -11,8 +11,10 @@ struct MyWorkoutsView: View {
     @Environment(GlobalExerciseProgressStore.self) private var globalProgressStore
     @Environment(LocalizationStore.self) private var l10n
     @Environment(SubscriptionStore.self) private var subscriptionStore
+    @Environment(StrengthCalibrationStore.self) private var calibrationStore
 
     @State private var showPremiumUpgrade = false
+    @State private var showCalibration = false
     @State private var editAfterDuplicate: WorkoutEditDestination?
     @State private var duplicateErrorMessage: String?
 
@@ -26,6 +28,29 @@ struct MyWorkoutsView: View {
 
     var body: some View {
         List {
+            if calibrationStore.showsWorkoutsSetupCard {
+                Section {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Complete your strength setup")
+                            .font(SheLiftsFont.bodyMedium)
+                            .foregroundStyle(IronHerTheme.primaryText)
+                        Text("Calibrate your starting weights so Trenira can personalize your workouts.")
+                            .font(SheLiftsFont.caption)
+                            .foregroundStyle(IronHerTheme.secondaryText)
+                        Button("Start calibration") {
+                            showCalibration = true
+                        }
+                        .buttonStyle(PrimaryButtonStyle())
+                        Button("Dismiss") {
+                            calibrationStore.dismissSetupCard()
+                        }
+                        .font(SheLiftsFont.caption)
+                        .foregroundStyle(IronHerTheme.secondaryText)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+
             if savedWorkouts.isEmpty && drafts.isEmpty {
                 Section {
                     ContentUnavailableView(
@@ -148,6 +173,11 @@ struct MyWorkoutsView: View {
         }
         .navigationDestination(item: $editAfterDuplicate) { target in
             EditWorkoutDetailView(workoutId: target.id)
+        }
+        .sheet(isPresented: $showCalibration) {
+            WeightCalibrationFlowView { _ in
+                showCalibration = false
+            }
         }
         .sheet(isPresented: $showPremiumUpgrade) {
             NavigationStack {
@@ -318,5 +348,7 @@ struct RecentlyDeletedWorkoutsView: View {
             .environment(GlobalExerciseProgressStore())
             .environment(LocalizationStore())
             .environment(SubscriptionStore())
+            .environment(StrengthCalibrationStore())
+            .environment(UserSettingsStore())
     }
 }

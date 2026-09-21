@@ -175,6 +175,8 @@ struct HomeView: View {
             .environment(WorkoutSessionStore())
             .environment(LocalizationStore())
             .environment(TestingTimeStore())
+            .environment(UserSettingsStore())
+            .environment(StrengthCalibrationStore())
             .environment(
                 UserDataCoordinator(
                     workoutStore: WorkoutStore(),
@@ -183,6 +185,7 @@ struct HomeView: View {
                     customExerciseStore: CustomExerciseStore(),
                     progressionStore: ExerciseProgressionStore(),
                     globalProgressStore: GlobalExerciseProgressStore(),
+                    calibrationStore: StrengthCalibrationStore(),
                     settingsStore: UserSettingsStore()
                 )
             )

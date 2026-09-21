@@ -77,6 +77,7 @@ enum LocalDataProtectionSelfTests {
             "workoutPerformanceLogs",
             "activeWorkoutSession",
             "globalExerciseProgress",
+            StrengthCalibrationStore.storageKey,
             "userSettings",
             "customExercises",
             "googleEmail",

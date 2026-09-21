@@ -10,6 +10,10 @@ struct CreateWorkoutView: View {
 
     /// When resuming, load this draft id. Autosave writes into the same id.
     var resumingDraftId: UUID? = nil
+    /// Used when embedding in first-launch onboarding.
+    var onSaved: (() -> Void)? = nil
+    var onSkip: (() -> Void)? = nil
+    var onBack: (() -> Void)? = nil
 
     @State private var draftId: UUID?
     @State private var workoutName = ""
@@ -37,6 +41,20 @@ struct CreateWorkoutView: View {
         .background(IronHerTheme.background)
         .navigationTitle(resumingDraftId == nil ? l10n.t(.create_workout) : "Resume Draft")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if let onBack {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Back") { onBack() }
+                        .foregroundStyle(IronHerTheme.secondaryText)
+                }
+            }
+            if let onSkip {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Skip for now") { onSkip() }
+                        .foregroundStyle(IronHerTheme.secondaryText)
+                }
+            }
+        }
         .sheet(isPresented: $showAddExercise) {
             AddExerciseSheet { draft in
                 draftExercises.append(draft)
@@ -301,7 +319,11 @@ struct CreateWorkoutView: View {
                 historyStore.recordInitial(exerciseId: entry.exerciseId, weightKg: entry.startingWeight)
             }
         }
-        dismiss()
+        if let onSaved {
+            onSaved()
+        } else {
+            dismiss()
+        }
     }
 }
 

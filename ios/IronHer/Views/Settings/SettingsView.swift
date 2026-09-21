@@ -42,12 +42,12 @@ struct SettingsView: View {
                 .foregroundStyle(IronHerTheme.secondaryText)
 
                 if authManager.authState.isGuest {
-                    Text("Workouts stay on this device. Cloud backup is not available in this beta.")
+                    Text("Workouts stay on this device. Cloud backup is not available yet.")
                         .font(SheLiftsFont.caption)
                         .foregroundStyle(IronHerTheme.secondaryText)
                 } else if authManager.authState != .signedOut {
                     Text(
-                        BetaConfig.hidesMonetization
+                        ProductAccessConfig.hidesMonetization
                             ? "Your workouts stay on this device with this account. They are not backed up to the cloud yet."
                             : "Workouts and Premium are separate. Canceling Premium never deletes your training data."
                     )
@@ -69,34 +69,40 @@ struct SettingsView: View {
                 }
             }
 
-            if BetaConfig.isClosedBeta {
-                Section("Beta Version") {
-                    LabeledContent("Version") {
-                        Text(AppVersion.label)
-                            .foregroundStyle(IronHerTheme.secondaryText)
+            if authManager.authState.isSignedIn {
+                Section {
+                    NavigationLink {
+                        DeleteAccountView()
+                    } label: {
+                        Text(l10n.t(.delete_account))
+                            .foregroundStyle(.red)
                     }
-
-                    Text("Thanks for helping test trenira.")
+                } footer: {
+                    Text(l10n.t(.delete_account_settings_footer))
                         .font(SheLiftsFont.caption)
+                }
+            }
+
+            Section {
+                LabeledContent("Version") {
+                    Text(AppVersion.label)
                         .foregroundStyle(IronHerTheme.secondaryText)
                 }
 
-                Section {
-                    NavigationLink {
-                        BetaFeedbackView()
-                    } label: {
-                        Label("Send Feedback", systemImage: "envelope")
-                    }
-
-                    Button("View Introduction") {
-                        showIntroduction = true
-                    }
-                } header: {
-                    Text("Beta Feedback")
-                } footer: {
-                    Text("Opens a prefilled message to \(AppConfiguration.feedbackEmail). You review and send it yourself.")
-                        .font(SheLiftsFont.caption)
+                NavigationLink {
+                    FeedbackView()
+                } label: {
+                    Label("Send Feedback", systemImage: "envelope")
                 }
+
+                Button("View Introduction") {
+                    showIntroduction = true
+                }
+            } header: {
+                Text("Support")
+            } footer: {
+                Text("Opens a prefilled message to \(AppConfiguration.feedbackEmail). You review and send it yourself.")
+                    .font(SheLiftsFont.caption)
             }
 
             Section {
@@ -120,27 +126,14 @@ struct SettingsView: View {
                 } label: {
                     Text("Terms & Conditions")
                 }
-
-                if authManager.authState.isSignedIn {
-                    NavigationLink {
-                        EraseLocalDataView()
-                    } label: {
-                        Text(l10n.t(.erase_local_data))
-                            .foregroundStyle(.red)
-                    }
-                }
             } header: {
                 Text("Legal & Privacy")
             } footer: {
-                Text(
-                    authManager.authState.isSignedIn
-                        ? "Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName). Erase All Local Data permanently removes trenira data on this device. It does not delete your Apple ID or Google Account."
-                        : "Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName)."
-                )
-                .font(SheLiftsFont.caption)
+                Text("Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName).")
+                    .font(SheLiftsFont.caption)
             }
 
-            if !BetaConfig.hidesMonetization {
+            if !ProductAccessConfig.hidesMonetization {
                 Section(l10n.t(.membership)) {
                     Text(subscriptionStore.isPremium ? "Premium Active" : "Free Plan")
                         .foregroundStyle(IronHerTheme.primaryText)
@@ -207,6 +200,13 @@ struct SettingsView: View {
                     MyProgressionView()
                 }
                 Text("Define how weighted, bodyweight, and timed exercises progress.")
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+
+                NavigationLink("Starting weights") {
+                    StrengthCalibrationSettingsView()
+                }
+                Text("Optional calibration used only when an exercise has no workout history yet.")
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
 
@@ -302,16 +302,16 @@ struct SettingsView: View {
                     .foregroundStyle(IronHerTheme.secondaryText)
             }
 
-            if DevelopmentConfig.isDevelopmentMode {
-                Section("Developer") {
-                    NavigationLink("Developer Settings") {
-                        DeveloperSettingsView()
-                    }
-                    Text("Testing tools — not shown in production builds.")
-                        .font(SheLiftsFont.caption)
-                        .foregroundStyle(IronHerTheme.secondaryText)
+            #if DEBUG
+            Section("Developer") {
+                NavigationLink("Developer Settings") {
+                    DeveloperSettingsView()
                 }
+                Text("Testing tools — not shown in production builds.")
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
             }
+            #endif
         }
         .navigationTitle(l10n.t(.settings))
         .navigationBarTitleDisplayMode(.inline)
@@ -509,8 +509,9 @@ struct ExerciseDetailSettingsView: View {
     }
 }
 
-// MARK: - Developer Settings (DEBUG only entry from SettingsView)
+// MARK: - Developer Settings (DEBUG only — excluded from Release)
 
+#if DEBUG
 struct DeveloperSettingsView: View {
     @Environment(UserSettingsStore.self) private var settingsStore
     @Environment(SubscriptionStore.self) private var subscriptionStore
@@ -585,6 +586,13 @@ struct DeveloperSettingsView: View {
                 Button("Run weight progression self-tests") {
                     #if DEBUG
                     let outcome = WeightProgressionSelfTests.runAll()
+                    settingsStore.noteDeveloperAction(outcome.summary)
+                    #endif
+                }
+
+                Button("Run starting-weight calibration self-tests") {
+                    #if DEBUG
+                    let outcome = StrengthCalibrationSelfTests.runAll()
                     settingsStore.noteDeveloperAction(outcome.summary)
                     #endif
                 }
@@ -734,8 +742,8 @@ struct DeveloperSettingsView: View {
                 .foregroundStyle(IronHerTheme.secondaryText)
 
                 Text(
-                    BetaConfig.unlocksPremium
-                        ? "Closed beta: BetaConfig.unlocksPremium grants full access. StoreKit state above is still real. Set BetaConfig.isClosedBeta = false to restore paywalls."
+                    ProductAccessConfig.unlocksPremium
+                        ? "Premium access is unlocked without purchase for this build (silent ProductAccessConfig). StoreKit state above is still real. Set ProductAccessConfig.unlocksPremiumWithoutPurchase / hidesMonetizationUI to false before enabling paywalls."
                         : "Use the scheme’s StoreKit Configuration (trenira.storekit). Premium unlocks only via verified StoreKit purchases — no debug override."
                 )
                     .font(SheLiftsFont.caption)
@@ -862,6 +870,7 @@ struct DeveloperSettingsView: View {
         }
     }
 }
+#endif
 
 #Preview {
     NavigationStack {
@@ -875,5 +884,6 @@ struct DeveloperSettingsView: View {
             .environment(WeightHistoryStore())
             .environment(ExerciseProgressionStore())
             .environment(GlobalExerciseProgressStore())
+            .environment(StrengthCalibrationStore())
     }
 }

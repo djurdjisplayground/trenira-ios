@@ -70,6 +70,7 @@ struct MainTabView: View {
         .environment(LocalizationStore())
         .environment(TestingTimeStore())
         .environment(GlobalExerciseProgressStore())
+        .environment(StrengthCalibrationStore())
         .environment(CustomExerciseStore())
         .environment(AppTabRouter())
 }

@@ -109,6 +109,9 @@ enum UserDataMergeEngine {
             globalProgressBlob: preferLocalBlobs
                 ? (local.globalProgressBlob ?? remote.globalProgressBlob)
                 : (remote.globalProgressBlob ?? local.globalProgressBlob),
+            calibrationBlob: preferLocalBlobs
+                ? (local.calibrationBlob ?? remote.calibrationBlob)
+                : (remote.calibrationBlob ?? local.calibrationBlob),
             userSettingsBlob: preferLocalBlobs
                 ? (local.userSettingsBlob ?? remote.userSettingsBlob)
                 : (remote.userSettingsBlob ?? local.userSettingsBlob)

@@ -4,6 +4,7 @@ struct GenerateWorkoutView: View {
     @Environment(WorkoutStore.self) private var workoutStore
     @Environment(WeightHistoryStore.self) private var historyStore
     @Environment(GlobalExerciseProgressStore.self) private var globalProgressStore
+    @Environment(StrengthCalibrationStore.self) private var calibrationStore
     @Environment(SubscriptionStore.self) private var subscriptionStore
     @Environment(\.dismiss) private var dismiss
 
@@ -11,6 +12,11 @@ struct GenerateWorkoutView: View {
     @State private var generatedWorkouts: [Workout] = []
     @State private var showPremiumUpgrade = false
     @State private var swapTarget: GeneratedExerciseSwapTarget?
+
+    /// Used when embedding in first-launch onboarding.
+    var onSaved: (() -> Void)? = nil
+    var onSkip: (() -> Void)? = nil
+    var onBack: (() -> Void)? = nil
 
     var body: some View {
         ScrollView {
@@ -34,6 +40,20 @@ struct GenerateWorkoutView: View {
         .background(IronHerScreenBackground())
         .navigationTitle("Generate Workout")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if let onBack {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Back") { onBack() }
+                        .foregroundStyle(IronHerTheme.secondaryText)
+                }
+            }
+            if let onSkip {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Skip for now") { onSkip() }
+                        .foregroundStyle(IronHerTheme.secondaryText)
+                }
+            }
+        }
         .sheet(isPresented: $showPremiumUpgrade) {
             NavigationStack {
                 PremiumUpgradeView(highlightFeature: .generateWorkout)
@@ -305,7 +325,12 @@ struct GenerateWorkoutView: View {
     }
 
     private func generate() {
-        generatedWorkouts = WorkoutGenerationService.generateWorkouts(from: request)
+        generatedWorkouts = StrengthCalibrationResolver.applyStartingWeights(
+            to: WorkoutGenerationService.generateWorkouts(from: request),
+            progressFor: { globalProgressStore.progress(for: $0) },
+            historyFor: { historyStore.entries(for: $0) },
+            calibrationFor: { calibrationStore.calibration(for: $0) }
+        )
     }
 
     private func excludedIds(in workoutID: UUID, replacing exerciseId: String) -> Set<String> {
@@ -328,6 +353,14 @@ struct GenerateWorkoutView: View {
             with: exercise,
             request: request
         )
+        let entry = generatedWorkouts[workoutIndex].exercises[entryIndex]
+        generatedWorkouts[workoutIndex].exercises[entryIndex].startingWeight =
+            StrengthCalibrationResolver.startingWeightKg(
+                exerciseId: entry.exerciseId,
+                progress: globalProgressStore.progress(for: entry.exerciseId),
+                historyEntries: historyStore.entries(for: entry.exerciseId),
+                calibration: calibrationStore.calibration(for: entry.exerciseId)
+            )
     }
 
     private func saveWorkouts(_ workouts: [Workout]) {
@@ -343,7 +376,11 @@ struct GenerateWorkoutView: View {
             workoutStore.createWorkout(named: workout.name, exercises: workout.exercises)
             for entry in workout.exercises {
                 let measurement = ExerciseCatalog.exercise(id: entry.exerciseId)?.measurementUnit ?? .weight
-                globalProgressStore.syncFromTemplateEdit(
+                let established = StrengthCalibrationResolver.hasEstablishedProgress(
+                    progress: globalProgressStore.progress(for: entry.exerciseId),
+                    historyEntries: historyStore.entries(for: entry.exerciseId)
+                )
+                globalProgressStore.applyExistingOrSeedInitial(
                     exerciseId: entry.exerciseId,
                     measurement: measurement,
                     weightKg: entry.startingWeight,
@@ -351,16 +388,22 @@ struct GenerateWorkoutView: View {
                     sets: entry.sets,
                     durationSeconds: entry.durationSeconds,
                     distanceMeters: entry.distanceMeters,
+                    established: established,
                     into: workoutStore
                 )
-                if entry.startingWeight > 0,
+                if !established,
+                   entry.startingWeight > 0,
                    measurement != .reps,
                    measurement != .bodyweight {
                     historyStore.recordInitial(exerciseId: entry.exerciseId, weightKg: entry.startingWeight)
                 }
             }
         }
-        dismiss()
+        if let onSaved {
+            onSaved()
+        } else {
+            dismiss()
+        }
     }
 }
 
@@ -373,6 +416,7 @@ struct GenerateWorkoutView: View {
             .environment(LocalizationStore())
             .environment(CustomExerciseStore())
             .environment(GlobalExerciseProgressStore())
+            .environment(StrengthCalibrationStore())
     }
 }
 
