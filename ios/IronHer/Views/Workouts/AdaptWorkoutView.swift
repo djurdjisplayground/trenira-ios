@@ -46,6 +46,7 @@ struct AdaptWorkoutView: View {
     @State private var proposals: [WorkoutAdaptationProposal] = []
     @State private var showProposals = false
     @State private var showPremiumUpgrade = false
+    @State private var didCaptureAdaptationOpen = false
 
     private var eligibleWorkouts: [Workout] {
         workoutStore.workouts.filter { !$0.isDraft && !$0.exercises.isEmpty }
@@ -102,6 +103,10 @@ struct AdaptWorkoutView: View {
         .onAppear {
             if selectedKinds.isEmpty {
                 selectedKinds = GymEquipmentPreset.fullGym.equipment
+            }
+            if !didCaptureAdaptationOpen {
+                didCaptureAdaptationOpen = true
+                AnalyticsService.capture(.workoutAdaptationOpened)
             }
         }
     }
@@ -279,6 +284,7 @@ struct AdaptWorkoutView: View {
         )
         guard !adapted.exercises.isEmpty else { return }
         workoutStore.createWorkout(named: adapted.name, exercises: adapted.exercises)
+        AnalyticsService.capture(.workoutAdaptationApplied)
         dismiss()
     }
 }

@@ -40,6 +40,9 @@ final class AppModel {
         self.calibrationStore = calibrationStore
         self.sessionStore = sessionStore
 
+        // Drop the old one-time cohort before later startup writes anything.
+        ResearchInvitationStore.migrateLegacyStateIfNeeded()
+
         let coordinator = UserDataCoordinator(
             workoutStore: workoutStore,
             historyStore: historyStore,

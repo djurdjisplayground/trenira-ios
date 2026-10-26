@@ -7,6 +7,7 @@ struct StartWorkoutView: View {
     @Environment(GlobalExerciseProgressStore.self) private var globalProgressStore
     @Environment(LocalizationStore.self) private var l10n
     @Environment(TestingTimeStore.self) private var testingTimeStore
+    @Environment(AppTabRouter.self) private var tabRouter
 
     @State private var startFlow: WorkoutStartFlow?
     @State private var completedPrompt: CompletedWorkoutPrompt?
@@ -61,6 +62,9 @@ struct StartWorkoutView: View {
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(item: $startFlow) { _ in
             WorkoutStartFlowCover(flow: $startFlow)
+        }
+        .onChange(of: startFlow?.id) { _, flowID in
+            tabRouter.isWorkoutFlowPresented = flowID != nil
         }
         .sheet(item: $completedPrompt) { prompt in
             CompletedWorkoutSheet(
@@ -140,5 +144,6 @@ private struct CompletedWorkoutPrompt: Identifiable {
             .environment(LocalizationStore())
             .environment(UserSettingsStore())
             .environment(TestingTimeStore())
+            .environment(AppTabRouter())
     }
 }

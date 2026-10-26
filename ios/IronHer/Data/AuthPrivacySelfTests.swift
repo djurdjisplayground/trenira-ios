@@ -151,8 +151,16 @@ enum AuthPrivacySelfTests {
            let data = try? Data(contentsOf: manifestURL),
            let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] {
             check("NSPrivacyTracking is false", plist["NSPrivacyTracking"] as? Bool == false)
-            let collected = plist["NSPrivacyCollectedDataTypes"] as? [Any] ?? ["missing"]
-            check("no first-party collected data types declared", collected.isEmpty)
+            let collected = plist["NSPrivacyCollectedDataTypes"] as? [[String: Any]] ?? []
+            let productInteraction = collected.first {
+                ($0["NSPrivacyCollectedDataType"] as? String) == "NSPrivacyCollectedDataTypeProductInteraction"
+            }
+            check("product interaction is declared for analytics", productInteraction != nil)
+            check("product interaction is not linked", productInteraction?["NSPrivacyCollectedDataTypeLinked"] as? Bool == false)
+            check("product interaction is not tracking", productInteraction?["NSPrivacyCollectedDataTypeTracking"] as? Bool == false)
+            let purposes = productInteraction?["NSPrivacyCollectedDataTypePurposes"] as? [String] ?? []
+            check("product interaction purpose is analytics", purposes == ["NSPrivacyCollectedDataTypePurposeAnalytics"])
+            check("no other collected data types are declared", collected.count == 1)
             let domains = plist["NSPrivacyTrackingDomains"] as? [Any] ?? ["missing"]
             check("no tracking domains declared", domains.isEmpty)
             let apis = plist["NSPrivacyAccessedAPITypes"] as? [[String: Any]] ?? []

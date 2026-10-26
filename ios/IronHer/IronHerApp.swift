@@ -8,6 +8,7 @@ struct IronHerApp: App {
 
     init() {
         GoogleSignInService.configureIfNeeded()
+        AnalyticsService.start()
     }
 
     var body: some Scene {

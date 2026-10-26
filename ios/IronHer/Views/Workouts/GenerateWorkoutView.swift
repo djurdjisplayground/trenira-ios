@@ -375,6 +375,7 @@ struct GenerateWorkoutView: View {
 
         for workout in workouts.reversed() {
             workoutStore.createWorkout(named: workout.name, exercises: workout.exercises)
+            AnalyticsService.capture(.workoutCreated)
             for entry in workout.exercises {
                 let measurement = ExerciseCatalog.exercise(id: entry.exerciseId)?.measurementUnit ?? .weight
                 let established = StrengthCalibrationResolver.hasEstablishedProgress(

@@ -107,6 +107,7 @@ enum LocalDataErasureService {
         }
 
         dataCoordinator.bindToFreshGuestAfterErasure()
+        AnalyticsService.resetAnonymousIdentity()
         logger.info("Local erasure completed")
     }
 

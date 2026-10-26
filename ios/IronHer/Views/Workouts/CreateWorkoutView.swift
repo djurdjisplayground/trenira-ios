@@ -318,6 +318,7 @@ struct CreateWorkoutView: View {
             published = workoutStore.createWorkout(named: workoutName, exercises: entries)
         }
         guard published != nil else { return }
+        AnalyticsService.capture(.workoutCreated)
 
         didExplicitlySave = true
         for entry in entries {

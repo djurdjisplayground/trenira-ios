@@ -57,6 +57,7 @@ enum WorkoutStartCoordinator {
 }
 
 struct WorkoutStartFlowCover: View {
+    @Environment(WorkoutSessionStore.self) private var sessionStore
     @Binding var flow: WorkoutStartFlow?
 
     var body: some View {
@@ -83,6 +84,9 @@ struct WorkoutStartFlowCover: View {
                     .toolbar {
                         ToolbarItem(placement: .topBarLeading) {
                             Button("Close") {
+                                if sessionStore.activeSession != nil {
+                                    AnalyticsService.capture(.workoutExitedEarly)
+                                }
                                 flow = nil
                             }
                             .foregroundStyle(IronHerTheme.secondaryText)

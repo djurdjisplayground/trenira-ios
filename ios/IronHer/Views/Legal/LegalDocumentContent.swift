@@ -36,7 +36,9 @@ enum LegalDocumentContent {
         - consultation request details that you choose to place in an email,
         - optional feedback that you choose to send by email.
 
-        \(AppConfiguration.appName) does not collect Apple or Google passwords. The app does not use advertising, behavioural tracking, analytics SDKs or crash-reporting SDKs.
+        \(AppConfiguration.appName) does not collect Apple or Google passwords. The app does not use advertising or crash-reporting SDKs.
+
+        When anonymous product analytics is on, the app sends a small set of product events to PostHog: a workout was created, started, completed, or left before completion; workout adaptation was opened or applied; and the research invitation was shown, accepted, or dismissed. Those events do not include exercise names, weights, set logs, health or postpartum information, contact details, or notes you type. PostHog stores an anonymous installation identifier on this device so repeated use of the same installation can be counted. It is not your name, email, or account. You can turn this off in Settings → Legal & Privacy. Development builds do not send these events unless a developer explicitly enables testing.
 
         ## 4. Account and Authentication Data
 
@@ -75,7 +77,7 @@ enum LegalDocumentContent {
         - provide workout organisation and progression features on your device,
         - maintain your local session after sign-in,
         - respond to consultation or feedback emails you choose to send,
-        - operate and improve the product based on messages you send.
+        - operate and improve the product based on messages you send and, when analytics is on, from the anonymous product events described above.
 
         ## 9. Local Data Storage
 
@@ -83,11 +85,11 @@ enum LegalDocumentContent {
 
         ## 10. Email and Third-Party Processing
 
-        Email composition and delivery involve Apple’s Mail capabilities and the email providers used by you and by \(AppConfiguration.operatorName). Authentication and StoreKit involve Apple and, if used, Google. Those services process data under their own policies.
+        Email composition and delivery involve Apple’s Mail capabilities and the email providers used by you and by \(AppConfiguration.operatorName). Authentication and StoreKit involve Apple and, if used, Google. Anonymous product analytics, when turned on, are processed by PostHog. Those services process data under their own policies.
 
         ## 11. Data Sharing
 
-        \(AppConfiguration.appName) does not sell personal information. Information may be processed by Apple, Google (if used for sign-in) and email providers only as needed for the features you use.
+        \(AppConfiguration.appName) does not sell personal information. Information may be processed by Apple, Google (if used for sign-in), email providers, and PostHog (for anonymous product analytics, when turned on) only as needed for the features you use.
 
         ## 12. Data Retention
 

@@ -14,6 +14,14 @@ enum AppTab: Hashable {
 @MainActor
 final class AppTabRouter {
     var selectedTab: AppTab = .home
+    /// True while a workout is covering the tabs, so the invitation does not interrupt it.
+    var isWorkoutFlowPresented = false
+    /// Bumped when the home invitation should be considered again.
+    var invitationCheck = 0
+
+    func requestInvitationCheck() {
+        invitationCheck += 1
+    }
 
     func openProgress() {
         selectedTab = .progress

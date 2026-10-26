@@ -19,6 +19,9 @@
 		A1000001000000000000000A /* GoogleSignInService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000000D /* GoogleSignInService.swift */; };
 		A1000001000000000000000B /* AuthOptionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000000E /* AuthOptionButton.swift */; };
 		A1000001000000000000000C /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A100000B0000000000000002 /* GoogleSignIn */; };
+		A100000E00000000000001C6 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = A100000B0000000000000004 /* PostHog */; };
+		A100000E00000000000001C0 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001C1 /* AnalyticsService.swift */; };
+		A100000E00000000000001C2 /* AnalyticsSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001C3 /* AnalyticsSelfTests.swift */; };
 		A1000001000000000000000D /* Workout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000000F /* Workout.swift */; };
 		A1000001000000000000000E /* WorkoutStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000010 /* WorkoutStore.swift */; };
 		A1000001000000000000000F /* WorkoutActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000011 /* WorkoutActionButton.swift */; };
@@ -165,6 +168,9 @@
 		A100000E0000000000000152 /* WeightIncrementRepairMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000153 /* WeightIncrementRepairMigration.swift */; };
 		A100000E0000000000000154 /* WeightProgressionSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000155 /* WeightProgressionSelfTests.swift */; };
 		A100000E0000000000000160 /* OnboardingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000161 /* OnboardingStore.swift */; };
+		A100000E00000000000001B0 /* ResearchInvitationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001B1 /* ResearchInvitationStore.swift */; };
+		A100000E00000000000001B2 /* ResearchInvitationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001B3 /* ResearchInvitationView.swift */; };
+		A100000E00000000000001B4 /* ResearchInvitationSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001B5 /* ResearchInvitationSelfTests.swift */; };
 		A100000E0000000000000162 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000163 /* OnboardingView.swift */; };
 		A100000E0000000000000164 /* LegalDocumentContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000165 /* LegalDocumentContent.swift */; };
 		A100000E0000000000000166 /* LegalDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000167 /* LegalDocumentView.swift */; };
@@ -353,6 +359,11 @@
 		A100000E0000000000000153 /* WeightIncrementRepairMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightIncrementRepairMigration.swift; sourceTree = "<group>"; };
 		A100000E0000000000000155 /* WeightProgressionSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightProgressionSelfTests.swift; sourceTree = "<group>"; };
 		A100000E0000000000000161 /* OnboardingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStore.swift; sourceTree = "<group>"; };
+		A100000E00000000000001B1 /* ResearchInvitationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchInvitationStore.swift; sourceTree = "<group>"; };
+		A100000E00000000000001C1 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
+		A100000E00000000000001C3 /* AnalyticsSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsSelfTests.swift; sourceTree = "<group>"; };
+		A100000E00000000000001B3 /* ResearchInvitationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchInvitationView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001B5 /* ResearchInvitationSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchInvitationSelfTests.swift; sourceTree = "<group>"; };
 		A100000E0000000000000163 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A100000E0000000000000165 /* LegalDocumentContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentContent.swift; sourceTree = "<group>"; };
 		A100000E0000000000000167 /* LegalDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentView.swift; sourceTree = "<group>"; };
@@ -384,6 +395,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000001000000000000000C /* GoogleSignIn in Frameworks */,
+				A100000E00000000000001C6 /* PostHog in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -497,6 +509,8 @@
 				A100000E0000000000000115 /* ConsultationDraftStore.swift */,
 				A100000E0000000000000117 /* ConsultationService.swift */,
 				A100000E0000000000000161 /* OnboardingStore.swift */,
+				A100000E00000000000001B1 /* ResearchInvitationStore.swift */,
+				A100000E00000000000001C1 /* AnalyticsService.swift */,
 				A100000E0000000000000169 /* FeedbackService.swift */,
 				A100000E0000000000000131 /* ExerciseProgressSeriesBuilder.swift */,
 				A100000200000000000000B1 /* WeeklyProgressAnalyzer.swift */,
@@ -576,6 +590,7 @@
 				A1000002000000000000004C /* WeightProgressionSheet.swift */,
 				A1000002000000000000005A /* ExerciseNavigationSheet.swift */,
 				A1000002000000000000005B /* WorkoutCelebrationView.swift */,
+				A100000E00000000000001B3 /* ResearchInvitationView.swift */,
 				A1000002000000000000005C /* MyProgressionView.swift */,
 				A10000020000000000000039 /* MyWorkoutsView.swift */,
 				A100000200000000000000C3 /* AdaptWorkoutsView.swift */,
@@ -714,6 +729,8 @@
 				A100000E00000000000000D1 /* ExerciseReplacementFlowSelfTests.swift */,
 				A100000E00000000000000CB /* RestTimerControllerSelfTests.swift */,
 				A100000E0000000000000123 /* ConsultationSelfTests.swift */,
+				A100000E00000000000001B5 /* ResearchInvitationSelfTests.swift */,
+				A100000E00000000000001C3 /* AnalyticsSelfTests.swift */,
 				A100000E0000000000000137 /* ExerciseProgressSeriesSelfTests.swift */,
 				A100000E0000000000000153 /* WeightIncrementRepairMigration.swift */,
 				A100000E0000000000000155 /* WeightProgressionSelfTests.swift */,
@@ -775,6 +792,7 @@
 			name = trenira;
 			packageProductDependencies = (
 				A100000B0000000000000002 /* GoogleSignIn */,
+				A100000B0000000000000004 /* PostHog */,
 			);
 			productName = IronHer;
 			productReference = A10000020000000000000007 /* trenira.app */;
@@ -806,6 +824,7 @@
 			mainGroup = A10000040000000000000001;
 			packageReferences = (
 				A100000B0000000000000001 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				A100000B0000000000000003 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 			);
 			productRefGroup = A10000040000000000000003 /* Products */;
 			projectDirPath = "";
@@ -949,6 +968,11 @@
 				A100000E0000000000000152 /* WeightIncrementRepairMigration.swift in Sources */,
 				A100000E0000000000000154 /* WeightProgressionSelfTests.swift in Sources */,
 				A100000E0000000000000160 /* OnboardingStore.swift in Sources */,
+				A100000E00000000000001B0 /* ResearchInvitationStore.swift in Sources */,
+				A100000E00000000000001C0 /* AnalyticsService.swift in Sources */,
+				A100000E00000000000001C2 /* AnalyticsSelfTests.swift in Sources */,
+				A100000E00000000000001B2 /* ResearchInvitationView.swift in Sources */,
+				A100000E00000000000001B4 /* ResearchInvitationSelfTests.swift in Sources */,
 				A100000E0000000000000162 /* OnboardingView.swift in Sources */,
 				A100000E0000000000000164 /* LegalDocumentContent.swift in Sources */,
 				A100000E0000000000000166 /* LegalDocumentView.swift in Sources */,
@@ -1234,6 +1258,14 @@
 				minimumVersion = 8.0.0;
 			};
 		};
+		A100000B0000000000000003 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/PostHog/posthog-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.59.3;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1241,6 +1273,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A100000B0000000000000001 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
 			productName = GoogleSignIn;
+		};
+		A100000B0000000000000004 /* PostHog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A100000B0000000000000003 /* XCRemoteSwiftPackageReference "posthog-ios" */;
+			productName = PostHog;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

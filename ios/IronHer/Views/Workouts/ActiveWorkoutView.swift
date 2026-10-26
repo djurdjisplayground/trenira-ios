@@ -28,6 +28,7 @@ struct ActiveWorkoutView: View {
     @State private var showExerciseDetails = false
     @State private var showReplaceExercise = false
     @State private var didPresentLighterStart = false
+    @State private var didCaptureWorkoutCompletion = false
     @State private var encouragementMessage: String?
     @State private var celebrationMessage = WorkoutCompletionCopy.randomMessage()
     @State private var nextProgressionSummary: String?
@@ -1029,14 +1030,19 @@ struct ActiveWorkoutView: View {
         }
         globalProgressStore.applyAll(to: workoutStore)
         let plan = workoutStore.workout(id: workoutId) ?? workout
+        let existingSessionID = sessionStore.activeSession?.id
         if forceFreshSession {
             _ = sessionStore.startFresh(workout: plan)
         } else {
             sessionStore.startOrResume(workout: plan)
         }
+        if let sessionID = sessionStore.activeSession?.id, sessionID != existingSessionID {
+            AnalyticsService.capture(.workoutStarted)
+        }
     }
 
     private func finishWorkout() {
+        guard !didCaptureWorkoutCompletion else { return }
         restTimer.stop()
         showRestCompleteBanner = false
         showExerciseNavigation = false
@@ -1096,6 +1102,8 @@ struct ActiveWorkoutView: View {
         // End the session now so the next start is a fresh evaluation (return-after-break can run).
         // Reopen (dev) creates a new session from the plan.
         sessionStore.endSession(markWeeklyCompletion: false)
+        didCaptureWorkoutCompletion = true
+        AnalyticsService.capture(.workoutCompleted)
 
         showWorkoutComplete = true
     }

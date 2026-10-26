@@ -2,6 +2,7 @@ import StoreKit
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(\.openURL) private var openURL
     @Environment(UserSettingsStore.self) private var settingsStore
     @Environment(SubscriptionStore.self) private var subscriptionStore
     @Environment(CustomExerciseStore.self) private var customExerciseStore
@@ -11,6 +12,8 @@ struct SettingsView: View {
     @State private var showManageSubscriptions = false
     @State private var showSignOutConfirm = false
     @State private var showIntroduction = false
+    @State private var showResearchFormError = false
+    @State private var allowsAnonymousAnalytics = AnalyticsService.userAllowsCollection
 
     var body: some View {
         @Bindable var settings = settingsStore
@@ -89,32 +92,34 @@ struct SettingsView: View {
                         .foregroundStyle(IronHerTheme.secondaryText)
                 }
 
-                NavigationLink {
-                    FeedbackView()
-                } label: {
-                    Label("Send Feedback", systemImage: "envelope")
+                Button(action: openResearchForm) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(ResearchInvitationCopy.settingsTitle)
+                            .font(SheLiftsFont.body)
+                            .foregroundStyle(IronHerTheme.primaryText)
+                        Text(ResearchInvitationCopy.settingsSubtitle)
+                            .font(SheLiftsFont.caption)
+                            .foregroundStyle(IronHerTheme.secondaryText)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .buttonStyle(.plain)
+                .disabled(AppConfiguration.researchInvitationFormURL == nil)
+                .accessibilityHint("Opens a short research form in your browser")
 
                 Button("View Introduction") {
                     showIntroduction = true
                 }
             } header: {
                 Text("Support")
-            } footer: {
-                Text("Opens a prefilled message to \(AppConfiguration.feedbackEmail). You review and send it yourself.")
-                    .font(SheLiftsFont.caption)
             }
 
             Section {
-                ConsultationCard()
-            } header: {
-                Text("Services & Support")
-            } footer: {
-                Text("Optional person-to-person help. trenira stays fully usable without booking a session. Payment is arranged separately after you request.")
-                    .font(SheLiftsFont.caption)
-            }
+                Toggle("Anonymous product analytics", isOn: $allowsAnonymousAnalytics)
+                    .onChange(of: allowsAnonymousAnalytics) { _, allowed in
+                        AnalyticsService.setUserAllowsCollection(allowed)
+                    }
 
-            Section {
                 NavigationLink {
                     PrivacyPolicyView()
                 } label: {
@@ -129,7 +134,7 @@ struct SettingsView: View {
             } header: {
                 Text("Legal & Privacy")
             } footer: {
-                Text("Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName).")
+                Text("Anonymous product analytics records that a workout was created, started, completed, or left early, and whether adaptation or the research invitation was used. It does not include exercise names, weights, or contact details. Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName).")
                     .font(SheLiftsFont.caption)
             }
 
@@ -340,6 +345,25 @@ struct SettingsView: View {
                 Task { await subscriptionStore.refreshEntitlements() }
             }
         }
+        .alert(ResearchInvitationCopy.openFailedTitle, isPresented: $showResearchFormError) {
+            Button(ResearchInvitationCopy.tryAgainTitle, action: openResearchForm)
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(ResearchInvitationCopy.openFailedMessage)
+        }
+    }
+
+    private func openResearchForm() {
+        showResearchFormError = false
+        guard let url = AppConfiguration.researchInvitationFormURL else {
+            showResearchFormError = true
+            return
+        }
+        openURL(url) { accepted in
+            if !accepted {
+                showResearchFormError = true
+            }
+        }
     }
 }
 
@@ -520,11 +544,14 @@ struct DeveloperSettingsView: View {
     @Environment(ExerciseProgressionStore.self) private var progressionStore
     @Environment(GlobalExerciseProgressStore.self) private var globalProgressStore
     @Environment(TestingTimeStore.self) private var testingTimeStore
+    @Environment(AppTabRouter.self) private var tabRouter
 
     @State private var confirmResetWeekly = false
     @State private var confirmClearHistory = false
     @State private var confirmResetProgression = false
     @State private var customDaysText = "21"
+    @State private var invitationStatusText = ""
+    @State private var debugAnalyticsSending = AnalyticsService.debugSendingEnabled
 
     var body: some View {
         @Bindable var settings = settingsStore
@@ -766,6 +793,57 @@ struct DeveloperSettingsView: View {
                     .foregroundStyle(IronHerTheme.secondaryText)
             }
 
+            Section("Analytics") {
+                Toggle("Send analytics from this debug build", isOn: $debugAnalyticsSending)
+                    .onChange(of: debugAnalyticsSending) { _, enabled in
+                        AnalyticsService.setDebugSendingEnabled(enabled)
+                        settingsStore.noteDeveloperAction(
+                            enabled
+                                ? "Debug analytics sending is on. Events go to PostHog only if the project token and host are set, and anonymous analytics is allowed in Settings."
+                                : "Debug analytics sending is off. This build will not send events."
+                        )
+                    }
+                Text("Debug builds do not send events until this is on. Release and TestFlight builds send when the token and host are set and the Settings switch is on. Workouts still save with no network.")
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+
+                Button("Run analytics self-tests") {
+                    let outcome = AnalyticsSelfTests.runAll()
+                    settingsStore.noteDeveloperAction(outcome.summary)
+                }
+            }
+
+            Section("Research invitation") {
+                Text(invitationStatusText)
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+
+                Button("Show invitation now") {
+                    ResearchInvitationStore.armImmediatePresentation()
+                    tabRouter.selectedTab = .home
+                    tabRouter.requestInvitationCheck()
+                    invitationStatusText = ResearchInvitationStore.debugStatusText()
+                    settingsStore.noteDeveloperAction(
+                        "Showing the invitation on Home without changing saved state. It stays hidden while a workout is open."
+                    )
+                }
+                Button("Reset invitation state") {
+                    ResearchInvitationStore.resetForTesting()
+                    invitationStatusText = ResearchInvitationStore.debugStatusText()
+                    settingsStore.noteDeveloperAction(
+                        "Cleared the invitation status and last shown date. Workouts were not changed. Open Home to see the normal invitation."
+                    )
+                }
+                Text("Debug builds only. The status above is this simulator's saved invitation state. Reset does not change workouts or other settings. Show invitation now does not write that state.")
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+
+                Button("Run research invitation self-tests") {
+                    let outcome = ResearchInvitationSelfTests.runAll()
+                    settingsStore.noteDeveloperAction(outcome.summary)
+                }
+            }
+
             Section("Notifications") {
                 Toggle("Enable test notifications", isOn: $settings.enableTestNotifications)
                 Text("When on, you can preview a sample progress reminder.")
@@ -789,6 +867,9 @@ struct DeveloperSettingsView: View {
         }
         .navigationTitle("Developer")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            invitationStatusText = ResearchInvitationStore.debugStatusText()
+        }
         .confirmationDialog(
             "Reset weekly progress?",
             isPresented: $confirmResetWeekly,
@@ -885,5 +966,6 @@ struct DeveloperSettingsView: View {
             .environment(ExerciseProgressionStore())
             .environment(GlobalExerciseProgressStore())
             .environment(StrengthCalibrationStore())
+            .environment(AppTabRouter())
     }
 }
