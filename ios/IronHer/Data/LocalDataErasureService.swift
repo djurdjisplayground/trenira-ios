@@ -62,6 +62,9 @@ enum LocalDataErasureService {
         "emailAuthAccounts",
         ConsultationDraftStore.storageKey,
         OnboardingStore.storageKey,
+        CompanionProfileStore.storageKey,
+        SavedVideoStore.storageKey,
+        MovementRecordStore.storageKey,
     ]
 
     private static let logger = Logger(subsystem: "com.trenira.app", category: "LocalDataErasure")

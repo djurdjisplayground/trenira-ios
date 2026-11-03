@@ -328,7 +328,9 @@ final class UserDataCoordinator {
             progressionBlob: progressionStore.exportSyncBlob(),
             globalProgressBlob: globalProgressStore.exportSyncBlob(),
             calibrationBlob: calibrationStore.exportSyncBlob(),
-            userSettingsBlob: settingsStore.exportSyncBlob()
+            userSettingsBlob: settingsStore.exportSyncBlob(),
+            movementRecords: MovementRecordStore.load(ownerId: ownerId),
+            savedVideos: SavedVideoStore.load(ownerId: ownerId)
         )
     }
 
@@ -361,6 +363,8 @@ final class UserDataCoordinator {
             settingsStore.resetToDefaults()
         }
         saveTombstones(snapshot.tombstones)
+        MovementRecordStore.replace(ownerId: snapshot.ownerId, records: snapshot.movementRecords)
+        SavedVideoStore.replace(ownerId: snapshot.ownerId, videos: snapshot.savedVideos)
         ExerciseCatalog.syncCustomExercises(customExerciseStore.exercises)
     }
 

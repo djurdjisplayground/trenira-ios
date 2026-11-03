@@ -19,6 +19,17 @@ struct SettingsView: View {
         @Bindable var settings = settingsStore
 
         Form {
+            Section {
+                NavigationLink("Movement preferences") {
+                    CompanionPreferencesEditor()
+                }
+            } header: {
+                Text("Movement")
+            } footer: {
+                Text("Change what you want from movement, what gets in the way, and what you enjoy. Your saved workouts stay as they are.")
+                    .font(SheLiftsFont.caption)
+            }
+
             Section(l10n.t(.account)) {
                 Text(authManager.authState.displayName)
                     .foregroundStyle(IronHerTheme.primaryText)
@@ -134,7 +145,7 @@ struct SettingsView: View {
             } header: {
                 Text("Legal & Privacy")
             } footer: {
-                Text("Anonymous product analytics records that a workout was created, started, completed, or left early, and whether adaptation or the research invitation was used. It does not include exercise names, weights, or contact details. Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName).")
+                Text("Anonymous product analytics records that a workout was created, started, completed, or left early, whether adaptation or the research invitation was used, and whether companion questions, a check-in, a suggestion, or an activity was completed. It does not include exercise names, weights, feelings, or contact details. Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName).")
                     .font(SheLiftsFont.caption)
             }
 
@@ -318,6 +329,8 @@ struct SettingsView: View {
             }
             #endif
         }
+        .scrollContentBackground(.hidden)
+        .background(TreniraColor.canvas)
         .navigationTitle(l10n.t(.settings))
         .navigationBarTitleDisplayMode(.inline)
         .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
@@ -809,6 +822,16 @@ struct DeveloperSettingsView: View {
 
                 Button("Run analytics self-tests") {
                     let outcome = AnalyticsSelfTests.runAll()
+                    settingsStore.noteDeveloperAction(outcome.summary)
+                }
+
+                Button("Run companion self-tests") {
+                    let outcome = CompanionSelfTests.runAll()
+                    settingsStore.noteDeveloperAction(outcome.summary)
+                }
+
+                Button("Run movement self-tests") {
+                    let outcome = MovementActivitySelfTests.runAll()
                     settingsStore.noteDeveloperAction(outcome.summary)
                 }
             }

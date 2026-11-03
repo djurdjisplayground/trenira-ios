@@ -15,7 +15,7 @@ enum AppConfiguration {
     static let minimumConsultationAge = 18
 
     /// Shown as the effective date on in-app Privacy Policy and Terms.
-    static let legalEffectiveDate = "26 October 2026"
+    static let legalEffectiveDate = "3 November 2026"
 
     /// Optional hosted pages — when nil, Settings shows native in-app documents.
     static let privacyPolicyURL: URL? = nil

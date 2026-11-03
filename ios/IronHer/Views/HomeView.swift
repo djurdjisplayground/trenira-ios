@@ -1,74 +1,43 @@
 import SwiftUI
 
-/// Today's training — start a session or open this week's progress.
+/// Supportive home for the movement companion. Strength workouts stay one step away.
 struct HomeView: View {
     @Environment(AuthenticationManager.self) private var authManager
-    @Environment(WorkoutStore.self) private var workoutStore
-    @Environment(WorkoutSessionStore.self) private var sessionStore
-    @Environment(LocalizationStore.self) private var l10n
-    @Environment(TestingTimeStore.self) private var testingTimeStore
     @Environment(UserDataCoordinator.self) private var dataCoordinator
-    @Environment(StrengthCalibrationStore.self) private var calibrationStore
+    @Environment(AppTabRouter.self) private var tabRouter
+    @Environment(WorkoutSessionStore.self) private var sessionStore
+
     @State private var showSignOutConfirm = false
-    @State private var showStrengthSetup = false
+    @State private var showCompanionSetup = false
+    @State private var showToday = false
+    @State private var showWalk = false
+    @State private var profile = CompanionProfileStore.load()
+    @State private var historyRevision = 0
 
-    private var startableWorkouts: [Workout] {
-        workoutStore.workouts.filter { !$0.isDraft && !$0.exercises.isEmpty }
-    }
-
-    private var hasWorkouts: Bool {
-        !startableWorkouts.isEmpty
-    }
-
-    private var hasInProgressSession: Bool {
-        guard let activeId = sessionStore.activeSession?.workoutId else { return false }
-        return startableWorkouts.contains { $0.id == activeId }
-    }
-
-    private var hasCompletedWorkoutThisWeek: Bool {
-        startableWorkouts.contains { sessionStore.isCompletedThisWeek(workoutId: $0.id) }
-    }
-
-    private var primaryTitle: String {
-        if hasInProgressSession {
-            return l10n.t(.continue_workout)
-        }
-        if hasWorkouts, hasCompletedWorkoutThisWeek {
-            return l10n.t(.start_again)
-        }
-        return l10n.t(.start_workout)
-    }
-
-    private var primarySubtitle: String {
-        if !hasWorkouts {
-            return l10n.t(.home_start_empty_subtitle)
-        }
-        if hasInProgressSession {
-            return l10n.t(.continue_workout_subtitle)
-        }
-        if hasCompletedWorkoutThisWeek {
-            return l10n.t(.start_again_subtitle)
-        }
-        return l10n.t(.start_workout_subtitle)
+    private var greeting: String {
+        let hour = Calendar.current.component(.hour, from: .now)
+        if hour < 12 { return "Good morning" }
+        if hour < 17 { return "Good afternoon" }
+        return "Good evening"
     }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: IronHerTheme.sectionSpacing) {
-                TestModeBanner()
-                headerSection
-                if calibrationStore.showsHomeSetupCard {
-                    strengthSetupCard
+            VStack(alignment: .leading, spacing: TreniraSpace.section) {
+                header
+                if profile == nil || profile?.hasAnswers != true {
+                    setupCard
                 }
-                primaryAction
-                trackThisWeekCard
+                findMovement
+                weekCard
+                links
+                strengthCard
             }
-            .padding(.horizontal, IronHerTheme.screenPadding)
-            .padding(.top, 16)
+            .padding(.horizontal, TreniraSpace.screen)
+            .padding(.top, 20)
             .padding(.bottom, 32)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(IronHerTheme.background)
+        .background(TreniraColor.canvas)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -78,140 +47,215 @@ struct HomeView: View {
                 authToolbarButton
             }
         }
-        .id("\(testingTimeStore.revision)-\(sessionStore.activeSession?.id.uuidString ?? "none")")
-        .sheet(isPresented: $showStrengthSetup) {
-            WeightCalibrationFlowView { _ in
-                showStrengthSetup = false
+        .sheet(isPresented: $showToday, onDismiss: { historyRevision += 1 }) {
+            NavigationStack {
+                MovementCheckInView {
+                    showToday = false
+                    historyRevision += 1
+                }
+            }
+        }
+        .sheet(isPresented: $showWalk, onDismiss: { historyRevision += 1 }) {
+            NavigationStack {
+                MovementWalkView(ownerId: dataCoordinator.currentOwner.rawValue) {
+                    showWalk = false
+                    historyRevision += 1
+                }
+            }
+        }
+        .sheet(isPresented: $showCompanionSetup, onDismiss: {
+            profile = CompanionProfileStore.load()
+        }) {
+            NavigationStack {
+                CompanionOnboardingView {
+                    showCompanionSetup = false
+                }
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Close") { showCompanionSetup = false }
+                    }
+                }
             }
         }
         .confirmationDialog(
-            l10n.t(.sign_out_confirm_title),
+            "Log out?",
             isPresented: $showSignOutConfirm,
             titleVisibility: .visible
         ) {
-            Button(l10n.t(.log_out), role: .destructive) {
+            Button("Log out", role: .destructive) {
                 authManager.signOut(preparing: dataCoordinator)
             }
-            Button(l10n.t(.cancel), role: .cancel) {}
+            Button("Cancel", role: .cancel) {}
         } message: {
-            Text(l10n.t(.sign_out_confirm_message))
+            Text("Your workouts stay on this device.")
+        }
+        .onAppear {
+            profile = CompanionProfileStore.load()
         }
     }
 
-    private var headerSection: some View {
-        VStack(spacing: 0) {
-            BrandWordmark(size: 36, weight: .semibold)
-
-            BrandTagline(
-                size: 15,
-                line2Size: 15,
-                weight: .light,
-                lineSpacing: 4,
-                color: IronHerTheme.brandSecondary.opacity(0.92)
-            )
-            .padding(.top, 16)
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(greeting)
+                .font(TreniraType.largeTitle)
+                .foregroundStyle(TreniraColor.label)
+                .accessibilityAddTraits(.isHeader)
+            Text(profile?.goal?.homeLine ?? "Movement can fit the day you have.")
+                .font(TreniraType.body)
+                .foregroundStyle(TreniraColor.labelSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 12)
-        .padding(.bottom, 4)
+    }
+
+    private var setupCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Want suggestions that fit your life?")
+                .font(TreniraType.section)
+                .foregroundStyle(TreniraColor.label)
+            Text("A few answers help trenira choose a realistic next step. You can skip or change them later.")
+                .font(TreniraType.body)
+                .foregroundStyle(TreniraColor.labelSecondary)
+            Button("Answer a few questions") {
+                showCompanionSetup = true
+            }
+            .buttonStyle(TreniraSecondaryButtonStyle())
+        }
+        .treniraCard()
+    }
+
+    private var findMovement: some View {
+        Button {
+            showToday = true
+        } label: {
+            Text("Find movement for today")
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(TreniraPrimaryButtonStyle())
+        .accessibilityHint("Opens a short check-in for time, energy, and place")
+    }
+
+    private var weekCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("This week")
+                .font(TreniraType.section)
+                .foregroundStyle(TreniraColor.label)
+            HStack(spacing: 8) {
+                ForEach(weekdays, id: \.title) { day in
+                    VStack(spacing: 6) {
+                        Text(day.title)
+                            .font(TreniraType.caption)
+                            .foregroundStyle(TreniraColor.labelSecondary)
+                        Circle()
+                            .fill(day.isToday ? TreniraColor.action : TreniraColor.surface)
+                            .frame(width: 28, height: 28)
+                            .overlay {
+                                if day.isToday {
+                                    Circle().stroke(TreniraColor.action, lineWidth: 0)
+                                }
+                            }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(day.isToday ? "\(day.title), today" : day.title)
+                }
+            }
+            Text(weekLine)
+                .font(TreniraType.caption)
+                .foregroundStyle(TreniraColor.labelSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .treniraCard()
         .accessibilityElement(children: .combine)
     }
 
-    private var strengthSetupCard: some View {
-        StrengthSetupPromptCard(
-            onStart: { showStrengthSetup = true },
-            onMaybeLater: { calibrationStore.dismissSetupCard() }
-        )
-        .padding(18)
-        .background(IronHerTheme.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: IronHerTheme.cornerRadius, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: IronHerTheme.cornerRadius, style: .continuous)
-                .stroke(IronHerTheme.separator.opacity(0.55), lineWidth: 0.5)
+    private var links: some View {
+        VStack(alignment: .leading, spacing: TreniraSpace.stack) {
+            NavigationLink {
+                MovementHistoryView(
+                    ownerId: dataCoordinator.currentOwner.rawValue,
+                    strengthLogs: strengthSnapshots
+                )
+            } label: {
+                Text("Movement history")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(TreniraSecondaryButtonStyle())
+
+            NavigationLink {
+                SavedVideosView(ownerId: dataCoordinator.currentOwner.rawValue)
+            } label: {
+                Text("Saved videos")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(TreniraSecondaryButtonStyle())
+
+            Button("Record a walk") { showWalk = true }
+                .buttonStyle(TreniraSecondaryButtonStyle())
+        }
+        .id(historyRevision)
+    }
+
+    private var strengthSnapshots: [StrengthHistorySnapshot] {
+        sessionStore.performanceLogs.map {
+            StrengthHistorySnapshot(id: $0.id, title: $0.workoutName, completedAt: $0.completedAt)
         }
     }
 
-    private var primaryAction: some View {
-        NavigationLink(value: WorkoutRoute.start) {
-            HomeActionCard(
-                title: primaryTitle,
-                subtitle: primarySubtitle,
-                icon: "play.fill",
-                style: .primary,
-                minHeight: 148
-            )
-        }
-        .buttonStyle(SheLiftsPressStyle())
+    private var weekLine: String {
+        let summary = MovementJournal.weekSummary(items: MovementJournal.items(
+            records: MovementRecordStore.load(ownerId: dataCoordinator.currentOwner.rawValue),
+            strengthLogs: strengthSnapshots
+        ))
+        return MovementJournal.weekLine(summary)
     }
 
-    private var trackThisWeekCard: some View {
-        NavigationLink(value: WorkoutRoute.trackThisWeek) {
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(l10n.t(.track_this_week))
-                        .font(SheLiftsFont.cardLabel)
-                        .foregroundStyle(IronHerTheme.primaryText)
-                    Text(l10n.t(.home_track_week_cta))
-                        .font(SheLiftsFont.caption)
-                        .foregroundStyle(IronHerTheme.secondaryText)
-                }
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(IronHerTheme.secondaryText)
+    private var strengthCard: some View {
+        Button {
+            tabRouter.openMyWorkouts()
+        } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Your strength workouts")
+                    .font(TreniraType.section)
+                    .foregroundStyle(TreniraColor.label)
+                Text(strengthDetail)
+                    .font(TreniraType.caption)
+                    .foregroundStyle(TreniraColor.labelSecondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(18)
-            .background(IronHerTheme.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: IronHerTheme.cornerRadius, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: IronHerTheme.cornerRadius, style: .continuous)
-                    .stroke(IronHerTheme.separator.opacity(0.55), lineWidth: 0.5)
-            }
         }
-        .buttonStyle(SheLiftsPressStyle())
+        .buttonStyle(.plain)
+        .treniraCard()
+        .accessibilityHint("Opens your saved strength workouts")
+    }
+
+    private var strengthDetail: String {
+        if sessionStore.activeSession != nil {
+            return "A session is still open. You can continue it whenever you want."
+        }
+        return "Your saved workouts, history, and equipment are still here."
+    }
+
+    private var weekdays: [(title: String, isToday: Bool)] {
+        let calendar = Calendar.current
+        let symbols = calendar.veryShortWeekdaySymbols
+        let today = calendar.component(.weekday, from: .now)
+        return symbols.enumerated().map { index, symbol in
+            (title: symbol, isToday: index + 1 == today)
+        }
     }
 
     @ViewBuilder
     private var authToolbarButton: some View {
         if authManager.authState.isGuest {
-            Button(l10n.t(.sign_in_title)) {
+            Button("Sign in") {
                 authManager.signOut(preparing: dataCoordinator)
             }
-            .font(SheLiftsFont.subheadline)
-            .foregroundStyle(IronHerTheme.secondaryText)
+            .font(TreniraType.caption)
+            .foregroundStyle(TreniraColor.labelSecondary)
         } else if authManager.authState != .signedOut {
-            Button(l10n.t(.log_out)) {
-                showSignOutConfirm = true
-            }
-            .font(SheLiftsFont.subheadline)
-            .foregroundStyle(IronHerTheme.secondaryText)
+            Button("Log out") { showSignOutConfirm = true }
+                .font(TreniraType.caption)
+                .foregroundStyle(TreniraColor.labelSecondary)
         }
-    }
-}
-
-#Preview {
-    NavigationStack {
-        HomeView()
-            .treniraNavigationDestinations()
-            .environment(AuthenticationManager())
-            .environment(WorkoutStore())
-            .environment(WorkoutSessionStore())
-            .environment(LocalizationStore())
-            .environment(TestingTimeStore())
-            .environment(UserSettingsStore())
-            .environment(StrengthCalibrationStore())
-            .environment(
-                UserDataCoordinator(
-                    workoutStore: WorkoutStore(),
-                    historyStore: WeightHistoryStore(),
-                    sessionStore: WorkoutSessionStore(),
-                    customExerciseStore: CustomExerciseStore(),
-                    progressionStore: ExerciseProgressionStore(),
-                    globalProgressStore: GlobalExerciseProgressStore(),
-                    calibrationStore: StrengthCalibrationStore(),
-                    settingsStore: UserSettingsStore()
-                )
-            )
     }
 }

@@ -2,82 +2,38 @@ import SwiftUI
 
 enum IronHerTheme {
     static let cornerRadius: CGFloat = 18
-    static let cornerRadiusSmall: CGFloat = 16
-    static let screenPadding: CGFloat = 28
+    static let cornerRadiusSmall: CGFloat = TreniraSpace.controlRadius
+    static let screenPadding: CGFloat = TreniraSpace.screen
     static let sectionSpacing: CGFloat = 36
-    static let gridSpacing: CGFloat = 16
+    static let gridSpacing: CGFloat = TreniraSpace.stack
 
-    /// Primary canvas — pure white / deep near-black (not crushed pure black).
-    static var background: Color {
-        adaptive(
-            light: .white,
-            dark: Color(red: 0.05, green: 0.05, blue: 0.055)
-        )
-    }
+    /// Primary canvas.
+    static var background: Color { TreniraColor.canvas }
 
     /// Grouped / inset surfaces.
-    static var groupedBackground: Color {
-        adaptive(
-            light: .groupedBackground,
-            dark: Color(red: 0.10, green: 0.10, blue: 0.11)
-        )
-    }
+    static var groupedBackground: Color { TreniraColor.surface }
 
-    /// Cards and elevated panels — clear lift off the canvas in dark mode.
-    static var cardBackground: Color {
-        adaptive(
-            light: .white,
-            dark: Color(red: 0.14, green: 0.14, blue: 0.155)
-        )
-    }
+    /// Cards and elevated panels.
+    static var cardBackground: Color { TreniraColor.elevated }
 
-    /// Primary content — charcoal / pure white.
-    static var primaryText: Color {
-        adaptive(light: .slate850, dark: .white)
-    }
+    /// Primary content.
+    static var primaryText: Color { TreniraColor.label }
 
-    /// Secondary labels — readable in both modes (never low-contrast gray-on-black).
-    static var secondaryText: Color {
-        adaptive(
-            light: .slate500,
-            dark: Color(red: 0.82, green: 0.82, blue: 0.84)
-        )
-    }
+    /// Secondary labels.
+    static var secondaryText: Color { TreniraColor.labelSecondary }
 
-    /// Tagline / quiet supporting brand text — still clearly visible in dark mode.
-    static var brandSecondary: Color {
-        adaptive(
-            light: Color(red: 0.40, green: 0.40, blue: 0.43),
-            dark: Color(red: 0.94, green: 0.94, blue: 0.95)
-        )
-    }
+    /// Tagline / quiet supporting brand text.
+    static var brandSecondary: Color { TreniraColor.labelSecondary }
 
-    static var separator: Color {
-        adaptive(
-            light: .hairline,
-            dark: Color(red: 0.36, green: 0.36, blue: 0.38)
-        )
-    }
+    static var separator: Color { TreniraColor.hairline }
 
-    /// Primary filled actions — charcoal / white.
-    static var accent: Color {
-        adaptive(light: .slate850, dark: .white)
-    }
+    /// Primary filled actions.
+    static var accent: Color { TreniraColor.action }
 
-    static var accentForeground: Color {
-        adaptive(light: .white, dark: Color(red: 0.05, green: 0.05, blue: 0.055))
-    }
+    static var accentForeground: Color { TreniraColor.onAction }
 
-    /// Brand mark color — black in light, white in dark.
-    static var brandMark: Color {
-        primaryText
-    }
-
-    private static func adaptive(light: Color, dark: Color) -> Color {
-        Color(uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
-        })
-    }
+    /// In-app wordmark. The app icon is unchanged.
+    static var brandMark: Color { TreniraColor.label }
 }
 
 struct IronHerScreenBackground: View {

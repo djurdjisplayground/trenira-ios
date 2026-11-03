@@ -100,6 +100,13 @@ enum AnalyticsSelfTests {
         check("invitation accepted event name", AnalyticsEvent.researchInvitationAccepted.rawValue == "research_invitation_accepted")
         check("invitation dismissed event name", AnalyticsEvent.researchInvitationDismissed.rawValue == "research_invitation_dismissed")
         check("created event name", AnalyticsEvent.workoutCreated.rawValue == "workout_created")
+        check("onboarding event name", AnalyticsEvent.companionOnboardingCompleted.rawValue == "companion_onboarding_completed")
+        check("check-in event name", AnalyticsEvent.dailyCheckInCompleted.rawValue == "daily_check_in_completed")
+        check("suggestion event name", AnalyticsEvent.movementSuggestionSelected.rawValue == "movement_suggestion_selected")
+        check("activity event name", AnalyticsEvent.activityCompleted.rawValue == "activity_completed")
+        check("barrier category is allowed", AnalyticsService.allowedPropertyKeys.contains("primary_barrier"))
+        check("activity type is allowed", AnalyticsService.allowedPropertyKeys.contains("activity_type"))
+        check("feelings are not an analytics property", !AnalyticsService.allowedPropertyKeys.contains("feeling"))
 
         return Outcome(passed: passed, failed: failed, lines: lines)
     }

@@ -1104,6 +1104,7 @@ struct ActiveWorkoutView: View {
         sessionStore.endSession(markWeeklyCompletion: false)
         didCaptureWorkoutCompletion = true
         AnalyticsService.capture(.workoutCompleted)
+        AnalyticsService.capture(.activityCompleted, properties: ["activity_type": "strength"])
 
         showWorkoutComplete = true
     }

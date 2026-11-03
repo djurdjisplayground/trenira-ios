@@ -13,6 +13,10 @@ enum AnalyticsEvent: String {
     case researchInvitationShown = "research_invitation_shown"
     case researchInvitationAccepted = "research_invitation_accepted"
     case researchInvitationDismissed = "research_invitation_dismissed"
+    case companionOnboardingCompleted = "companion_onboarding_completed"
+    case dailyCheckInCompleted = "daily_check_in_completed"
+    case movementSuggestionSelected = "movement_suggestion_selected"
+    case activityCompleted = "activity_completed"
 }
 
 /// The only place the app talks to PostHog.
@@ -73,11 +77,25 @@ enum AnalyticsService {
         applyCollectionState()
     }
 
-    static func capture(_ event: AnalyticsEvent) {
+    /// Allowed keys are product categories only. Feelings, notes, names, and health details are dropped.
+    static let allowedPropertyKeys: Set<String> = [
+        "primary_barrier",
+        "minutes",
+        "setting",
+        "suggestion",
+        "activity_type"
+    ]
+
+    static func capture(_ event: AnalyticsEvent, properties: [String: String] = [:]) {
         guard isCollectionEnabled else { return }
         applyCollectionState()
         guard didStart else { return }
-        PostHogSDK.shared.capture(event.rawValue)
+        let filtered = properties.filter { allowedPropertyKeys.contains($0.key) }
+        if filtered.isEmpty {
+            PostHogSDK.shared.capture(event.rawValue)
+        } else {
+            PostHogSDK.shared.capture(event.rawValue, properties: filtered)
+        }
     }
 
     /// Drops the anonymous installation id after account data is erased.

@@ -10,6 +10,7 @@ struct RootView: View {
     @State private var showBrandIntroduction = true
     @State private var brandOpacity = 1.0
     @State private var onboardingCompleted = OnboardingStore.hasCompletedOnboarding
+    @State private var companionResolved = CompanionProfileStore.isResolved()
     @State private var showResearchInvitation = false
     @State private var researchInvitationDidAppear = false
     @State private var researchInvitationAttempt = 0
@@ -25,10 +26,10 @@ struct RootView: View {
                         .opacity(brandOpacity)
                 } else if !authManager.canAccessApp {
                     WelcomeAuthView()
-                } else if !onboardingCompleted {
-                    FirstLaunchOnboardingView {
+                } else if entry == .companionOnboarding {
+                    CompanionOnboardingView {
                         withAnimation(.easeInOut(duration: 0.35)) {
-                            onboardingCompleted = true
+                            companionResolved = true
                         }
                     }
                 } else {
@@ -38,6 +39,7 @@ struct RootView: View {
         }
         .animation(.easeInOut(duration: 0.7), value: showBrandIntroduction)
         .animation(.easeInOut(duration: 0.35), value: onboardingCompleted)
+        .animation(.easeInOut(duration: 0.35), value: companionResolved)
         .animation(.easeInOut(duration: 0.35), value: authManager.canAccessApp)
         // The invitation lives on this stable root. A cover attached to TabView,
         // or requested while the splash transition is still running, is dropped.
@@ -108,6 +110,7 @@ struct RootView: View {
         .onChange(of: authManager.canAccessApp) { _, canAccess in
             migrateOnboardingIfNeeded()
             onboardingCompleted = OnboardingStore.hasCompletedOnboarding
+            companionResolved = CompanionProfileStore.isResolved()
             if !canAccess && !OnboardingStore.hasCompletedOnboarding {
                 onboardingCompleted = false
             }
@@ -116,6 +119,7 @@ struct RootView: View {
             await authManager.restoreSessionIfNeeded()
             migrateOnboardingIfNeeded()
             onboardingCompleted = OnboardingStore.hasCompletedOnboarding
+            companionResolved = CompanionProfileStore.isResolved()
 
             try? await Task.sleep(for: .seconds(2.5))
             withAnimation(.easeInOut(duration: 0.7)) {
@@ -127,8 +131,15 @@ struct RootView: View {
         }
     }
 
+    private var entry: AppEntry {
+        AppEntryPolicy.entry(
+            strengthOnboardingCompleted: onboardingCompleted,
+            companionResolved: companionResolved
+        )
+    }
+
     private var mainShellVisible: Bool {
-        !showBrandIntroduction && authManager.canAccessApp && onboardingCompleted
+        !showBrandIntroduction && authManager.canAccessApp && entry == .main
     }
 
     /// Waits until the splash transition has finished, then shows the invitation

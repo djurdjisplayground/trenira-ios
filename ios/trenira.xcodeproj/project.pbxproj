@@ -19,9 +19,6 @@
 		A1000001000000000000000A /* GoogleSignInService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000000D /* GoogleSignInService.swift */; };
 		A1000001000000000000000B /* AuthOptionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000000E /* AuthOptionButton.swift */; };
 		A1000001000000000000000C /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = A100000B0000000000000002 /* GoogleSignIn */; };
-		A100000E00000000000001C6 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = A100000B0000000000000004 /* PostHog */; };
-		A100000E00000000000001C0 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001C1 /* AnalyticsService.swift */; };
-		A100000E00000000000001C2 /* AnalyticsSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001C3 /* AnalyticsSelfTests.swift */; };
 		A1000001000000000000000D /* Workout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002000000000000000F /* Workout.swift */; };
 		A1000001000000000000000E /* WorkoutStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000010 /* WorkoutStore.swift */; };
 		A1000001000000000000000F /* WorkoutActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000011 /* WorkoutActionButton.swift */; };
@@ -45,6 +42,21 @@
 		A10000010000000000000028 /* WeightFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000030 /* WeightFormatter.swift */; };
 		A10000010000000000000029 /* WorkoutAdaptationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000031 /* WorkoutAdaptationService.swift */; };
 		A10000010000000000000031 /* IronHerTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000033 /* IronHerTheme.swift */; };
+		A100000E00000000000001D0 /* TreniraDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001D1 /* TreniraDesign.swift */; };
+		A100000E00000000000001E1 /* CompanionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E0 /* CompanionProfile.swift */; };
+		A100000E00000000000001E3 /* CompanionProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E2 /* CompanionProfileStore.swift */; };
+		A100000E00000000000001E5 /* MovementRecommendationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E4 /* MovementRecommendationEngine.swift */; };
+		A100000E00000000000001E7 /* AppEntryPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E6 /* AppEntryPolicy.swift */; };
+		A100000E00000000000001E9 /* CompanionOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E8 /* CompanionOnboardingView.swift */; };
+		A100000E00000000000001EB /* MovementCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001EA /* MovementCheckInView.swift */; };
+		A100000E00000000000001ED /* CompanionSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001EC /* CompanionSelfTests.swift */; };
+		A100000E00000000000001F1 /* MovementActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F0 /* MovementActivity.swift */; };
+		A100000E00000000000001F3 /* MovementLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F2 /* MovementLibraryStore.swift */; };
+		A100000E00000000000001F5 /* MovementCompletionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F4 /* MovementCompletionView.swift */; };
+		A100000E00000000000001F7 /* MovementWalkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F6 /* MovementWalkView.swift */; };
+		A100000E00000000000001F9 /* SavedVideosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F8 /* SavedVideosView.swift */; };
+		A100000E00000000000001FB /* MovementHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001FA /* MovementHistoryView.swift */; };
+		A100000E00000000000001FD /* MovementActivitySelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001FC /* MovementActivitySelfTests.swift */; };
 		A10000010000000000000032 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000034 /* HistoryView.swift */; };
 		A10000010000000000000033 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000035 /* SettingsView.swift */; };
 		A10000010000000000000034 /* AdaptWorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000036 /* AdaptWorkoutView.swift */; };
@@ -168,9 +180,6 @@
 		A100000E0000000000000152 /* WeightIncrementRepairMigration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000153 /* WeightIncrementRepairMigration.swift */; };
 		A100000E0000000000000154 /* WeightProgressionSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000155 /* WeightProgressionSelfTests.swift */; };
 		A100000E0000000000000160 /* OnboardingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000161 /* OnboardingStore.swift */; };
-		A100000E00000000000001B0 /* ResearchInvitationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001B1 /* ResearchInvitationStore.swift */; };
-		A100000E00000000000001B2 /* ResearchInvitationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001B3 /* ResearchInvitationView.swift */; };
-		A100000E00000000000001B4 /* ResearchInvitationSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001B5 /* ResearchInvitationSelfTests.swift */; };
 		A100000E0000000000000162 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000163 /* OnboardingView.swift */; };
 		A100000E0000000000000164 /* LegalDocumentContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000165 /* LegalDocumentContent.swift */; };
 		A100000E0000000000000166 /* LegalDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000167 /* LegalDocumentView.swift */; };
@@ -194,6 +203,12 @@
 		A100000E0000000000000193 /* StrengthSetupPromptCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000192 /* StrengthSetupPromptCard.swift */; };
 		A100000E0000000000000195 /* StrengthProfileCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000194 /* StrengthProfileCatalog.swift */; };
 		A100000E0000000000000197 /* StrengthProfileInference.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000196 /* StrengthProfileInference.swift */; };
+		A100000E00000000000001B0 /* ResearchInvitationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001B1 /* ResearchInvitationStore.swift */; };
+		A100000E00000000000001B2 /* ResearchInvitationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001B3 /* ResearchInvitationView.swift */; };
+		A100000E00000000000001B4 /* ResearchInvitationSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001B5 /* ResearchInvitationSelfTests.swift */; };
+		A100000E00000000000001C0 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001C1 /* AnalyticsService.swift */; };
+		A100000E00000000000001C2 /* AnalyticsSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001C3 /* AnalyticsSelfTests.swift */; };
+		A100000E00000000000001C6 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = A100000B0000000000000004 /* PostHog */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -234,6 +249,21 @@
 		A10000020000000000000030 /* WeightFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightFormatter.swift; sourceTree = "<group>"; };
 		A10000020000000000000031 /* WorkoutAdaptationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutAdaptationService.swift; sourceTree = "<group>"; };
 		A10000020000000000000033 /* IronHerTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IronHerTheme.swift; sourceTree = "<group>"; };
+		A100000E00000000000001D1 /* TreniraDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreniraDesign.swift; sourceTree = "<group>"; };
+		A100000E00000000000001E0 /* CompanionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionProfile.swift; sourceTree = "<group>"; };
+		A100000E00000000000001E2 /* CompanionProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionProfileStore.swift; sourceTree = "<group>"; };
+		A100000E00000000000001E4 /* MovementRecommendationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementRecommendationEngine.swift; sourceTree = "<group>"; };
+		A100000E00000000000001E6 /* AppEntryPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEntryPolicy.swift; sourceTree = "<group>"; };
+		A100000E00000000000001E8 /* CompanionOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionOnboardingView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001EA /* MovementCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementCheckInView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001EC /* CompanionSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSelfTests.swift; sourceTree = "<group>"; };
+		A100000E00000000000001F0 /* MovementActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementActivity.swift; sourceTree = "<group>"; };
+		A100000E00000000000001F2 /* MovementLibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementLibraryStore.swift; sourceTree = "<group>"; };
+		A100000E00000000000001F4 /* MovementCompletionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementCompletionView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001F6 /* MovementWalkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementWalkView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001F8 /* SavedVideosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedVideosView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001FA /* MovementHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementHistoryView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001FC /* MovementActivitySelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementActivitySelfTests.swift; sourceTree = "<group>"; };
 		A10000020000000000000034 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		A10000020000000000000035 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A10000020000000000000036 /* AdaptWorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptWorkoutView.swift; sourceTree = "<group>"; };
@@ -359,11 +389,6 @@
 		A100000E0000000000000153 /* WeightIncrementRepairMigration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightIncrementRepairMigration.swift; sourceTree = "<group>"; };
 		A100000E0000000000000155 /* WeightProgressionSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightProgressionSelfTests.swift; sourceTree = "<group>"; };
 		A100000E0000000000000161 /* OnboardingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingStore.swift; sourceTree = "<group>"; };
-		A100000E00000000000001B1 /* ResearchInvitationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchInvitationStore.swift; sourceTree = "<group>"; };
-		A100000E00000000000001C1 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
-		A100000E00000000000001C3 /* AnalyticsSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsSelfTests.swift; sourceTree = "<group>"; };
-		A100000E00000000000001B3 /* ResearchInvitationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchInvitationView.swift; sourceTree = "<group>"; };
-		A100000E00000000000001B5 /* ResearchInvitationSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchInvitationSelfTests.swift; sourceTree = "<group>"; };
 		A100000E0000000000000163 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		A100000E0000000000000165 /* LegalDocumentContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentContent.swift; sourceTree = "<group>"; };
 		A100000E0000000000000167 /* LegalDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentView.swift; sourceTree = "<group>"; };
@@ -387,6 +412,11 @@
 		A100000E0000000000000192 /* StrengthSetupPromptCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthSetupPromptCard.swift; sourceTree = "<group>"; };
 		A100000E0000000000000194 /* StrengthProfileCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthProfileCatalog.swift; sourceTree = "<group>"; };
 		A100000E0000000000000196 /* StrengthProfileInference.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthProfileInference.swift; sourceTree = "<group>"; };
+		A100000E00000000000001B1 /* ResearchInvitationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchInvitationStore.swift; sourceTree = "<group>"; };
+		A100000E00000000000001B3 /* ResearchInvitationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchInvitationView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001B5 /* ResearchInvitationSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchInvitationSelfTests.swift; sourceTree = "<group>"; };
+		A100000E00000000000001C1 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
+		A100000E00000000000001C3 /* AnalyticsSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsSelfTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -449,6 +479,11 @@
 				A10000020000000000000002 /* LoginView.swift */,
 				A10000040000000000000014 /* Subscription */,
 				A1000002000000000000000A /* HomeView.swift */,
+				A100000E00000000000001EA /* MovementCheckInView.swift */,
+				A100000E00000000000001F4 /* MovementCompletionView.swift */,
+				A100000E00000000000001F6 /* MovementWalkView.swift */,
+				A100000E00000000000001F8 /* SavedVideosView.swift */,
+				A100000E00000000000001FA /* MovementHistoryView.swift */,
 				A100000200000000000000B3 /* MainTabView.swift */,
 				A100000200000000000000B4 /* WorkoutRoute.swift */,
 				A10000040000000000000009 /* Workouts */,
@@ -511,6 +546,10 @@
 				A100000E0000000000000161 /* OnboardingStore.swift */,
 				A100000E00000000000001B1 /* ResearchInvitationStore.swift */,
 				A100000E00000000000001C1 /* AnalyticsService.swift */,
+				A100000E00000000000001E2 /* CompanionProfileStore.swift */,
+				A100000E00000000000001E4 /* MovementRecommendationEngine.swift */,
+				A100000E00000000000001F2 /* MovementLibraryStore.swift */,
+				A100000E00000000000001E6 /* AppEntryPolicy.swift */,
 				A100000E0000000000000169 /* FeedbackService.swift */,
 				A100000E0000000000000131 /* ExerciseProgressSeriesBuilder.swift */,
 				A100000200000000000000B1 /* WeeklyProgressAnalyzer.swift */,
@@ -538,6 +577,7 @@
 			children = (
 				A10000020000000000000005 /* Color+IronHer.swift */,
 				A10000020000000000000033 /* IronHerTheme.swift */,
+				A100000E00000000000001D1 /* TreniraDesign.swift */,
 				A1000002000000000000003A /* SheLiftsFont.swift */,
 			);
 			path = Extensions;
@@ -560,6 +600,8 @@
 				A100000E0000000000000182 /* ExerciseCalibration.swift */,
 				A10000020000000000000040 /* SubscriptionPlan.swift */,
 				A10000020000000000000058 /* TrainingPreferences.swift */,
+				A100000E00000000000001E0 /* CompanionProfile.swift */,
+				A100000E00000000000001F0 /* MovementActivity.swift */,
 				A100000E0000000000000111 /* ConsultationConfig.swift */,
 				A100000E0000000000000113 /* ConsultationRequest.swift */,
 			);
@@ -731,6 +773,8 @@
 				A100000E0000000000000123 /* ConsultationSelfTests.swift */,
 				A100000E00000000000001B5 /* ResearchInvitationSelfTests.swift */,
 				A100000E00000000000001C3 /* AnalyticsSelfTests.swift */,
+				A100000E00000000000001EC /* CompanionSelfTests.swift */,
+				A100000E00000000000001FC /* MovementActivitySelfTests.swift */,
 				A100000E0000000000000137 /* ExerciseProgressSeriesSelfTests.swift */,
 				A100000E0000000000000153 /* WeightIncrementRepairMigration.swift */,
 				A100000E0000000000000155 /* WeightProgressionSelfTests.swift */,
@@ -758,6 +802,7 @@
 			isa = PBXGroup;
 			children = (
 				A100000E0000000000000163 /* OnboardingView.swift */,
+				A100000E00000000000001E8 /* CompanionOnboardingView.swift */,
 				A100000E0000000000000190 /* FirstLaunchOnboardingView.swift */,
 				A100000E000000000000018C /* WeightCalibrationFlowView.swift */,
 				A100000E0000000000000192 /* StrengthSetupPromptCard.swift */,
@@ -869,6 +914,20 @@
 				A10000010000000000000004 /* AuthenticationManager.swift in Sources */,
 				A10000010000000000000005 /* Color+IronHer.swift in Sources */,
 				A10000010000000000000007 /* HomeView.swift in Sources */,
+				A100000E00000000000001E1 /* CompanionProfile.swift in Sources */,
+				A100000E00000000000001E3 /* CompanionProfileStore.swift in Sources */,
+				A100000E00000000000001E5 /* MovementRecommendationEngine.swift in Sources */,
+				A100000E00000000000001E7 /* AppEntryPolicy.swift in Sources */,
+				A100000E00000000000001E9 /* CompanionOnboardingView.swift in Sources */,
+				A100000E00000000000001EB /* MovementCheckInView.swift in Sources */,
+				A100000E00000000000001ED /* CompanionSelfTests.swift in Sources */,
+				A100000E00000000000001F1 /* MovementActivity.swift in Sources */,
+				A100000E00000000000001F3 /* MovementLibraryStore.swift in Sources */,
+				A100000E00000000000001F5 /* MovementCompletionView.swift in Sources */,
+				A100000E00000000000001F7 /* MovementWalkView.swift in Sources */,
+				A100000E00000000000001F9 /* SavedVideosView.swift in Sources */,
+				A100000E00000000000001FB /* MovementHistoryView.swift in Sources */,
+				A100000E00000000000001FD /* MovementActivitySelfTests.swift in Sources */,
 				A10000010000000000000008 /* RootView.swift in Sources */,
 				A10000010000000000000009 /* AuthState.swift in Sources */,
 				A1000001000000000000000A /* GoogleSignInService.swift in Sources */,
@@ -1020,6 +1079,7 @@
 				A10000010000000000000028 /* WeightFormatter.swift in Sources */,
 				A10000010000000000000029 /* WorkoutAdaptationService.swift in Sources */,
 				A10000010000000000000031 /* IronHerTheme.swift in Sources */,
+				A100000E00000000000001D0 /* TreniraDesign.swift in Sources */,
 				A10000010000000000000032 /* HistoryView.swift in Sources */,
 				A10000010000000000000033 /* SettingsView.swift in Sources */,
 				A10000010000000000000034 /* AdaptWorkoutView.swift in Sources */,
@@ -1171,7 +1231,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = IronHer/IronHer.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 564T3XKJJB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1202,7 +1262,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = IronHer/IronHer.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 564T3XKJJB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;

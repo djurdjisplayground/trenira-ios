@@ -31,6 +31,9 @@ struct UserDataSnapshot: Codable, Sendable {
     var globalProgressBlob: Data?
     var calibrationBlob: Data?
     var userSettingsBlob: Data?
+    /// Walks and videos for this owner. Nil means an older backup that did not know about them.
+    var movementRecords: [MovementRecord]? = nil
+    var savedVideos: [SavedVideo]? = nil
 
     static let currentSchemaVersion = 1
 
@@ -48,7 +51,9 @@ struct UserDataSnapshot: Codable, Sendable {
             progressionBlob: nil,
             globalProgressBlob: nil,
             calibrationBlob: nil,
-            userSettingsBlob: nil
+            userSettingsBlob: nil,
+            movementRecords: [],
+            savedVideos: []
         )
     }
 
@@ -59,6 +64,8 @@ struct UserDataSnapshot: Codable, Sendable {
             && performanceLogs.isEmpty
             && customExercises.isEmpty
             && (calibrationBlob == nil || calibrationBlob?.isEmpty == true)
+            && (movementRecords ?? []).isEmpty
+            && (savedVideos ?? []).isEmpty
     }
 }
 

@@ -114,7 +114,33 @@ enum UserDataMergeEngine {
                 : (remote.calibrationBlob ?? local.calibrationBlob),
             userSettingsBlob: preferLocalBlobs
                 ? (local.userSettingsBlob ?? remote.userSettingsBlob)
-                : (remote.userSettingsBlob ?? local.userSettingsBlob)
+                : (remote.userSettingsBlob ?? local.userSettingsBlob),
+            movementRecords: mergeOptional(
+                local.movementRecords,
+                remote.movementRecords,
+                updatedAt: { $0.completedAt },
+                assignOwner: { record, owner in
+                    var copy = record
+                    copy.ownerId = owner
+                    return copy
+                },
+                resultingOwnerId: resultingOwnerId,
+                conflicts: &conflicts,
+                entityName: "movementRecord"
+            ),
+            savedVideos: mergeOptional(
+                local.savedVideos,
+                remote.savedVideos,
+                updatedAt: { $0.savedAt },
+                assignOwner: { video, owner in
+                    var copy = video
+                    copy.ownerId = owner
+                    return copy
+                },
+                resultingOwnerId: resultingOwnerId,
+                conflicts: &conflicts,
+                entityName: "savedVideo"
+            )
         )
 
         return Result(snapshot: snapshot, conflictFlags: conflicts)
@@ -153,7 +179,39 @@ enum UserDataMergeEngine {
         next.tombstones = snapshot.tombstones.map {
             DataTombstone(id: $0.id, entityType: $0.entityType, ownerId: ownerId, deletedAt: $0.deletedAt)
         }
+        next.movementRecords = snapshot.movementRecords?.map {
+            var record = $0
+            record.ownerId = ownerId
+            return record
+        }
+        next.savedVideos = snapshot.savedVideos?.map {
+            var video = $0
+            video.ownerId = ownerId
+            return video
+        }
         return next
+    }
+
+    /// Nil on both sides stays nil, so an older backup does not erase movement data.
+    private static func mergeOptional<T: Identifiable>(
+        _ local: [T]?,
+        _ remote: [T]?,
+        updatedAt: (T) -> Date,
+        assignOwner: (T, String) -> T,
+        resultingOwnerId: String,
+        conflicts: inout [String],
+        entityName: String
+    ) -> [T]? where T.ID == UUID {
+        if local == nil, remote == nil { return nil }
+        return mergeByUUID(
+            local: local ?? [],
+            remote: remote ?? [],
+            updatedAt: updatedAt,
+            assignOwner: assignOwner,
+            resultingOwnerId: resultingOwnerId,
+            conflicts: &conflicts,
+            entityName: entityName
+        )
     }
 
     private static func mergeTombstones(_ a: [DataTombstone], _ b: [DataTombstone]) -> [DataTombstone] {
