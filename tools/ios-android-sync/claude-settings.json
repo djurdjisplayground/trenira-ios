@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "disableBypassPermissionsMode": "disable",
+    "blockWritesOutsideWorkingDirectories": true,
+    "deny": [
+      "Bash",
+      "WebFetch",
+      "WebSearch",
+      "Edit(/ios/**)",
+      "Edit(/.github/**)",
+      "Edit(/tools/**)",
+      "Edit(/contracts/**)",
+      "Edit(/.git/**)",
+      "Edit(/android/.git/**)",
+      "Edit(/android/.github/**)",
+      "Edit(**/*.jks)",
+      "Edit(**/*.keystore)",
+      "Edit(**/*.pem)",
+      "Edit(**/*.p12)",
+      "Edit(**/*.key)",
+      "Edit(**/local.properties)",
+      "Edit(**/.env)",
+      "Edit(**/google-services.json)",
+      "Read(**/*.jks)",
+      "Read(**/*.keystore)",
+      "Read(**/*.pem)",
+      "Read(**/*.p12)",
+      "Read(**/*.key)",
+      "Read(**/local.properties)",
+      "Read(**/.env)",
+      "Read(**/google-services.json)"
+    ]
+  }
+}
