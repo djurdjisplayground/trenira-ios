@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "android_root_note": "Private repository djurdjisplayground/trenira-android, branch main. Paths below are relative to that repository.",
+  "features": [
+    {
+      "id": "movement-catalog",
+      "action": "propose",
+      "summary": "Activity ids, equipment, categories, safety status, and draft copy.",
+      "ios_paths": [
+        "ios/IronHer/Models/MovementCatalog.swift",
+        "ios/IronHer/Models/MovementActivity.swift",
+        "ios/IronHer/Services/MovementRecommendationEngine.swift"
+      ],
+      "android_paths": [
+        "app/src/main/java/com/example/trenira/data/movement/MovementCatalog.kt",
+        "app/src/main/java/com/example/trenira/data/movement/MovementModels.kt"
+      ],
+      "android_tests": [
+        ":app:testDebugUnitTest --tests com.example.trenira.MovementProductTest"
+      ]
+    },
+    {
+      "id": "today-session",
+      "action": "propose",
+      "summary": "Today check-in, equipment choice, suggestions, active moment, and save.",
+      "ios_paths": [
+        "ios/IronHer/Views/TodayView.swift",
+        "ios/IronHer/Views/EquipmentSelector.swift",
+        "ios/IronHer/Views/MovementSessionScreens.swift",
+        "ios/IronHer/Views/MainTabView.swift",
+        "ios/IronHer/Views/RootView.swift",
+        "ios/IronHer/Services/AppTabRouter.swift"
+      ],
+      "android_paths": [
+        "app/src/main/java/com/example/trenira/ui/movement/MovementSessionScreens.kt",
+        "app/src/main/java/com/example/trenira/ui/movement/MovementChrome.kt"
+      ],
+      "android_tests": [
+        ":app:testDebugUnitTest --tests com.example.trenira.MovementProductTest"
+      ]
+    },
+    {
+      "id": "diary",
+      "action": "propose",
+      "summary": "Records, activity dates, edit and delete, weekly summary.",
+      "ios_paths": [
+        "ios/IronHer/Views/MomentsDiaryView.swift",
+        "ios/IronHer/Services/MovementLibraryStore.swift"
+      ],
+      "android_paths": [
+        "app/src/main/java/com/example/trenira/data/movement/MovementStores.kt",
+        "app/src/main/java/com/example/trenira/ui/movement/LibraryScreens.kt"
+      ],
+      "android_tests": [
+        ":app:testDebugUnitTest --tests com.example.trenira.MovementProductTest"
+      ]
+    },
+    {
+      "id": "explore",
+      "action": "propose",
+      "summary": "Explore filters, including With baby nearby drafts.",
+      "ios_paths": [
+        "ios/IronHer/Views/ExploreMovementView.swift"
+      ],
+      "android_paths": [
+        "app/src/main/java/com/example/trenira/ui/movement/LibraryScreens.kt"
+      ],
+      "android_tests": [
+        ":app:testDebugUnitTest --tests com.example.trenira.MovementProductTest"
+      ]
+    },
+    {
+      "id": "onboarding",
+      "action": "propose",
+      "summary": "Companion questions and profile fields.",
+      "ios_paths": [
+        "ios/IronHer/Views/Onboarding/CompanionOnboardingView.swift",
+        "ios/IronHer/Models/CompanionProfile.swift",
+        "ios/IronHer/Services/CompanionProfileStore.swift"
+      ],
+      "android_paths": [
+        "app/src/main/java/com/example/trenira/ui/movement/CompanionOnboardingScreen.kt",
+        "app/src/main/java/com/example/trenira/data/movement/MovementStores.kt"
+      ],
+      "android_tests": [
+        ":app:testDebugUnitTest --tests com.example.trenira.MovementProductTest"
+      ]
+    },
+    {
+      "id": "community-preview",
+      "action": "human-review",
+      "summary": "Your circle stays off. A sync may update preview copy only if the flag remains false.",
+      "ios_paths": [
+        "ios/IronHer/Views/YourCirclePreview.swift"
+      ],
+      "android_paths": [
+        "app/src/main/java/com/example/trenira/community/CommunityFeature.kt"
+      ],
+      "android_tests": []
+    },
+    {
+      "id": "reminders",
+      "action": "human-review",
+      "summary": "Local reminders. Android scheduling is not a line-for-line port of UserNotifications.",
+      "ios_paths": [
+        "ios/IronHer/Services/MovementReminder.swift",
+        "ios/IronHer/Services/MovementReminderScheduling.swift",
+        "ios/IronHer/Views/Settings/MovementRemindersView.swift"
+      ],
+      "android_paths": [],
+      "android_tests": []
+    },
+    {
+      "id": "brand",
+      "action": "human-review",
+      "summary": "Logo and brand mark. Do not redraw or replace the approved mark automatically.",
+      "ios_paths": [
+        "ios/IronHer/Brand/BrandIdentity.swift",
+        "ios/IronHer/Components/SheLiftsLogoView.swift",
+        "ios/IronHer/Resources/trenira-movement-mark.svg",
+        "ios/IronHer/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
+      ],
+      "android_paths": [
+        "app/src/main/java/com/example/trenira/brand/BrandIdentity.kt"
+      ],
+      "android_tests": []
+    },
+    {
+      "id": "strength-legacy",
+      "action": "ignore",
+      "summary": "Older strength-workout screens. They stay compiled on iOS and are not the movement MVP.",
+      "ios_paths": [
+        "ios/IronHer/Views/Workouts/",
+        "ios/IronHer/Services/WorkoutGenerationService.swift"
+      ],
+      "android_paths": [
+        "app/src/main/java/com/example/trenira/ui/workouts/",
+        "app/src/main/java/com/example/trenira/data/WorkoutStore.kt"
+      ],
+      "android_tests": []
+    }
+  ]
+}
