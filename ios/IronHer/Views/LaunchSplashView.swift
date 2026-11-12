@@ -67,7 +67,7 @@ private struct LaunchBrandMetrics {
         let shortest = min(size.width, size.height)
         let isCompact = shortest < 390
 
-        markSize = isCompact ? 36 : 40
+        markSize = isCompact ? 88 : 104
         nameSize = isCompact ? 24 : 28
         taglineLine1Size = isCompact ? 34 : 40
         taglineLine2Size = isCompact ? 30 : 36

@@ -21,7 +21,7 @@ struct MovementHistoryView: View {
                 ContentUnavailableView(
                     "Nothing recorded yet",
                     systemImage: "figure.walk",
-                    description: Text("When you save a walk, a video, or finish a strength workout, it will show up here. There's nothing to catch up on.")
+                    description: Text("When you save a walk, a video, or finish a strength workout, it will show up here. Every session counts.")
                 )
             } else {
                 List {
@@ -38,7 +38,7 @@ struct MovementHistoryView: View {
                         }
                         .listRowBackground(TreniraColor.elevated)
                     } header: {
-                        Text("This week")
+                        Text("Your movement this week")
                     }
                     Section("Recent") {
                         ForEach(items) { item in
@@ -74,8 +74,14 @@ struct MovementHistoryView: View {
         case .strength: kind = "Strength"
         case .walking: kind = "Walk"
         case .externalVideo: kind = "Video"
+        case .yoga: kind = "Yoga"
+        case .dancing: kind = "Dancing"
+        case .withBaby: kind = "Movement with baby"
+        case .other: kind = "Other movement"
+        case .guided: kind = "Gentle guided movement"
+        case .stretching: kind = "Dance or stretch"
         }
-        let minutes = item.actualMinutes.map { "\($0) min" } ?? "Minutes not recorded"
+        let minutes = MovementDurationFormat.exactLabel(seconds: item.actualDurationSeconds, minutes: item.actualMinutes)
         return "\(kind) · \(minutes) · \(day)"
     }
 }

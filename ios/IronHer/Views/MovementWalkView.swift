@@ -16,7 +16,7 @@ struct MovementWalkView: View {
                 .font(TreniraType.title)
                 .foregroundStyle(TreniraColor.label)
                 .accessibilityAddTraits(.isHeader)
-            Text(plannedMinutes.map { "About \($0) minutes, or stop sooner." } ?? "Walk for as long as you want.")
+            Text(plannedMinutes.map { "About \($0) minutes, or stop whenever you need to." } ?? "Walk for as long as you want, then stop.")
                 .font(TreniraType.body)
                 .foregroundStyle(TreniraColor.labelSecondary)
 

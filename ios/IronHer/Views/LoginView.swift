@@ -13,7 +13,7 @@ struct WelcomeAuthView: View {
             Spacer()
 
             VStack(spacing: 28) {
-                BrandLockup(markSize: 38, nameSize: 22, taglineSize: 12)
+                BrandLockup(markSize: 72, nameSize: 22, taglineSize: 15)
 
                 Text(l10n.t(.welcome_sign_in_prompt))
                     .font(SheLiftsFont.subheadline)

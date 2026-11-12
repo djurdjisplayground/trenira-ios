@@ -55,9 +55,23 @@ enum MovementRecordStore {
     }
 
     static func add(_ record: MovementRecord, defaults: UserDefaults = .standard) {
+        upsert(record, defaults: defaults)
+    }
+
+    /// Inserts a new record, or replaces the one with the same id. A second save does not duplicate it.
+    static func upsert(_ record: MovementRecord, defaults: UserDefaults = .standard) {
         var all = load(defaults: defaults)
-        all.insert(record, at: 0)
+        if let index = all.firstIndex(where: { $0.id == record.id }) {
+            all[index] = record
+        } else {
+            all.insert(record, at: 0)
+        }
         save(all, defaults: defaults)
+    }
+
+    static func delete(id: UUID, defaults: UserDefaults = .standard) {
+        let kept = load(defaults: defaults).filter { $0.id != id }
+        save(kept, defaults: defaults)
     }
 
     static func clear(defaults: UserDefaults = .standard) {
@@ -79,5 +93,75 @@ enum MovementRecordStore {
     private static func save(_ records: [MovementRecord], defaults: UserDefaults) {
         guard let data = try? JSONEncoder().encode(records) else { return }
         defaults.set(data, forKey: storageKey)
+    }
+}
+
+enum WeekPlanStore {
+    static let storageKey = "trenira.weekPlan.v1"
+
+    static func load(defaults: UserDefaults = .standard, ownerId: String) -> StoredWeekPlan? {
+        guard let data = defaults.data(forKey: storageKey),
+              let plans = try? JSONDecoder().decode([StoredWeekPlan].self, from: data) else {
+            return nil
+        }
+        return plans.first { $0.ownerId == ownerId }
+    }
+
+    static func save(_ plan: StoredWeekPlan, defaults: UserDefaults = .standard) {
+        var plans = all(defaults: defaults).filter { $0.ownerId != plan.ownerId }
+        plans.append(plan)
+        guard let data = try? JSONEncoder().encode(plans) else { return }
+        defaults.set(data, forKey: storageKey)
+    }
+
+    static func clear(defaults: UserDefaults = .standard) {
+        defaults.removeObject(forKey: storageKey)
+    }
+
+    /// Keeps a swapped plan for this week and these preferences. Otherwise builds a new one.
+    static func resolve(
+        ownerId: String,
+        preferences: [MovementFormat],
+        records: [MovementRecord],
+        now: Date = .now,
+        defaults: UserDefaults = .standard
+    ) -> StoredWeekPlan {
+        let week = WorkoutWeekCalendar.calendar.dateInterval(of: .weekOfYear, for: now)?.start ?? now
+        let key = WeeklyMovementPlan.preferenceKey(preferences)
+        if let saved = load(defaults: defaults, ownerId: ownerId),
+           WorkoutWeekCalendar.calendar.isDate(saved.weekOf, equalTo: week, toGranularity: .weekOfYear),
+           saved.preferenceKey == key,
+           !saved.ideas.isEmpty {
+            return saved
+        }
+        let plan = StoredWeekPlan(
+            ownerId: ownerId,
+            weekOf: week,
+            preferenceKey: key,
+            ideas: WeeklyMovementPlan.ideas(preferences: preferences, records: records)
+        )
+        save(plan, defaults: defaults)
+        return plan
+    }
+
+    static func swap(
+        ownerId: String,
+        ideaID: UUID,
+        to category: MovementFormat,
+        records: [MovementRecord],
+        defaults: UserDefaults = .standard
+    ) {
+        guard var plan = load(defaults: defaults, ownerId: ownerId),
+              let index = plan.ideas.firstIndex(where: { $0.id == ideaID }) else { return }
+        plan.ideas[index] = WeeklyMovementPlan.swapping(plan.ideas[index], to: category, records: records)
+        save(plan, defaults: defaults)
+    }
+
+    private static func all(defaults: UserDefaults) -> [StoredWeekPlan] {
+        guard let data = defaults.data(forKey: storageKey),
+              let plans = try? JSONDecoder().decode([StoredWeekPlan].self, from: data) else {
+            return []
+        }
+        return plans
     }
 }

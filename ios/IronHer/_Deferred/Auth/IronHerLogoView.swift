@@ -30,7 +30,7 @@ struct IronHerLogoView: View {
                 .font(.system(size: size * 0.28, weight: .bold, design: .rounded))
                 .foregroundStyle(Color.slate850)
 
-            Text("Strength, on your own terms.")
+            Text("Movement that fits your life.")
                 .font(.system(size: size * 0.12, weight: .medium))
                 .foregroundStyle(Color.slate500)
         }

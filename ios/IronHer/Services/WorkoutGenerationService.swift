@@ -12,7 +12,7 @@ enum WorkoutTrainingGoal: String, CaseIterable, Identifiable, Hashable {
         switch self {
         case .buildMuscle: return "Build muscle"
         case .getStronger: return "Get stronger"
-        case .tone: return "Tone & define"
+        case .tone: return "Feel capable"
         case .generalFitness: return "General fitness"
         }
     }

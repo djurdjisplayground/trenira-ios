@@ -21,8 +21,8 @@ struct StartWorkoutView: View {
             if startableWorkouts.isEmpty {
                 ContentUnavailableView(
                     "No workouts yet",
-                    systemImage: "dumbbell",
-                    description: Text("Create a workout in My Workouts, then come back to start training.")
+                    systemImage: "list.bullet",
+                    description: Text("Create a strength workout in My Workouts, then come back when you want to start one.")
                 )
             } else {
                 List {

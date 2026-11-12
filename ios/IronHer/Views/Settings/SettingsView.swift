@@ -4,12 +4,9 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.openURL) private var openURL
     @Environment(UserSettingsStore.self) private var settingsStore
-    @Environment(SubscriptionStore.self) private var subscriptionStore
-    @Environment(CustomExerciseStore.self) private var customExerciseStore
     @Environment(LocalizationStore.self) private var l10n
     @Environment(AuthenticationManager.self) private var authManager
     @Environment(UserDataCoordinator.self) private var dataCoordinator
-    @State private var showManageSubscriptions = false
     @State private var showSignOutConfirm = false
     @State private var showIntroduction = false
     @State private var showResearchFormError = false
@@ -23,10 +20,13 @@ struct SettingsView: View {
                 NavigationLink("Movement preferences") {
                     CompanionPreferencesEditor()
                 }
+                NavigationLink("Movement reminders") {
+                    MovementRemindersView()
+                }
             } header: {
                 Text("Movement")
             } footer: {
-                Text("Change what you want from movement, what gets in the way, and what you enjoy. Your saved workouts stay as they are.")
+                Text("Change what you want from movement, what gets in the way, and what you enjoy. Reminders are off until you turn them on.")
                     .font(SheLiftsFont.caption)
             }
 
@@ -56,14 +56,12 @@ struct SettingsView: View {
                 .foregroundStyle(IronHerTheme.secondaryText)
 
                 if authManager.authState.isGuest {
-                    Text("Workouts stay on this device. Cloud backup is not available yet.")
+                    Text("What you save stays on this device. Cloud backup is not available yet.")
                         .font(SheLiftsFont.caption)
                         .foregroundStyle(IronHerTheme.secondaryText)
                 } else if authManager.authState != .signedOut {
                     Text(
-                        ProductAccessConfig.hidesMonetization
-                            ? "Your workouts stay on this device with this account. They are not backed up to the cloud yet."
-                            : "Workouts and Premium are separate. Canceling Premium never deletes your training data."
+                        "What you've saved stays on this device with this account. It is not backed up to the cloud yet."
                     )
                         .font(SheLiftsFont.caption)
                         .foregroundStyle(IronHerTheme.secondaryText)
@@ -145,149 +143,8 @@ struct SettingsView: View {
             } header: {
                 Text("Legal & Privacy")
             } footer: {
-                Text("Anonymous product analytics records that a workout was created, started, completed, or left early, whether adaptation or the research invitation was used, and whether companion questions, a check-in, a suggestion, or an activity was completed. It does not include exercise names, weights, feelings, or contact details. Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName).")
+                Text("Anonymous product analytics records that the app came to the foreground and that a movement was saved, including its type. It does not include how you feel, health details, or contact details. Privacy contact: \(AppConfiguration.supportEmail). Operated by \(AppConfiguration.operatorName).")
                     .font(SheLiftsFont.caption)
-            }
-
-            if !ProductAccessConfig.hidesMonetization {
-                Section(l10n.t(.membership)) {
-                    Text(subscriptionStore.isPremium ? "Premium Active" : "Free Plan")
-                        .foregroundStyle(IronHerTheme.primaryText)
-
-                    if subscriptionStore.isPremium {
-                        Button("Manage Subscription") {
-                            showManageSubscriptions = true
-                        }
-                    } else {
-                        NavigationLink {
-                            PremiumUpgradeView()
-                        } label: {
-                            Text("Upgrade to Premium")
-                        }
-
-                        Text(l10n.t(.free_premium_blurb))
-                            .font(SheLiftsFont.caption)
-                            .foregroundStyle(IronHerTheme.secondaryText)
-                    }
-
-                    Button {
-                        Task { await subscriptionStore.restorePurchases() }
-                    } label: {
-                        if subscriptionStore.isRestoring {
-                            HStack {
-                                Text("Restore Purchases")
-                                Spacer()
-                                ProgressView()
-                            }
-                        } else {
-                            Text("Restore Purchases")
-                        }
-                    }
-                    .foregroundStyle(IronHerTheme.secondaryText)
-                    .disabled(subscriptionStore.isProcessingPurchase)
-
-                    if let restoreStatusMessage = subscriptionStore.restoreStatusMessage {
-                        Text(restoreStatusMessage)
-                            .font(SheLiftsFont.caption)
-                            .foregroundStyle(IronHerTheme.secondaryText)
-                    }
-
-                    if let purchaseErrorMessage = subscriptionStore.purchaseErrorMessage {
-                        Text(purchaseErrorMessage)
-                            .font(SheLiftsFont.caption)
-                            .foregroundStyle(.red)
-                    }
-                }
-            }
-
-            Section(l10n.t(.units)) {
-                Picker(l10n.t(.weight_unit), selection: $settings.weightUnit) {
-                    ForEach(WeightUnit.allCases) { unit in
-                        Text(unit.localizedLabel(l10n)).tag(unit)
-                    }
-                }
-                Text("Weight and increments always display in this unit. Values are stored in kilograms and convert automatically when you switch.")
-                    .font(SheLiftsFont.caption)
-                    .foregroundStyle(IronHerTheme.secondaryText)
-            }
-
-            Section("Training") {
-                NavigationLink("Progression Rules") {
-                    MyProgressionView()
-                }
-                Text("Define how weighted, bodyweight, and timed exercises progress.")
-                    .font(SheLiftsFont.caption)
-                    .foregroundStyle(IronHerTheme.secondaryText)
-
-                NavigationLink("Strength setup") {
-                    StrengthCalibrationSettingsView()
-                }
-                Text("Optional strength calibration used when an exercise has no workout history yet.")
-                    .font(SheLiftsFont.caption)
-                    .foregroundStyle(IronHerTheme.secondaryText)
-
-                NavigationLink("Equipment Increments") {
-                    EquipmentIncrementsSettingsView()
-                }
-                Text("Default weight steps by equipment, shown in \(settings.weightUnit.shortLabel).")
-                    .font(SheLiftsFont.caption)
-                    .foregroundStyle(IronHerTheme.secondaryText)
-            }
-
-            Section(l10n.t(.workout_settings)) {
-                Toggle(l10n.t(.timer_sounds), isOn: $settings.timerSoundsEnabled)
-                Text(l10n.t(.timer_sounds_footer))
-                    .font(SheLiftsFont.caption)
-                    .foregroundStyle(IronHerTheme.secondaryText)
-            }
-
-            Section("Rest Timer") {
-                Toggle("Enable Automatic Rest Timer", isOn: Binding(
-                    get: { settings.restTimer.isEnabled },
-                    set: { enabled in
-                        var timer = settings.restTimer
-                        timer.isEnabled = enabled
-                        settings.restTimer = timer
-                    }
-                ))
-
-                Picker("Default Rest Duration", selection: Binding(
-                    get: { RestDurationOption.closest(to: settings.restTimer.defaultDuration) },
-                    set: { option in
-                        var timer = settings.restTimer
-                        timer.defaultDuration = option.timeInterval
-                        settings.restTimer = timer
-                    }
-                )) {
-                    ForEach(RestDurationOption.allCases) { option in
-                        Text(option.label).tag(option)
-                    }
-                }
-                .disabled(!settings.restTimer.isEnabled)
-
-                Toggle("Sound", isOn: Binding(
-                    get: { settings.restTimer.soundEnabled },
-                    set: { enabled in
-                        var timer = settings.restTimer
-                        timer.soundEnabled = enabled
-                        settings.restTimer = timer
-                    }
-                ))
-                .disabled(!settings.restTimer.isEnabled)
-
-                Toggle("Haptics", isOn: Binding(
-                    get: { settings.restTimer.hapticsEnabled },
-                    set: { enabled in
-                        var timer = settings.restTimer
-                        timer.hapticsEnabled = enabled
-                        settings.restTimer = timer
-                    }
-                ))
-                .disabled(!settings.restTimer.isEnabled)
-
-                Text("Starts automatically after you complete a set. Per-exercise overrides live in Edit Exercise.")
-                    .font(SheLiftsFont.caption)
-                    .foregroundStyle(IronHerTheme.secondaryText)
             }
 
             Section(l10n.t(.appearance)) {
@@ -296,26 +153,6 @@ struct SettingsView: View {
                         Text(theme.localizedLabel(l10n)).tag(theme)
                     }
                 }
-            }
-
-            Section(l10n.t(.exercise_library)) {
-                NavigationLink(l10n.t(.browse_exercises)) {
-                    ExerciseMasterView()
-                }
-                Text("\(ExerciseCatalog.all.count) exercises · \(customExerciseStore.count) custom")
-                    .font(SheLiftsFont.caption)
-                    .foregroundStyle(IronHerTheme.secondaryText)
-            }
-
-            Section(l10n.t(.session_feedback)) {
-                Picker(l10n.t(.style), selection: $settings.coachingMode) {
-                    ForEach(CoachingMode.allCases) { mode in
-                        Text(mode.localizedLabel(l10n)).tag(mode)
-                    }
-                }
-                Text(settings.coachingMode.localizedDetail(l10n))
-                    .font(SheLiftsFont.caption)
-                    .foregroundStyle(IronHerTheme.secondaryText)
             }
 
             #if DEBUG
@@ -333,7 +170,6 @@ struct SettingsView: View {
         .background(TreniraColor.canvas)
         .navigationTitle(l10n.t(.settings))
         .navigationBarTitleDisplayMode(.inline)
-        .manageSubscriptionsSheet(isPresented: $showManageSubscriptions)
         .confirmationDialog(
             l10n.t(.sign_out_confirm_title),
             isPresented: $showSignOutConfirm,
@@ -349,13 +185,6 @@ struct SettingsView: View {
         .fullScreenCover(isPresented: $showIntroduction) {
             OnboardingView(isPreview: true) {
                 showIntroduction = false
-            }
-        }
-        .onChange(of: showManageSubscriptions) { wasShowing, isShowing in
-            // After the system manage sheet closes, re-check entitlements
-            // (cancel / expire / plan change in StoreKit Testing).
-            if wasShowing && !isShowing {
-                Task { await subscriptionStore.refreshEntitlements() }
             }
         }
         .alert(ResearchInvitationCopy.openFailedTitle, isPresented: $showResearchFormError) {
@@ -574,6 +403,15 @@ struct DeveloperSettingsView: View {
                 Text("Tools for development and testing only. Hidden in production builds.")
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
+            }
+
+            Section("Previews") {
+                Text("Your circle stays off for the beta. There is no chat, no accounts, and nothing is sent.")
+                    .font(SheLiftsFont.caption)
+                    .foregroundStyle(IronHerTheme.secondaryText)
+                NavigationLink("Open Your circle preview") {
+                    YourCirclePreviewView()
+                }
             }
 
             Section("Data safety") {
@@ -816,7 +654,7 @@ struct DeveloperSettingsView: View {
                                 : "Debug analytics sending is off. This build will not send events."
                         )
                     }
-                Text("Debug builds do not send events until this is on. Release and TestFlight builds send when the token and host are set and the Settings switch is on. Workouts still save with no network.")
+                Text("Debug builds and the simulator do not send events until this is on. Release and TestFlight builds on a device send when the token and host are set and the Settings switch is on. Workouts still save with no network.")
                     .font(SheLiftsFont.caption)
                     .foregroundStyle(IronHerTheme.secondaryText)
 

@@ -1,9 +1,8 @@
 import SwiftUI
 
-/// Home trains today · My Workouts manages · Progress reviews · Adapt modifies · Settings configures.
+/// Today is the home. Settings holds preferences. Workout, progress, and adapt stay off this bar.
 struct MainTabView: View {
     @Environment(TestingTimeStore.self) private var testingTimeStore
-    @Environment(LocalizationStore.self) private var l10n
     @Environment(AppTabRouter.self) private var tabRouter
 
     var body: some View {
@@ -11,52 +10,43 @@ struct MainTabView: View {
 
         TabView(selection: $router.selectedTab) {
             NavigationStack {
-                HomeView()
-                    .treniraNavigationDestinations()
+                TodayView()
             }
             .tabItem {
-                Label(l10n.t(.home_tab), systemImage: "house")
+                Label("Today", systemImage: "house")
             }
             .tag(AppTab.home)
 
             NavigationStack {
-                MyWorkoutsView()
-                    .treniraNavigationDestinations()
+                MomentsDiaryView()
             }
             .tabItem {
-                Label(l10n.t(.my_workouts), systemImage: "list.bullet")
+                Label("My Moments", systemImage: "book")
             }
-            .tag(AppTab.myWorkouts)
+            .tag(AppTab.moments)
 
             NavigationStack {
-                ProgressHubView()
-                    .treniraNavigationDestinations()
+                ExploreMovementView()
             }
             .tabItem {
-                Label(l10n.t(.progress_tab), systemImage: "chart.line.uptrend.xyaxis")
+                Label("Explore", systemImage: "leaf")
             }
-            .tag(AppTab.progress)
-
-            NavigationStack {
-                AdaptWorkoutsView()
-                    .treniraNavigationDestinations()
-            }
-            .tabItem {
-                Label(l10n.t(.adapt_tab), systemImage: "arrow.triangle.branch")
-            }
-            .tag(AppTab.adapt)
-
-            NavigationStack {
-                SettingsView()
-                    .treniraNavigationDestinations()
-            }
-            .tabItem {
-                Label(l10n.t(.settings), systemImage: "gearshape")
-            }
-            .tag(AppTab.settings)
+            .tag(AppTab.explore)
         }
         .tint(IronHerTheme.primaryText)
+        #if DEBUG
+        .fullScreenCover(isPresented: $router.showsCirclePreview) {
+            NavigationStack {
+                YourCirclePreviewView()
+            }
+        }
+        #endif
         .id(testingTimeStore.revision)
+        .sheet(item: $router.reminderDestination) { _ in
+            NavigationStack {
+                WeeklyReflectionView()
+            }
+        }
     }
 }
 

@@ -118,6 +118,9 @@ struct RootView: View {
         .task {
             await authManager.restoreSessionIfNeeded()
             migrateOnboardingIfNeeded()
+            #if DEBUG
+            applyVisualPreviewLaunchArguments()
+            #endif
             onboardingCompleted = OnboardingStore.hasCompletedOnboarding
             companionResolved = CompanionProfileStore.isResolved()
 
@@ -130,6 +133,35 @@ struct RootView: View {
             scheduleResearchInvitation(trigger: "coldLaunch")
         }
     }
+
+    #if DEBUG
+    /// Simulator-only. Does not run unless the process was launched with one of these arguments.
+    private func applyVisualPreviewLaunchArguments() {
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains("-treniraOpenExplore") {
+            tabRouter.selectedTab = .explore
+        }
+        if arguments.contains("-treniraOpenCirclePreview") {
+            tabRouter.showsCirclePreview = true
+        }
+        if arguments.contains("-treniraOpenHome") {
+            authManager.continueAsGuest()
+            OnboardingStore.markCompleted()
+            if !CompanionProfileStore.isResolved() {
+                CompanionProfileStore.save(CompanionProfile(
+                    goal: .makeTimeForMyself,
+                    barriers: [.unpredictableSchedule],
+                    primaryBarrier: .unpredictableSchedule,
+                    formats: [.walking, .strength]
+                ))
+            }
+        } else if arguments.contains("-treniraOpenOnboarding") {
+            authManager.continueAsGuest()
+            OnboardingStore.clear()
+            CompanionProfileStore.clear()
+        }
+    }
+    #endif
 
     private var entry: AppEntry {
         AppEntryPolicy.entry(

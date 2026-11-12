@@ -132,6 +132,67 @@ enum MovementActivitySelfTests {
         MovementRecordStore.replace(ownerId: "guest:other", records: [], defaults: defaults)
         check("replacing another owner keeps this walk", MovementRecordStore.load(defaults: defaults, ownerId: "guest:test").contains { $0.title == "Kept" })
 
+        let legacyWalk = """
+        {"id":"11111111-1111-1111-1111-111111111111","kind":"walking","title":"Old walk","completedAt":0,"actualMinutes":6,"ownerId":"guest:test"}
+        """.data(using: .utf8)!
+        let decodedWalk = try? JSONDecoder().decode(MovementRecord.self, from: legacyWalk)
+        check("an older walk record still decodes", decodedWalk?.kind == .walking && decodedWalk?.actualMinutes == 6)
+
+        let dance = MovementRecord(kind: .dancing, title: "Dancing", actualMinutes: 8, plannedMinutes: 10, ownerId: "guest:test")
+        MovementRecordStore.add(dance, defaults: defaults)
+        let danceItems = MovementJournal.items(records: MovementRecordStore.load(defaults: defaults, ownerId: "guest:test"), strengthLogs: [])
+        check("dancing is its own history kind", danceItems.contains { $0.kind == .dancing && $0.actualMinutes == 8 })
+        check("dancing is not stored as a video", danceItems.contains { $0.kind == .dancing && $0.kind != .externalVideo })
+
+        let preferences: [MovementFormat] = [.walking, .dancing]
+        let built = WeeklyMovementPlan.ideas(preferences: preferences, records: [dance])
+        check("the week uses preferred categories", built.map(\.category) == [.walking, .dancing])
+        check("a new walk still starts at 10 minutes", built.first { $0.category == .walking }?.recommendedMinutes == 10)
+        check("dancing uses the actual 8 minutes", built.first { $0.category == .dancing }?.recommendedMinutes == 8)
+        check("dancing is not lengthened past what happened", (built.first { $0.category == .dancing }?.recommendedMinutes ?? 0) <= 8)
+        check("a shorter option is below the recommendation", (built.first { $0.category == .dancing }?.shorterMinutes ?? 0) < 8)
+
+        let walkIdea = built[0]
+        let swapped = WeeklyMovementPlan.swapping(walkIdea, to: .dancing, records: [dance])
+        check("a swap keeps the same idea", swapped.id == walkIdea.id)
+        check("a swap records the chosen category", swapped.category == .dancing && swapped.wasSwapped)
+        check("a swap does not invent a missed walk", !swapped.wasSwapped || swapped.category != .walking)
+
+        let ownerPlan = WeekPlanStore.resolve(ownerId: "guest:test", preferences: preferences, records: [dance], defaults: defaults)
+        let countBeforeSwap = MovementRecordStore.load(defaults: defaults, ownerId: "guest:test").count
+        WeekPlanStore.swap(ownerId: "guest:test", ideaID: ownerPlan.ideas[0].id, to: .yoga, records: [dance], defaults: defaults)
+        let afterSwap = WeekPlanStore.load(defaults: defaults, ownerId: "guest:test")
+        check("the swapped idea is yoga", afterSwap?.ideas[0].category == .yoga)
+        check(
+            "a swap does not write a completed activity",
+            MovementRecordStore.load(defaults: defaults, ownerId: "guest:test").count == countBeforeSwap
+        )
+        check("another owner does not see this plan", WeekPlanStore.load(defaults: defaults, ownerId: "guest:other") == nil)
+        check("week plan erasure key is listed", LocalDataErasureService.userContentUserDefaultsKeys.contains(WeekPlanStore.storageKey))
+
+        let longer = WeeklyMovementPlan.durations(for: .dancing, records: [dance])
+        check("adaptation does not raise duration above the last session", longer.recommended == 8)
+
+        var snapshot = UserDataSnapshot.empty(ownerId: "guest:test")
+        snapshot.movementRecords = [
+            MovementRecord(kind: .yoga, title: "Yoga", actualMinutes: 12, ownerId: "guest:test"),
+            MovementRecord(kind: .walking, title: "Walk", actualMinutes: 6, ownerId: "guest:test")
+        ]
+        let encoded = try? JSONEncoder().encode(snapshot)
+        let decoded = encoded.flatMap { try? JSONDecoder().decode(UserDataSnapshot.self, from: $0) }
+        check("a yoga record survives a backup round trip", decoded?.movementRecords?.contains { $0.kind == .yoga && $0.actualMinutes == 12 } == true)
+        check("an existing walk survives the same backup", decoded?.movementRecords?.contains { $0.kind == .walking && $0.actualMinutes == 6 } == true)
+        if let decoded {
+            let transferred = UserDataMergeEngine.transferOwnership(decoded, to: "account:next")
+            check(
+                "transfer keeps the new activity with the new owner",
+                transferred.movementRecords?.allSatisfy { $0.ownerId == "account:next" } == true
+                    && transferred.movementRecords?.contains { $0.kind == .yoga } == true
+            )
+        } else {
+            check("transfer keeps the new activity with the new owner", false)
+        }
+
         return Outcome(passed: passed, failed: failed, lines: lines)
     }
 }

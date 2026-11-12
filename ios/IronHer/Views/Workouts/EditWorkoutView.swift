@@ -8,8 +8,8 @@ struct EditWorkoutView: View {
             if workoutStore.workouts.isEmpty {
                 ContentUnavailableView(
                     "No workouts yet",
-                    systemImage: "dumbbell",
-                    description: Text("Create a workout first, then come back to edit it.")
+                    systemImage: "list.bullet",
+                    description: Text("Create a strength workout first, then come back to edit it.")
                 )
             } else {
                 List {

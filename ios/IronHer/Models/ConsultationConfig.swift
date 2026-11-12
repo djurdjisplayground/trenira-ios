@@ -7,7 +7,7 @@ enum ConsultationConfig {
 
     static let title = "Founder Consultation"
     static let subtitle =
-        "Get help simplifying your workout routine, structuring progression and setting up your training inside trenira."
+        "Optional help organising a strength routine inside trenira. This is not medical care or postpartum rehabilitation."
     static let priceLabel = "€39 · 30 minutes"
     static let priceAmount = "€39"
     static let durationLabel = "30 minutes"
@@ -39,7 +39,7 @@ enum ConsultationConfig {
         "Physiotherapy or injury rehabilitation",
         "Professional nutritional treatment or meal plans",
         "Ongoing coaching or weekly check-ins",
-        "Guaranteed strength or physique outcomes",
+        "Guaranteed results, physique changes, or recovery plans",
     ]
 
     static let founderBlurb = """

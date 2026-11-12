@@ -4,7 +4,7 @@ import SwiftUI
 /// Light values follow the written product specification. Dark values are calm companions
 /// so existing screens stay readable when the system appearance is dark.
 enum TreniraColor {
-    static let lavender = Color(red: 244 / 255, green: 238 / 255, blue: 248 / 255)
+    static let lavender = Color(red: 240 / 255, green: 232 / 255, blue: 243 / 255)
     static let plum = Color(red: 101 / 255, green: 66 / 255, blue: 118 / 255)
     static let lilac = Color(red: 233 / 255, green: 221 / 255, blue: 241 / 255)
     static let rose = Color(red: 250 / 255, green: 239 / 255, blue: 242 / 255)
@@ -12,6 +12,9 @@ enum TreniraColor {
     static let inkSecondary = Color(red: 130 / 255, green: 121 / 255, blue: 139 / 255)
     static let card = Color.white
     static let border = Color(red: 231 / 255, green: 224 / 255, blue: 234 / 255)
+    static let ivory = Color(red: 250 / 255, green: 247 / 255, blue: 242 / 255)
+    static let mauve = Color(red: 220 / 255, green: 199 / 255, blue: 216 / 255)
+    static let orchid = Color(red: 167 / 255, green: 131 / 255, blue: 155 / 255)
 
     static let canvasDark = Color(red: 28 / 255, green: 22 / 255, blue: 34 / 255)
     static let cardDark = Color(red: 42 / 255, green: 34 / 255, blue: 50 / 255)
@@ -48,6 +51,9 @@ enum TreniraSpace {
 
 /// Dynamic Type styles. Sizes follow the user's text-size setting.
 enum TreniraType {
+    /// Serif display. Fraunces is not bundled, so this uses the system serif.
+    static var display: Font { .system(.largeTitle, design: .serif).weight(.regular) }
+    static var displayTitle: Font { .system(.title2, design: .serif).weight(.regular) }
     static var largeTitle: Font { .system(.largeTitle, design: .default).weight(.semibold) }
     static var title: Font { .system(.title2, design: .default).weight(.semibold) }
     static var section: Font { .system(.headline, design: .default).weight(.medium) }

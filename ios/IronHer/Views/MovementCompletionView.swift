@@ -12,6 +12,7 @@ struct MovementCompletionView: View {
 
     @State private var actualMinutes: Int
     @State private var feeling: MovementFeeling?
+    @State private var didSave = false
 
     init(
         title: String,
@@ -40,11 +41,11 @@ struct MovementCompletionView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TreniraSpace.section) {
-                Text(finishedEarlier ? "You stopped when you needed to." : "You made time for yourself.")
+                Text(finishedEarlier ? "You stopped when you needed to." : "You made some time for yourself today.")
                     .font(TreniraType.title)
                     .foregroundStyle(TreniraColor.label)
                     .accessibilityAddTraits(.isHeader)
-                Text(finishedEarlier ? "A little movement still counts." : "Your journey continues.")
+                Text(finishedEarlier ? "A little movement is still movement." : "Every session counts.")
                     .font(TreniraType.body)
                     .foregroundStyle(TreniraColor.labelSecondary)
 
@@ -78,6 +79,8 @@ struct MovementCompletionView: View {
                 }
 
                 Button("Save") {
+                    guard !didSave else { return }
+                    didSave = true
                     MovementRecordStore.add(
                         MovementRecord(
                             kind: kind,
@@ -91,7 +94,7 @@ struct MovementCompletionView: View {
                     )
                     AnalyticsService.capture(
                         .activityCompleted,
-                        properties: ["activity_type": kind == .walking ? "walking" : "external_video"]
+                        properties: ["activity_type": kind.analyticsActivityType]
                     )
                     onSaved()
                 }

@@ -11,15 +11,31 @@ struct CompanionPreferencesEditor: View {
     }
 }
 
+private struct PreferenceChoice: Identifiable {
+    var id: String
+    var title: String
+    var kinds: [CatalogCategory]
+    var format: MovementFormat?
+}
+
 struct CompanionOnboardingView: View {
-    var finishTitle: String = "See your home"
+    var finishTitle: String = "See Today"
     var onFinished: () -> Void
 
     @State private var step = 0
-    @State private var goal: MovementGoal?
-    @State private var barriers: [MovementBarrier] = []
-    @State private var primaryBarrier: MovementBarrier?
-    @State private var formats: [MovementFormat] = []
+    @State private var selected: Set<String> = []
+    @State private var equipment: Set<MovementEquipment> = []
+    @State private var avoidFloor = false
+
+    private let choices: [PreferenceChoice] = [
+        PreferenceChoice(id: "strength", title: "Strength", kinds: [.dumbbellStrength, .bodyweightStrength], format: .strength),
+        PreferenceChoice(id: "walking", title: "Walking", kinds: [.walking], format: .walking),
+        PreferenceChoice(id: "yoga", title: "Yoga", kinds: [.yogaInspired], format: .yoga),
+        PreferenceChoice(id: "stretching", title: "Stretching", kinds: [.stretching], format: nil),
+        PreferenceChoice(id: "dance", title: "Dance", kinds: [.dancing], format: .dancing),
+        PreferenceChoice(id: "mobility", title: "Mobility", kinds: [.mobility], format: nil),
+        PreferenceChoice(id: "bodyweight", title: "Bodyweight", kinds: [.bodyweightStrength], format: .strength)
+    ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -40,13 +56,12 @@ struct CompanionOnboardingView: View {
                 .padding(.bottom, 24)
             }
             VStack(spacing: 10) {
-                Text("\(step + 1) of 3")
+                Text("\(step + 1) of 4")
                     .font(TreniraType.caption)
                     .foregroundStyle(TreniraColor.labelSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Button(step == 2 ? finishTitle : "Continue", action: advance)
+                Button(step == 3 ? finishTitle : "Continue", action: advance)
                     .buttonStyle(TreniraPrimaryButtonStyle())
-                    .disabled(!canContinue)
                 if step > 0 {
                     Button("Back") { step -= 1 }
                         .buttonStyle(TreniraSecondaryButtonStyle())
@@ -58,23 +73,25 @@ struct CompanionOnboardingView: View {
             .padding(.bottom, 20)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(TreniraColor.canvas)
+        .background(TreniraColor.ivory)
         .onAppear(perform: loadExisting)
     }
 
     private var title: String {
         switch step {
-        case 0: "What would you like to achieve?"
-        case 1: "What's getting in your way?"
-        default: "What movement do you enjoy?"
+        case 0: "What movement do you enjoy?"
+        case 1: "What do you have nearby?"
+        case 2: "Anything to leave out?"
+        default: "Reminders are optional"
         }
     }
 
     private var subtitle: String {
         switch step {
-        case 0: "Choose one. You can change this later."
-        case 1: "Choose any that fit, then mark the biggest one."
-        default: "Choose any that fit. Not sure is fine."
+        case 0: "Choose any that fit. You can skip this and still use Today."
+        case 1: "Choose any you have nearby. On Today you pick one, or Surprise me."
+        case 2: "This only hides floor-based ideas. It is not a health assessment."
+        default: "A reminder can wait until you open Profile. trenira will not ask for notification permission here."
         }
     }
 
@@ -82,52 +99,53 @@ struct CompanionOnboardingView: View {
     private var stepContent: some View {
         switch step {
         case 0:
-            choiceList(MovementGoal.allCases, selected: { goal == $0 }) { item in
-                goal = item
-            }
-        case 1:
             VStack(alignment: .leading, spacing: TreniraSpace.stack) {
-                ForEach(MovementBarrier.allCases) { item in
-                    TreniraChoiceRow(
-                        title: item.title,
-                        detail: barrierDetail(item),
-                        isSelected: barriers.contains(item)
-                    ) {
-                        toggleBarrier(item)
+                ForEach(choices) { choice in
+                    TreniraChoiceRow(title: choice.title, isSelected: selected.contains(choice.id)) {
+                        if selected.contains(choice.id) {
+                            selected.remove(choice.id)
+                        } else {
+                            selected.insert(choice.id)
+                        }
                     }
                 }
             }
-        default:
-            choiceList(MovementFormat.allCases, selected: { formats.contains($0) }) { item in
-                toggleFormat(item)
+        case 1:
+            VStack(alignment: .leading, spacing: TreniraSpace.stack) {
+                ForEach(MovementEquipment.allCases) { item in
+                    TreniraChoiceRow(title: item.title, isSelected: equipment.contains(item)) {
+                        if equipment.contains(item) {
+                            equipment.remove(item)
+                        } else {
+                            equipment.insert(item)
+                        }
+                    }
+                }
             }
+        case 2:
+            VStack(alignment: .leading, spacing: TreniraSpace.stack) {
+                TreniraChoiceRow(title: "Avoid floor-based moves", isSelected: avoidFloor) {
+                    avoidFloor.toggle()
+                }
+                Text(MovementCatalog.postpartumNote)
+                    .font(TreniraType.body)
+                    .foregroundStyle(TreniraColor.label)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        default:
+            Text("You can turn a gentle reminder on later, at a time you choose. Nothing is scheduled until you do.")
+                .font(TreniraType.body)
+                .foregroundStyle(TreniraColor.label)
+                .fixedSize(horizontal: false, vertical: true)
         }
-    }
-
-    private var canContinue: Bool {
-        switch step {
-        case 0: goal != nil
-        case 1: barriers.isEmpty || primaryBarrier != nil
-        default: !formats.isEmpty
-        }
-    }
-
-    private func barrierDetail(_ item: MovementBarrier) -> String? {
-        if primaryBarrier == item { return "Biggest right now" }
-        if barriers.contains(item) { return "Tap to make this the biggest" }
-        return nil
     }
 
     private func advance() {
-        if step < 2 {
+        if step < 3 {
             step += 1
         } else {
             persist(skipped: false)
-            var properties: [String: String] = [:]
-            if let barrier = primaryBarrier ?? barriers.first {
-                properties["primary_barrier"] = barrier.rawValue
-            }
-            AnalyticsService.capture(.companionOnboardingCompleted, properties: properties)
+            AnalyticsService.capture(.companionOnboardingCompleted, properties: [:])
             onFinished()
         }
     }
@@ -137,76 +155,33 @@ struct CompanionOnboardingView: View {
         onFinished()
     }
 
-    private func toggleBarrier(_ item: MovementBarrier) {
-        if barriers.contains(item), primaryBarrier != item {
-            primaryBarrier = item
-            return
-        }
-        if barriers.contains(item) {
-            barriers.removeAll { $0 == item }
-            primaryBarrier = barriers.first
-            return
-        }
-        barriers.append(item)
-        if primaryBarrier == nil {
-            primaryBarrier = item
-        }
-    }
-
-    private func toggleFormat(_ item: MovementFormat) {
-        if item == .notSure {
-            formats = formats == [.notSure] ? [] : [.notSure]
-            return
-        }
-        formats.removeAll { $0 == .notSure }
-        if formats.contains(item) {
-            formats.removeAll { $0 == item }
-        } else {
-            formats.append(item)
-        }
-    }
-
     private func loadExisting() {
         guard let saved = CompanionProfileStore.load() else { return }
-        goal = saved.goal
-        barriers = saved.barriers
-        primaryBarrier = saved.primaryBarrier
-        formats = saved.formats
+        equipment = Set(saved.equipment ?? [])
+        avoidFloor = saved.avoidFloorMoves ?? false
+        let kinds = Set(saved.preferredKinds ?? [])
+        selected = Set(choices.filter { choice in
+            choice.kinds.contains { kinds.contains($0.rawValue) }
+        }.map(\.id))
     }
 
     private func persist(skipped: Bool) {
-        let profile = CompanionProfile(
-            goal: goal,
-            barriers: barriers,
-            primaryBarrier: primaryBarrier ?? barriers.first,
-            formats: formats,
-            skipped: skipped && goal == nil && barriers.isEmpty && formats.isEmpty
-        )
-        CompanionProfileStore.save(profile)
-    }
-}
-
-private extension CompanionOnboardingView {
-    func choiceList(_ items: [MovementGoal], selected: @escaping (MovementGoal) -> Bool, onTap: @escaping (MovementGoal) -> Void) -> some View {
-        rows(items, title: { $0.title }, selected: selected, onTap: onTap)
-    }
-
-    func choiceList(_ items: [MovementFormat], selected: @escaping (MovementFormat) -> Bool, onTap: @escaping (MovementFormat) -> Void) -> some View {
-        rows(items, title: { $0.title }, selected: selected, onTap: onTap)
-    }
-
-    func rows<Item: Identifiable>(
-        _ items: [Item],
-        title: @escaping (Item) -> String,
-        selected: @escaping (Item) -> Bool,
-        onTap: @escaping (Item) -> Void
-    ) -> some View {
-        VStack(alignment: .leading, spacing: TreniraSpace.stack) {
-            ForEach(items) { item in
-                TreniraChoiceRow(title: title(item), isSelected: selected(item)) {
-                    onTap(item)
-                }
+        let picked = choices.filter { selected.contains($0.id) }
+        var formats: [MovementFormat] = []
+        var kinds: [String] = []
+        for choice in picked {
+            kinds.append(contentsOf: choice.kinds.map(\.rawValue))
+            if let format = choice.format, !formats.contains(format) {
+                formats.append(format)
             }
         }
+        let profile = CompanionProfile(
+            formats: formats,
+            skipped: skipped && picked.isEmpty && equipment.isEmpty,
+            equipment: Array(equipment),
+            avoidFloorMoves: avoidFloor,
+            preferredKinds: Array(Set(kinds)).sorted()
+        )
+        CompanionProfileStore.save(profile)
     }
 }

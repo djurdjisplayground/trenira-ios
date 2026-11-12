@@ -20,7 +20,7 @@ enum LegalDocumentContent {
 
         ## 1. Who We Are
 
-        \(AppConfiguration.appName) is operated by \(AppConfiguration.operatorName). The app is a movement companion for strength workouts, walks, and videos you choose, available worldwide.
+        \(AppConfiguration.appName) is operated by \(AppConfiguration.operatorName). The app is a flexible movement companion for everyday life, including motherhood. It helps you organise strength workouts, walks, and videos you choose. It is available worldwide. It is not a medical, healthcare, physiotherapy, or rehabilitation service, and it does not assess recovery or prescribe exercise for symptoms.
 
         ## 2. Who Can Use the App
 
@@ -38,7 +38,7 @@ enum LegalDocumentContent {
 
         \(AppConfiguration.appName) does not collect Apple or Google passwords. The app does not use advertising or crash-reporting SDKs.
 
-        When anonymous product analytics is on, the app sends a small set of product events to PostHog: a workout was created, started, completed, or left before completion; workout adaptation was opened or applied; the research invitation was shown, accepted, or dismissed; companion questions were finished; a daily check-in was finished; a movement suggestion was chosen; and an activity was saved, including its type and, when chosen, the main barrier category. Those events do not include exercise names, weights, set logs, how you feel afterward, health or postpartum information, contact details, or notes you type. PostHog stores an anonymous installation identifier on this device so repeated use of the same installation can be counted. It is not your name, email, or account. You can turn this off in Settings → Legal & Privacy. Development builds do not send these events unless a developer explicitly enables testing.
+        When anonymous product analytics is on, the app sends a small set of product events to PostHog: the app came to the foreground; a workout was created, started, completed, or left before completion; workout adaptation was opened or applied; the research invitation was shown, accepted, or dismissed; companion questions were finished; a daily check-in was finished; a movement suggestion was chosen; and an activity was saved, including its type and, when chosen, the main barrier category. Those events do not include exercise names, weights, set logs, how you feel afterward, health or postpartum information, contact details, or notes you type. PostHog stores an anonymous installation identifier on this device so repeated use of the same installation can be counted. It is not your name, email, or account. You can turn this off in Settings → Legal & Privacy. Development builds do not send these events unless a developer explicitly enables testing.
 
         ## 4. Account and Authentication Data
 
@@ -48,7 +48,7 @@ enum LegalDocumentContent {
 
         ## 5. Workout and Fitness Information
 
-        Workout templates, completed sets, progression settings and related training information are primarily stored locally on your device. The app does not upload workout information to a \(AppConfiguration.appName) backend.
+        Workout templates, completed sets, walks and videos you choose to record, progression settings, and related movement information are primarily stored locally on your device. The app does not upload that information to a \(AppConfiguration.appName) backend. It does not collect pregnancy history, birth details, or symptom reports.
 
         ## 6. Commercial and Technical Information
 
@@ -140,7 +140,7 @@ enum LegalDocumentContent {
 
         ## 1. About trenira
 
-        \(AppConfiguration.appName) is a movement companion. It helps you organise strength workouts, walks, and videos you choose, and stay consistent. It is not a medical, healthcare, physiotherapy or rehabilitation service.
+        \(AppConfiguration.appName) is a flexible movement companion for everyday life, including motherhood. It helps you organise strength workouts, walks, and videos you choose. It is not a medical, healthcare, physiotherapy, or rehabilitation service, and it does not assess recovery or prescribe exercise for symptoms.
 
         ## 2. Eligibility
 
@@ -152,7 +152,7 @@ enum LegalDocumentContent {
 
         ## 4. Health Disclaimer
 
-        \(AppConfiguration.appName) helps you organise movement you choose. It does not provide medical advice, diagnosis, physiotherapy or rehabilitation, and it does not prescribe exercise for symptoms or recovery. You remain responsible for what you do, including exercise selection, weight, repetitions, technique and intensity. Move within your abilities and consult an appropriately qualified professional for medical or injury-related concerns.
+        \(AppConfiguration.appName) helps you organise movement you choose. It does not provide medical advice, diagnosis, physiotherapy, or rehabilitation. It does not provide postpartum recovery plans, pelvic-floor prescriptions, or symptom-based exercise recommendations, and it does not claim that a workout is medically safe for every person. You remain responsible for what you do, including exercise selection, weight, repetitions, technique, and intensity. Move within your abilities and consult an appropriately qualified professional for medical or injury-related concerns.
 
         ## 5. Workout Information
 

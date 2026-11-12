@@ -12,7 +12,7 @@ struct SavedVideosView: View {
                 ContentUnavailableView(
                     "No videos yet",
                     systemImage: "play.rectangle",
-                    description: Text("Save a YouTube link when you want. trenira opens it outside the app and does not guess its length.")
+                    description: Text("Save a video you already like. trenira opens it outside the app and does not guess its length.")
                 )
             } else {
                 List(videos) { video in

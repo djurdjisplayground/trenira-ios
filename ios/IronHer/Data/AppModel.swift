@@ -1,4 +1,5 @@
 import Foundation
+import UserNotifications
 
 /// Owns shared stores + guest/account data coordination for the app lifetime.
 @MainActor
@@ -17,6 +18,7 @@ final class AppModel {
     let localizationStore = LocalizationStore()
     let testingTimeStore = TestingTimeStore()
     let tabRouter = AppTabRouter()
+    let reminderDelegate = MovementReminderDelegate()
     let dataCoordinator: UserDataCoordinator
 
     var backupHintMessage: String?
@@ -55,6 +57,13 @@ final class AppModel {
         )
         self.dataCoordinator = coordinator
         coordinator.bootstrap(authState: authManager.authState)
+        reminderDelegate.onOpen = { [weak self] destination in
+            self?.tabRouter.openReminder(destination)
+        }
+        UNUserNotificationCenter.current().delegate = reminderDelegate
+        let ownerId = coordinator.currentOwner.rawValue
+        let sessionActive = authManager.authState != .signedOut
+        Task { await MovementReminderController.live.apply(ownerId: ownerId, sessionActive: sessionActive) }
 
         WeightIncrementRepairMigration.runIfNeeded(
             ownerRawValue: coordinator.currentOwner.rawValue,
@@ -76,6 +85,10 @@ final class AppModel {
                 case .signedOut:
                     break
                 }
+                await MovementReminderController.live.apply(
+                    ownerId: self.dataCoordinator.currentOwner.rawValue,
+                    sessionActive: state != .signedOut
+                )
                 self.backupHintMessage = self.dataCoordinator.lastMigrationMessage
                 WeightIncrementRepairMigration.runIfNeeded(
                     ownerRawValue: self.dataCoordinator.currentOwner.rawValue,

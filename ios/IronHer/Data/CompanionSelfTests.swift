@@ -138,6 +138,59 @@ enum CompanionSelfTests {
         CompanionProfileStore.save(profile, defaults: defaults)
         check("a skipped profile still counts as resolved", CompanionProfileStore.isResolved(defaults: defaults))
 
+        let legacyJSON = """
+        {"goal":"feelStronger","barriers":["notEnoughTime","guilt"],"primaryBarrier":"notEnoughTime","formats":["strength","walking"],"skipped":false,"updatedAt":0}
+        """.data(using: .utf8)!
+        let legacy = try? JSONDecoder().decode(CompanionProfile.self, from: legacyJSON)
+        check("an older companion profile still decodes", legacy?.goal == .feelStronger)
+        check("older barrier raw values still decode", legacy?.primaryBarrier == .notEnoughTime && legacy?.barriers == [.notEnoughTime, .guilt])
+
+        var editable = CompanionProfile(formats: [.walking])
+        CompanionProfileStore.save(editable, defaults: defaults)
+        editable.formats = [.dancing, .withBaby, .yoga]
+        CompanionProfileStore.save(editable, defaults: defaults)
+        let changed = CompanionProfileStore.load(defaults: defaults)
+        check("preferences can change to the new categories", changed?.formats == [.dancing, .withBaby, .yoga])
+        let oldFormats = """
+        {"goal":"findRhythm","barriers":[],"formats":["walking","yoga"],"skipped":false,"updatedAt":0}
+        """.data(using: .utf8)!
+        let oldFormatsProfile = try? JSONDecoder().decode(CompanionProfile.self, from: oldFormats)
+        check("older movement preferences still decode", oldFormatsProfile?.formats == [.walking, .yoga])
+
+        let yogaProfile = CompanionProfile(
+            barriers: [.notEnoughTime],
+            primaryBarrier: .notEnoughTime,
+            formats: [.yoga, .dancing]
+        )
+        let yogaSuggestions = MovementRecommendationEngine.suggest(
+            profile: yogaProfile,
+            checkIn: MovementCheckIn(minutes: .ten, energy: .okay, setting: .home),
+            workouts: workouts
+        )
+        check("a preferred yoga option is offered", yogaSuggestions.contains { $0.kind == .selfDirected && $0.format == .yoga })
+        check("a preferred dancing option is offered", yogaSuggestions.contains { $0.format == .dancing })
+        check("lack of time still leads with a walk when other categories are preferred", yogaSuggestions.first?.kind == .walk)
+        check(
+            "a self-directed suggestion does not prescribe a pose",
+            yogaSuggestions.allSatisfy { !$0.detail.localizedCaseInsensitiveContains("downward dog") }
+        )
+
+        let babyProfile = CompanionProfile(formats: [.withBaby])
+        let babySuggestions = MovementRecommendationEngine.suggest(
+            profile: babyProfile,
+            checkIn: MovementCheckIn(minutes: .ten, energy: .okay, setting: .home),
+            workouts: []
+        )
+        let babyDetail = babySuggestions.first { $0.format == .withBaby }?.detail ?? ""
+        check("movement with baby can be recorded", babySuggestions.contains { $0.format == .withBaby })
+        check("movement with baby does not say to lift the baby", !babyDetail.localizedCaseInsensitiveContains("lift your baby"))
+        check("movement with baby does not say to carry the baby", !babyDetail.localizedCaseInsensitiveContains("carry your baby"))
+        check("baby notice declines medical and childcare advice", BabyMovementCopy.notice.contains("not medical or childcare advice"))
+
+        let lowEnergy = first(barrier: .lowEnergy, minutes: .ten, energy: .low, setting: .home)
+        check("low energy prefers a walk at home", lowEnergy.first?.kind == .walk)
+        check("low energy copy does not shame", lowEnergy.first?.reason.localizedCaseInsensitiveContains("no excuses") == false)
+
         return Outcome(passed: passed, failed: failed, lines: lines)
     }
 }

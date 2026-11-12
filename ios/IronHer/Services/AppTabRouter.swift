@@ -3,6 +3,8 @@ import SwiftUI
 
 enum AppTab: Hashable {
     case home
+    case moments
+    case explore
     case myWorkouts
     case adapt
     case progress
@@ -18,16 +20,26 @@ final class AppTabRouter {
     var isWorkoutFlowPresented = false
     /// Bumped when the home invitation should be considered again.
     var invitationCheck = 0
+    /// Set when a reminder asks to open the weekly reflection. Home opens without a cover.
+    var reminderDestination: MovementReminderDestination?
+    /// Debug launch only. The community preview stays off the beta navigation.
+    var showsCirclePreview = false
 
     func requestInvitationCheck() {
         invitationCheck += 1
     }
 
+    /// Workout, progress, and adapt are not in the tab bar. These stay on Today.
     func openProgress() {
-        selectedTab = .progress
+        selectedTab = .home
     }
 
     func openMyWorkouts() {
-        selectedTab = .myWorkouts
+        selectedTab = .home
+    }
+
+    func openReminder(_ destination: MovementReminderDestination) {
+        selectedTab = .home
+        reminderDestination = destination == .week ? .week : nil
     }
 }

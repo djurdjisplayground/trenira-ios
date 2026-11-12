@@ -11,16 +11,16 @@ struct OnboardingView: View {
 
     private let pages: [(title: String, body: String)] = [
         (
-            "Build",
-            "Create workouts that fit your routine."
+            "Fit the day",
+            "A little time for you, on the day you actually have."
         ),
         (
-            "Adapt",
-            "Replace exercises and keep progressing when life changes."
+            "Choose",
+            "Pick 2, 5, 10, 15, or 20+ minutes, then a way to move. Doing your own thing counts."
         ),
         (
-            "Progress",
-            "Focus on consistent strength gains without unnecessary complexity."
+            "Continue",
+            "Small steps count. Nothing is overdue."
         ),
     ]
 
@@ -34,11 +34,11 @@ struct OnboardingView: View {
                             .foregroundStyle(IronHerTheme.primaryText)
                             .accessibilityAddTraits(.isHeader)
 
-                        Text("Strength training should adapt to real life.")
+                        Text("Movement that fits your life.")
                             .font(SheLiftsFont.bodyMedium)
                             .foregroundStyle(IronHerTheme.primaryText)
 
-                        Text("Build workouts, track progression and stay consistent whether you are at your regular gym or travelling.")
+                        Text("Choose a little time, then move or do your own thing. Nothing is assigned, and energy is optional.")
                             .font(SheLiftsFont.body)
                             .foregroundStyle(IronHerTheme.secondaryText)
                             .fixedSize(horizontal: false, vertical: true)
@@ -99,7 +99,7 @@ struct OnboardingView: View {
                 .foregroundStyle(IronHerTheme.primaryText)
 
             Text(
-                "\(AppConfiguration.appName) helps you organise and track strength training. It does not provide medical advice, diagnosis, physiotherapy or rehabilitation. Train within your abilities and consult an appropriately qualified professional if you have medical or injury-related concerns."
+                "\(AppConfiguration.appName) is a movement companion, not a medical or rehabilitation service. It does not assess recovery or prescribe exercise for symptoms. Move within your abilities and consult an appropriately qualified professional if you have medical or injury-related concerns."
             )
             .font(SheLiftsFont.body)
             .foregroundStyle(IronHerTheme.secondaryText)

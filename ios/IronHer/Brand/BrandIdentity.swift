@@ -7,8 +7,8 @@ enum BrandIdentity {
     static let displayName = "trenira"
 
     /// Official tagline — two lines, exact formatting for brand surfaces.
-    static let taglineLine1 = "Strength,"
-    static let taglineLine2 = "on your own terms."
+    static let taglineLine1 = "Movement that"
+    static let taglineLine2 = "fits your life."
 
     /// Single-line form for inline copy (celebration, footnotes, etc.).
     static var taglineInline: String {
@@ -17,15 +17,12 @@ enum BrandIdentity {
 
     /// Brand philosophy for longer surfaces.
     static let philosophy =
-        "A calm companion for strength training. Organize workouts, stay consistent, and get stronger — without unnecessary complexity. You stay in control."
-
-    /// Default mark — thin ends + pronounced flowing S connector.
-    static let defaultMarkStyle: BrandMarkStyle = .flowingS
+        "A flexible movement companion for moms who want to return to movement, find their rhythm, and build routines around real life. Movement should adapt to motherhood, not the other way around."
 
     // MARK: - Contextual copy
 
     static var welcomeSignedIn: String {
-        "Stay consistent. Get stronger. \(taglineInline)"
+        taglineInline
     }
 
     static var welcomeSignedOut: String {
@@ -33,11 +30,11 @@ enum BrandIdentity {
     }
 
     static var progressionRemembers: String {
-        "You define how you progress. \(displayName) remembers and quietly updates your next workout."
+        "You define how you progress. \(displayName) remembers and quietly updates your next strength workout."
     }
 
     static var freePlanSubtitle: String {
-        "Everything you need to track your workouts."
+        "Everything you need to keep your workouts."
     }
 
     static var premiumPlanSubtitle: String {

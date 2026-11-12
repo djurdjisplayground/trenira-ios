@@ -27,7 +27,7 @@ enum LocalDataErasureService {
     }
 
     /// UserDefaults keys that hold user-generated Trenira content.
-    static let userContentUserDefaultsKeys: [String] = [
+    nonisolated static let userContentUserDefaultsKeys: [String] = [
         "savedWorkouts",
         "savedWorkoutsDeleted",
         "weightHistory",
@@ -65,6 +65,11 @@ enum LocalDataErasureService {
         CompanionProfileStore.storageKey,
         SavedVideoStore.storageKey,
         MovementRecordStore.storageKey,
+        WeekPlanStore.storageKey,
+        MovementReminderStore.storageKey,
+        "trenira.pausedMovement.v1",
+        "trenira.todayCheckIn.v1",
+        "trenira.movementFavorites.v1",
     ]
 
     private static let logger = Logger(subsystem: "com.trenira.app", category: "LocalDataErasure")
@@ -101,6 +106,7 @@ enum LocalDataErasureService {
             dataCoordinator.applyFullLocalWipeForErasure()
             clearUserDefaultsKeys()
             clearMigrationTokens()
+            Task { await MovementReminderController.live.erase() }
         }
 
         do {

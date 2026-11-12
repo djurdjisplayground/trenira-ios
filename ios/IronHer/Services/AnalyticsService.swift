@@ -17,6 +17,7 @@ enum AnalyticsEvent: String {
     case dailyCheckInCompleted = "daily_check_in_completed"
     case movementSuggestionSelected = "movement_suggestion_selected"
     case activityCompleted = "activity_completed"
+    case appOpened = "app_opened"
 }
 
 /// The only place the app talks to PostHog.
@@ -42,7 +43,8 @@ enum AnalyticsService {
             host: AppConfiguration.postHogHost,
             userAllowsCollection: userAllowsCollection,
             debugSendingEnabled: debugSendingEnabled,
-            isDebugBuild: isDebugBuild
+            isDebugBuild: isDebugBuild,
+            isSimulator: isSimulator
         )
     }
 
@@ -51,13 +53,25 @@ enum AnalyticsService {
         host: String,
         userAllowsCollection: Bool,
         debugSendingEnabled: Bool,
-        isDebugBuild: Bool
+        isDebugBuild: Bool,
+        isSimulator: Bool = false
     ) -> Bool {
         let token = projectToken.trimmingCharacters(in: .whitespacesAndNewlines)
         let host = host.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !token.isEmpty, let url = URL(string: host), url.scheme == "https" else { return false }
-        if isDebugBuild, !debugSendingEnabled { return false }
+        // Debug and simulator traffic stays local unless a developer explicitly enables sending.
+        if (isDebugBuild || isSimulator), !debugSendingEnabled { return false }
         return userAllowsCollection
+    }
+
+    /// One `app_opened` per foreground period. Inactive, such as Control Center, does not count again.
+    /// Background clears the period so the next return to the app counts once.
+    static func shouldCaptureAppOpen(isActive: Bool, alreadyCapturedThisForeground: Bool) -> Bool {
+        isActive && !alreadyCapturedThisForeground
+    }
+
+    static func shouldResetAppOpenPeriod(isBackground: Bool) -> Bool {
+        isBackground
     }
 
     static func setUserAllowsCollection(_ allowed: Bool) {
@@ -86,11 +100,31 @@ enum AnalyticsService {
         "activity_type"
     ]
 
+    private static var didCaptureAppOpenThisForeground = false
+
+    /// Call for every scene phase, including the first active appearance.
+    static func noteScenePhaseIsActive(_ isActive: Bool, isBackground: Bool) {
+        if shouldResetAppOpenPeriod(isBackground: isBackground) {
+            didCaptureAppOpenThisForeground = false
+        }
+        guard shouldCaptureAppOpen(
+            isActive: isActive,
+            alreadyCapturedThisForeground: didCaptureAppOpenThisForeground
+        ) else { return }
+        didCaptureAppOpenThisForeground = true
+        capture(.appOpened)
+    }
+
+    /// Drops anything outside the property allowlist, including reflections and health notes.
+    static func sanitizedProperties(_ properties: [String: String]) -> [String: String] {
+        properties.filter { allowedPropertyKeys.contains($0.key) }
+    }
+
     static func capture(_ event: AnalyticsEvent, properties: [String: String] = [:]) {
         guard isCollectionEnabled else { return }
         applyCollectionState()
         guard didStart else { return }
-        let filtered = properties.filter { allowedPropertyKeys.contains($0.key) }
+        let filtered = sanitizedProperties(properties)
         if filtered.isEmpty {
             PostHogSDK.shared.capture(event.rawValue)
         } else {
@@ -139,6 +173,14 @@ enum AnalyticsService {
 
     private static var isDebugBuild: Bool {
         #if DEBUG
+        true
+        #else
+        false
+        #endif
+    }
+
+    private static var isSimulator: Bool {
+        #if targetEnvironment(simulator)
         true
         #else
         false

@@ -1,18 +1,18 @@
 import SwiftUI
 
-/// Supportive home for the movement companion. Strength workouts stay one step away.
+/// Today: choose a little time, see choices, move or do your own thing, then save.
 struct HomeView: View {
     @Environment(AuthenticationManager.self) private var authManager
     @Environment(UserDataCoordinator.self) private var dataCoordinator
-    @Environment(AppTabRouter.self) private var tabRouter
-    @Environment(WorkoutSessionStore.self) private var sessionStore
 
     @State private var showSignOutConfirm = false
     @State private var showCompanionSetup = false
-    @State private var showToday = false
-    @State private var showWalk = false
     @State private var profile = CompanionProfileStore.load()
     @State private var historyRevision = 0
+    @State private var pilotMinutes = PilotTimeChoice.five.rawValue
+    @State private var pilotEnergy: MovementEnergy?
+    @State private var showPilot = false
+    @State private var showResume = false
 
     private var greeting: String {
         let hour = Calendar.current.component(.hour, from: .now)
@@ -25,41 +25,49 @@ struct HomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: TreniraSpace.section) {
                 header
+                todayTime
+                if let draft = PausedMovementDraftStore.load(ownerId: dataCoordinator.currentOwner.rawValue) {
+                    resumeCard(draft)
+                }
+                momentsLink
                 if profile == nil || profile?.hasAnswers != true {
                     setupCard
                 }
-                findMovement
-                weekCard
-                links
-                strengthCard
             }
             .padding(.horizontal, TreniraSpace.screen)
             .padding(.top, 20)
             .padding(.bottom, 32)
         }
         .background(TreniraColor.canvas)
+        .navigationTitle("Today")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                BrandLogoMark(size: 24)
+                BrandLogoMark(size: 32)
             }
             ToolbarItem(placement: .topBarTrailing) {
                 authToolbarButton
             }
         }
-        .sheet(isPresented: $showToday, onDismiss: { historyRevision += 1 }) {
+        .sheet(isPresented: $showPilot, onDismiss: { historyRevision += 1 }) {
             NavigationStack {
-                MovementCheckInView {
-                    showToday = false
+                MovementSuggestionsView(
+                    minutes: pilotMinutes,
+                    energy: pilotEnergy,
+                    ownerId: dataCoordinator.currentOwner.rawValue
+                ) {
+                    showPilot = false
                     historyRevision += 1
                 }
             }
         }
-        .sheet(isPresented: $showWalk, onDismiss: { historyRevision += 1 }) {
+        .sheet(isPresented: $showResume, onDismiss: { historyRevision += 1 }) {
             NavigationStack {
-                MovementWalkView(ownerId: dataCoordinator.currentOwner.rawValue) {
-                    showWalk = false
-                    historyRevision += 1
+                if let draft = PausedMovementDraftStore.load(ownerId: dataCoordinator.currentOwner.rawValue) {
+                    PilotResumeView(draft: draft) {
+                        showResume = false
+                        historyRevision += 1
+                    }
                 }
             }
         }
@@ -87,7 +95,7 @@ struct HomeView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Your workouts stay on this device.")
+            Text("What you've saved stays on this device.")
         }
         .onAppear {
             profile = CompanionProfileStore.load()
@@ -97,10 +105,13 @@ struct HomeView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(greeting)
+                .font(TreniraType.caption)
+                .foregroundStyle(TreniraColor.labelSecondary)
+            Text("A little time for you.")
                 .font(TreniraType.largeTitle)
                 .foregroundStyle(TreniraColor.label)
                 .accessibilityAddTraits(.isHeader)
-            Text(profile?.goal?.homeLine ?? "Movement can fit the day you have.")
+            Text("Your day might be unpredictable. Your movement doesn't have to be.")
                 .font(TreniraType.body)
                 .foregroundStyle(TreniraColor.labelSecondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -112,7 +123,7 @@ struct HomeView: View {
             Text("Want suggestions that fit your life?")
                 .font(TreniraType.section)
                 .foregroundStyle(TreniraColor.label)
-            Text("A few answers help trenira choose a realistic next step. You can skip or change them later.")
+            Text("A few answers are optional. You can skip them and still choose a moment.")
                 .font(TreniraType.body)
                 .foregroundStyle(TreniraColor.labelSecondary)
             Button("Answer a few questions") {
@@ -123,125 +134,77 @@ struct HomeView: View {
         .treniraCard()
     }
 
-    private var findMovement: some View {
-        Button {
-            showToday = true
-        } label: {
-            Text("Find movement for today")
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(TreniraPrimaryButtonStyle())
-        .accessibilityHint("Opens a short check-in for time, energy, and place")
-    }
-
-    private var weekCard: some View {
+    private var todayTime: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("This week")
-                .font(TreniraType.section)
+            Text("How much time do you have?")
+                .font(TreniraType.displayTitle)
                 .foregroundStyle(TreniraColor.label)
+                .accessibilityAddTraits(.isHeader)
             HStack(spacing: 8) {
-                ForEach(weekdays, id: \.title) { day in
-                    VStack(spacing: 6) {
-                        Text(day.title)
-                            .font(TreniraType.caption)
-                            .foregroundStyle(TreniraColor.labelSecondary)
-                        Circle()
-                            .fill(day.isToday ? TreniraColor.action : TreniraColor.surface)
-                            .frame(width: 28, height: 28)
-                            .overlay {
-                                if day.isToday {
-                                    Circle().stroke(TreniraColor.action, lineWidth: 0)
-                                }
-                            }
+                ForEach(PilotTimeChoice.allCases) { choice in
+                    TimeChoiceChip(title: choice.title, isSelected: pilotMinutes == choice.rawValue) {
+                        pilotMinutes = choice.rawValue
                     }
-                    .frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel(day.isToday ? "\(day.title), today" : day.title)
+                    .accessibilityLabel(choice.accessibilityTitle)
+                    .accessibilityAddTraits(pilotMinutes == choice.rawValue ? .isSelected : [])
                 }
             }
-            Text(weekLine)
+            Text("Energy, if you want to say. You can skip this.")
                 .font(TreniraType.caption)
                 .foregroundStyle(TreniraColor.labelSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 8) {
+                ForEach(MovementEnergy.allCases) { energy in
+                    TimeChoiceChip(title: energy.title, isSelected: pilotEnergy == energy) {
+                        pilotEnergy = pilotEnergy == energy ? nil : energy
+                    }
+                    .accessibilityHint("Optional. Skipping this still shows choices.")
+                }
+            }
+            Button("See choices") { showPilot = true }
+                .buttonStyle(TreniraPrimaryButtonStyle())
+                .accessibilityHint("Shows movement choices for \(pilotMinutes) minutes. Energy is not required.")
         }
-        .treniraCard()
-        .accessibilityElement(children: .combine)
+        .padding(TreniraSpace.cardPadding)
+        .background(TreniraColor.ivory)
+        .clipShape(RoundedRectangle(cornerRadius: TreniraSpace.cardRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: TreniraSpace.cardRadius, style: .continuous)
+                .stroke(TreniraColor.mauve, lineWidth: 1)
+        }
     }
 
-    private var links: some View {
-        VStack(alignment: .leading, spacing: TreniraSpace.stack) {
-            NavigationLink {
-                MovementHistoryView(
-                    ownerId: dataCoordinator.currentOwner.rawValue,
-                    strengthLogs: strengthSnapshots
-                )
-            } label: {
-                Text("Movement history")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(TreniraSecondaryButtonStyle())
-
-            NavigationLink {
-                SavedVideosView(ownerId: dataCoordinator.currentOwner.rawValue)
-            } label: {
-                Text("Saved videos")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(TreniraSecondaryButtonStyle())
-
-            Button("Record a walk") { showWalk = true }
+    private func resumeCard(_ draft: PausedMovementDraft) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("A moment is paused")
+                .font(TreniraType.section)
+                .foregroundStyle(TreniraColor.label)
+            Text("\(draft.title) · \(MovementDurationFormat.exact(draft.accumulatedSeconds)) so far. You can leave it.")
+                .font(TreniraType.caption)
+                .foregroundStyle(TreniraColor.labelSecondary)
+            Button("Resume") { showResume = true }
                 .buttonStyle(TreniraSecondaryButtonStyle())
+            Button("Let it go") {
+                PausedMovementDraftStore.clear(ownerId: draft.ownerId)
+                historyRevision += 1
+            }
+            .buttonStyle(TreniraSecondaryButtonStyle())
         }
+        .treniraCard()
         .id(historyRevision)
     }
 
-    private var strengthSnapshots: [StrengthHistorySnapshot] {
-        sessionStore.performanceLogs.map {
-            StrengthHistorySnapshot(id: $0.id, title: $0.workoutName, completedAt: $0.completedAt)
-        }
-    }
-
-    private var weekLine: String {
-        let summary = MovementJournal.weekSummary(items: MovementJournal.items(
-            records: MovementRecordStore.load(ownerId: dataCoordinator.currentOwner.rawValue),
-            strengthLogs: strengthSnapshots
-        ))
-        return MovementJournal.weekLine(summary)
-    }
-
-    private var strengthCard: some View {
-        Button {
-            tabRouter.openMyWorkouts()
+    private var momentsLink: some View {
+        NavigationLink {
+            MyMomentsView(
+                ownerId: dataCoordinator.currentOwner.rawValue,
+                strengthLogs: []
+            )
         } label: {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Your strength workouts")
-                    .font(TreniraType.section)
-                    .foregroundStyle(TreniraColor.label)
-                Text(strengthDetail)
-                    .font(TreniraType.caption)
-                    .foregroundStyle(TreniraColor.labelSecondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            Text("Moments")
+                .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.plain)
-        .treniraCard()
-        .accessibilityHint("Opens your saved strength workouts")
-    }
-
-    private var strengthDetail: String {
-        if sessionStore.activeSession != nil {
-            return "A session is still open. You can continue it whenever you want."
-        }
-        return "Your saved workouts, history, and equipment are still here."
-    }
-
-    private var weekdays: [(title: String, isToday: Bool)] {
-        let calendar = Calendar.current
-        let symbols = calendar.veryShortWeekdaySymbols
-        let today = calendar.component(.weekday, from: .now)
-        return symbols.enumerated().map { index, symbol in
-            (title: symbol, isToday: index + 1 == today)
-        }
+        .buttonStyle(TreniraSecondaryButtonStyle())
+        .id(historyRevision)
     }
 
     @ViewBuilder

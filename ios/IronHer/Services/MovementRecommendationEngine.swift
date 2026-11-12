@@ -32,6 +32,8 @@ enum MovementRecommendationEngine {
             chosen = [supportive(walkOK: walkOK, strength: strength, minutes: checkIn.minutes)]
         case .returningAfterBreak:
             chosen = [returning(walkOK: walkOK, strength: strength, minutes: checkIn.minutes, energy: checkIn.energy)]
+        case .lowEnergy:
+            chosen = [lowEnergyStep(walkOK: walkOK, strength: strength, minutes: checkIn.minutes)]
         case nil:
             chosen = preferred(
                 profile: profile,
@@ -52,6 +54,7 @@ enum MovementRecommendationEngine {
             chosen.append(videoSuggestion(videos: savedVideos, minutes: checkIn.minutes))
         }
 
+        chosen.append(contentsOf: selfDirected(profile: profile, minutes: checkIn.minutes))
         return chosen
     }
 
@@ -75,7 +78,9 @@ enum MovementRecommendationEngine {
         if walkOK {
             return [walk(
                 minutes: minutes,
-                reason: "Time is the constraint, so this stays within the \(minutes.rawValue) minutes you chose."
+                reason: minutes.rawValue <= 10
+                    ? "A short walk might fit the time you have."
+                    : "A walk might fit the \(minutes.rawValue) minutes you have."
             )]
         }
         return [nothingReady(
@@ -93,14 +98,14 @@ enum MovementRecommendationEngine {
         if walkOK {
             return walk(
                 minutes: minutes,
-                reason: "Getting started is the hard part. This is one small next step, not a full plan."
+                reason: "Getting started can be the hard part. One small step is enough."
             )
         }
         if let strength {
             return savedWorkout(
                 strength,
                 minutes: minutes,
-                reason: "Getting started is the hard part. Open this one workout and stop whenever you want."
+                reason: "Getting started can be the hard part. Open this one workout and stop whenever you want."
             )
         }
         return nothingReady(minutes: minutes, setting: .gym)
@@ -115,14 +120,14 @@ enum MovementRecommendationEngine {
         if walkOK {
             options.append(walk(
                 minutes: minutes,
-                reason: "Your schedule can change. Either option counts, and you can switch."
+                reason: "Your day can change. Either option counts, and you can switch."
             ))
         }
         if let strength {
             options.append(savedWorkout(
                 strength,
                 minutes: minutes,
-                reason: "Your schedule can change. This saved workout is an alternative, not an obligation."
+                reason: "Your day can change. This saved workout is an alternative, not an obligation."
             ))
         }
         return options
@@ -164,7 +169,7 @@ enum MovementRecommendationEngine {
         strength: SavedStrengthOption?,
         minutes: MovementMinutes
     ) -> MovementSuggestion {
-        let reason = "This time is yours. A little movement still counts."
+        let reason = "This time is yours. A little movement is still movement."
         if walkOK {
             return walk(minutes: minutes, reason: reason)
         }
@@ -194,6 +199,21 @@ enum MovementRecommendationEngine {
         )
     }
 
+    private static func lowEnergyStep(
+        walkOK: Bool,
+        strength: SavedStrengthOption?,
+        minutes: MovementMinutes
+    ) -> MovementSuggestion {
+        let reason = "Low energy still leaves room for a little movement."
+        if walkOK {
+            return walk(minutes: minutes, reason: reason)
+        }
+        if let strength {
+            return savedWorkout(strength, minutes: minutes, reason: reason)
+        }
+        return nothingReady(minutes: minutes, setting: .gym, detail: reason)
+    }
+
     private static func preferred(
         profile: CompanionProfile,
         walkOK: Bool,
@@ -210,18 +230,20 @@ enum MovementRecommendationEngine {
                 strength,
                 minutes: minutes,
                 reason: profile.goal == .feelStronger
-                    ? "Feeling stronger is your aim, and you have a saved workout that can be started."
+                    ? "Building strength is your aim, and you have a saved workout you can start."
                     : "Strength training is one of the ways you like to move, and this workout can be started."
             ))
         }
         if walkOK {
             let reason: String
             if profile.formats == [.yoga] {
-                reason = "trenira doesn't have a yoga or Pilates session saved. A walk is here if you want to move without one."
+                reason = "You can record yoga yourself. A walk is here if you want to move without one."
             } else if profile.formats.contains(.notSure) || profile.formats.isEmpty {
-                reason = "You don't have to decide on a style today. A walk fits the time you chose."
+                reason = "You don't have to decide on a style today. A walk might fit the time you have."
+            } else if minutes.rawValue <= 10 {
+                reason = "A short walk might fit the time you have."
             } else {
-                reason = "Walking matches the time and place you chose."
+                reason = "A walk might fit the time and place you chose."
             }
             options.append(walk(minutes: minutes, reason: reason))
         }
@@ -240,7 +262,7 @@ enum MovementRecommendationEngine {
             id: "walk",
             kind: .walk,
             title: "A \(minutes.rawValue)-minute walk",
-            detail: "Use about \(minutes.rawValue) minutes, then stop. That limit is the one you just chose.",
+            detail: "About \(minutes.rawValue) minutes, then stop whenever you need to.",
             reason: reason,
             isActionable: true,
             workoutId: nil
@@ -312,6 +334,37 @@ enum MovementRecommendationEngine {
             isActionable: false,
             workoutId: nil
         )
+    }
+
+    /// Preferred categories that are recorded by the person. These do not replace the first suggestion.
+    private static func selfDirected(profile: CompanionProfile, minutes: MovementMinutes) -> [MovementSuggestion] {
+        let formats = profile.formats.filter { format in
+            switch format {
+            case .yoga, .dancing, .withBaby, .other: true
+            case .strength, .walking, .videos, .notSure: false
+            }
+        }
+        var seen: [MovementFormat] = []
+        return formats.compactMap { format in
+            guard !seen.contains(format) else { return nil }
+            seen.append(format)
+            let shorter = minutes.rawValue > 2 ? max(2, minutes.rawValue / 2) : 2
+            let detail: String
+            if format == .withBaby {
+                detail = "About \(minutes.rawValue) minutes, or \(shorter). Move with your baby nearby. trenira does not suggest lifting, carrying, or using your baby as part of the exercise."
+            } else {
+                detail = "\(format.summary) About \(minutes.rawValue) minutes, or \(shorter) if that fits better."
+            }
+            return MovementSuggestion(
+                id: "self-\(format.rawValue)",
+                kind: .selfDirected,
+                title: format.title,
+                detail: detail,
+                reason: "This is one of the ways you like to move. Only what you record is saved.",
+                isActionable: true,
+                format: format
+            )
+        }
     }
 
     private static func nothingReady(

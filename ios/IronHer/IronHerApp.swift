@@ -9,6 +9,9 @@ struct IronHerApp: App {
     init() {
         GoogleSignInService.configureIfNeeded()
         AnalyticsService.start()
+        #if DEBUG
+        TreniraSelfTestLaunch.runIfRequested()
+        #endif
     }
 
     var body: some Scene {
@@ -32,12 +35,14 @@ struct IronHerApp: App {
                 .onAppear {
                     ExerciseCatalog.syncCustomExercises(appModel.customExerciseStore.exercises)
                     appModel.globalProgressStore.seed(from: appModel.workoutStore)
+                    AnalyticsService.noteScenePhaseIsActive(true, isBackground: false)
                 }
                 .task {
                     await appModel.subscriptionStore.bootstrap()
                     await appModel.dataCoordinator.syncOnLaunchOrActive(authState: appModel.authManager.authState)
                 }
                 .onChange(of: scenePhase) { _, phase in
+                    AnalyticsService.noteScenePhaseIsActive(phase == .active, isBackground: phase == .background)
                     guard phase == .active else { return }
                     Task {
                         await appModel.subscriptionStore.handleAppBecameActive()

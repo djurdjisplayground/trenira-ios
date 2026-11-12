@@ -33,12 +33,12 @@ enum WorkoutEncouragement {
 enum WorkoutCompletionCopy {
     private static let messages = [
         "You showed up. That matters.",
-        "Strong work today.",
-        "Session complete. See you next time.",
-        "Another workout in the books.",
-        "You got a little stronger today.",
+        "You made some time for yourself today.",
+        "Session complete. Come back when you're ready.",
+        "You made some time for movement.",
+        "A little movement is still movement.",
         "Well done. Come back when you're ready.",
-        "Consistency compounds.",
+        "Every session counts.",
         BrandIdentity.taglineInline,
     ]
 

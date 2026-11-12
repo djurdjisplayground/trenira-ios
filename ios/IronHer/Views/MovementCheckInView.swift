@@ -14,11 +14,11 @@ struct MovementCheckInView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TreniraSpace.section) {
-                Text("Today's check-in")
+                Text("What fits today?")
                     .font(TreniraType.title)
                     .foregroundStyle(TreniraColor.label)
                     .accessibilityAddTraits(.isHeader)
-                Text("Three answers. Then a suggestion that fits them.")
+                Text("Time, energy, and where you are. Then a suggestion that fits.")
                     .font(TreniraType.body)
                     .foregroundStyle(TreniraColor.labelSecondary)
 
@@ -103,6 +103,8 @@ struct MovementSuggestionView: View {
     @State private var offerVideoRecord = false
     @State private var videoCompletion: SavedVideo?
     @State private var recordWalk = false
+    @State private var walkMinutes = 0
+    @State private var selfRecord: ChosenMovement?
 
     private var ownerId: String { dataCoordinator.currentOwner.rawValue }
 
@@ -124,7 +126,7 @@ struct MovementSuggestionView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: TreniraSpace.section) {
-                Text("A suggestion for today")
+                Text("Something that fits")
                     .font(TreniraType.title)
                     .foregroundStyle(TreniraColor.label)
                     .accessibilityAddTraits(.isHeader)
@@ -165,8 +167,16 @@ struct MovementSuggestionView: View {
         }
         .navigationDestination(isPresented: $recordWalk) {
             MovementWalkView(
-                plannedMinutes: route.minutes.rawValue,
+                plannedMinutes: walkMinutes > 0 ? walkMinutes : route.minutes.rawValue,
                 ownerId: ownerId,
+                onFinished: onFinished
+            )
+        }
+        .navigationDestination(item: $selfRecord) { choice in
+            MovementSelfStartView(
+                category: choice.category,
+                ownerId: ownerId,
+                plannedMinutes: choice.minutes,
                 onFinished: onFinished
             )
         }
@@ -212,9 +222,33 @@ struct MovementSuggestionView: View {
             } else if item.kind == .walk {
                 Button("Record this walk") {
                     AnalyticsService.capture(.movementSuggestionSelected, properties: ["suggestion": "walk"])
+                    walkMinutes = route.minutes.rawValue
                     recordWalk = true
                 }
-                .buttonStyle(TreniraSecondaryButtonStyle())
+                .buttonStyle(TreniraPrimaryButtonStyle())
+                if shorterMinutes < route.minutes.rawValue {
+                    Button("Use \(shorterMinutes) minutes") {
+                        AnalyticsService.capture(.movementSuggestionSelected, properties: ["suggestion": "walk"])
+                        walkMinutes = shorterMinutes
+                        recordWalk = true
+                    }
+                    .buttonStyle(TreniraSecondaryButtonStyle())
+                }
+            } else if item.kind == .selfDirected, let format = item.format {
+                Button("Record your movement") {
+                    let token = format.recordKind?.analyticsActivityType ?? "other"
+                    AnalyticsService.capture(.movementSuggestionSelected, properties: ["suggestion": token])
+                    selfRecord = ChosenMovement(category: format, minutes: route.minutes.rawValue)
+                }
+                .buttonStyle(TreniraPrimaryButtonStyle())
+                if shorterMinutes < route.minutes.rawValue {
+                    Button("Use \(shorterMinutes) minutes") {
+                        let token = format.recordKind?.analyticsActivityType ?? "other"
+                        AnalyticsService.capture(.movementSuggestionSelected, properties: ["suggestion": token])
+                        selfRecord = ChosenMovement(category: format, minutes: shorterMinutes)
+                    }
+                    .buttonStyle(TreniraSecondaryButtonStyle())
+                }
             } else if item.kind == .video, item.videoId == nil {
                 NavigationLink {
                     SavedVideosView(ownerId: ownerId)
@@ -248,8 +282,20 @@ struct MovementSuggestionView: View {
                 }
                 .buttonStyle(TreniraSecondaryButtonStyle())
             }
+            NavigationLink {
+                MovementChoiceView(ownerId: ownerId, onFinished: onFinished)
+            } label: {
+                Text("Choose something else")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(TreniraSecondaryButtonStyle())
         }
         .treniraCard()
         .accessibilityElement(children: .combine)
+    }
+
+    private var shorterMinutes: Int {
+        let minutes = route.minutes.rawValue
+        return minutes > 2 ? max(2, minutes / 2) : 2
     }
 }

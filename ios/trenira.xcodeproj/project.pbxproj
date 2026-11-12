@@ -42,21 +42,6 @@
 		A10000010000000000000028 /* WeightFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000030 /* WeightFormatter.swift */; };
 		A10000010000000000000029 /* WorkoutAdaptationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000031 /* WorkoutAdaptationService.swift */; };
 		A10000010000000000000031 /* IronHerTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000033 /* IronHerTheme.swift */; };
-		A100000E00000000000001D0 /* TreniraDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001D1 /* TreniraDesign.swift */; };
-		A100000E00000000000001E1 /* CompanionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E0 /* CompanionProfile.swift */; };
-		A100000E00000000000001E3 /* CompanionProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E2 /* CompanionProfileStore.swift */; };
-		A100000E00000000000001E5 /* MovementRecommendationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E4 /* MovementRecommendationEngine.swift */; };
-		A100000E00000000000001E7 /* AppEntryPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E6 /* AppEntryPolicy.swift */; };
-		A100000E00000000000001E9 /* CompanionOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E8 /* CompanionOnboardingView.swift */; };
-		A100000E00000000000001EB /* MovementCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001EA /* MovementCheckInView.swift */; };
-		A100000E00000000000001ED /* CompanionSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001EC /* CompanionSelfTests.swift */; };
-		A100000E00000000000001F1 /* MovementActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F0 /* MovementActivity.swift */; };
-		A100000E00000000000001F3 /* MovementLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F2 /* MovementLibraryStore.swift */; };
-		A100000E00000000000001F5 /* MovementCompletionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F4 /* MovementCompletionView.swift */; };
-		A100000E00000000000001F7 /* MovementWalkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F6 /* MovementWalkView.swift */; };
-		A100000E00000000000001F9 /* SavedVideosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F8 /* SavedVideosView.swift */; };
-		A100000E00000000000001FB /* MovementHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001FA /* MovementHistoryView.swift */; };
-		A100000E00000000000001FD /* MovementActivitySelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001FC /* MovementActivitySelfTests.swift */; };
 		A10000010000000000000032 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000034 /* HistoryView.swift */; };
 		A10000010000000000000033 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000035 /* SettingsView.swift */; };
 		A10000010000000000000034 /* AdaptWorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000036 /* AdaptWorkoutView.swift */; };
@@ -209,6 +194,36 @@
 		A100000E00000000000001C0 /* AnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001C1 /* AnalyticsService.swift */; };
 		A100000E00000000000001C2 /* AnalyticsSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001C3 /* AnalyticsSelfTests.swift */; };
 		A100000E00000000000001C6 /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = A100000B0000000000000004 /* PostHog */; };
+		A100000E00000000000001D0 /* TreniraDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001D1 /* TreniraDesign.swift */; };
+		A100000E00000000000001E1 /* CompanionProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E0 /* CompanionProfile.swift */; };
+		A100000E00000000000001E3 /* CompanionProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E2 /* CompanionProfileStore.swift */; };
+		A100000E00000000000001E5 /* MovementRecommendationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E4 /* MovementRecommendationEngine.swift */; };
+		A100000E00000000000001E7 /* AppEntryPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E6 /* AppEntryPolicy.swift */; };
+		A100000E00000000000001E9 /* CompanionOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001E8 /* CompanionOnboardingView.swift */; };
+		A100000E00000000000001EB /* MovementCheckInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001EA /* MovementCheckInView.swift */; };
+		A100000E00000000000001ED /* CompanionSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001EC /* CompanionSelfTests.swift */; };
+		A100000E00000000000001F1 /* MovementActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F0 /* MovementActivity.swift */; };
+		A100000E00000000000001F3 /* MovementLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F2 /* MovementLibraryStore.swift */; };
+		A100000E00000000000001F5 /* MovementCompletionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F4 /* MovementCompletionView.swift */; };
+		A100000E00000000000001F7 /* MovementWalkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F6 /* MovementWalkView.swift */; };
+		A100000E00000000000001F9 /* SavedVideosView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001F8 /* SavedVideosView.swift */; };
+		A100000E00000000000001FB /* MovementHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001FA /* MovementHistoryView.swift */; };
+		A100000E0000000000000201 /* MovementChoiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000200 /* MovementChoiceView.swift */; };
+		A100000E0000000000000211 /* MovementReminder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000210 /* MovementReminder.swift */; };
+		A100000E0000000000000213 /* MovementReminderScheduling.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000212 /* MovementReminderScheduling.swift */; };
+		A100000E0000000000000215 /* MovementRemindersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000214 /* MovementRemindersView.swift */; };
+		A100000E0000000000000217 /* MovementReminderSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000216 /* MovementReminderSelfTests.swift */; };
+		A100000E0000000000000221 /* PilotMovement.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000220 /* PilotMovement.swift */; };
+		A100000E0000000000000231 /* MovementCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000230 /* MovementCatalog.swift */; };
+		A100000E0000000000000233 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000232 /* TodayView.swift */; };
+		A100000E0000000000000243 /* EquipmentSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000242 /* EquipmentSelector.swift */; };
+		A100000E0000000000000235 /* MovementSessionScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000234 /* MovementSessionScreens.swift */; };
+		A100000E0000000000000237 /* MomentsDiaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000236 /* MomentsDiaryView.swift */; };
+		A100000E0000000000000239 /* ExploreMovementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000238 /* ExploreMovementView.swift */; };
+		A100000E0000000000000245 /* YourCirclePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000244 /* YourCirclePreview.swift */; };
+		A100000E0000000000000241 /* BlueprintSelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000240 /* BlueprintSelfTests.swift */; };
+		A100000E0000000000000223 /* PilotMovementFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E0000000000000222 /* PilotMovementFlow.swift */; };
+		A100000E00000000000001FD /* MovementActivitySelfTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E00000000000001FC /* MovementActivitySelfTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -249,21 +264,6 @@
 		A10000020000000000000030 /* WeightFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightFormatter.swift; sourceTree = "<group>"; };
 		A10000020000000000000031 /* WorkoutAdaptationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutAdaptationService.swift; sourceTree = "<group>"; };
 		A10000020000000000000033 /* IronHerTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IronHerTheme.swift; sourceTree = "<group>"; };
-		A100000E00000000000001D1 /* TreniraDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreniraDesign.swift; sourceTree = "<group>"; };
-		A100000E00000000000001E0 /* CompanionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionProfile.swift; sourceTree = "<group>"; };
-		A100000E00000000000001E2 /* CompanionProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionProfileStore.swift; sourceTree = "<group>"; };
-		A100000E00000000000001E4 /* MovementRecommendationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementRecommendationEngine.swift; sourceTree = "<group>"; };
-		A100000E00000000000001E6 /* AppEntryPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEntryPolicy.swift; sourceTree = "<group>"; };
-		A100000E00000000000001E8 /* CompanionOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionOnboardingView.swift; sourceTree = "<group>"; };
-		A100000E00000000000001EA /* MovementCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementCheckInView.swift; sourceTree = "<group>"; };
-		A100000E00000000000001EC /* CompanionSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSelfTests.swift; sourceTree = "<group>"; };
-		A100000E00000000000001F0 /* MovementActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementActivity.swift; sourceTree = "<group>"; };
-		A100000E00000000000001F2 /* MovementLibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementLibraryStore.swift; sourceTree = "<group>"; };
-		A100000E00000000000001F4 /* MovementCompletionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementCompletionView.swift; sourceTree = "<group>"; };
-		A100000E00000000000001F6 /* MovementWalkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementWalkView.swift; sourceTree = "<group>"; };
-		A100000E00000000000001F8 /* SavedVideosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedVideosView.swift; sourceTree = "<group>"; };
-		A100000E00000000000001FA /* MovementHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementHistoryView.swift; sourceTree = "<group>"; };
-		A100000E00000000000001FC /* MovementActivitySelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementActivitySelfTests.swift; sourceTree = "<group>"; };
 		A10000020000000000000034 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		A10000020000000000000035 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A10000020000000000000036 /* AdaptWorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptWorkoutView.swift; sourceTree = "<group>"; };
@@ -417,6 +417,36 @@
 		A100000E00000000000001B5 /* ResearchInvitationSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchInvitationSelfTests.swift; sourceTree = "<group>"; };
 		A100000E00000000000001C1 /* AnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsService.swift; sourceTree = "<group>"; };
 		A100000E00000000000001C3 /* AnalyticsSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsSelfTests.swift; sourceTree = "<group>"; };
+		A100000E00000000000001D1 /* TreniraDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreniraDesign.swift; sourceTree = "<group>"; };
+		A100000E00000000000001E0 /* CompanionProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionProfile.swift; sourceTree = "<group>"; };
+		A100000E00000000000001E2 /* CompanionProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionProfileStore.swift; sourceTree = "<group>"; };
+		A100000E00000000000001E4 /* MovementRecommendationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementRecommendationEngine.swift; sourceTree = "<group>"; };
+		A100000E00000000000001E6 /* AppEntryPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEntryPolicy.swift; sourceTree = "<group>"; };
+		A100000E00000000000001E8 /* CompanionOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionOnboardingView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001EA /* MovementCheckInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementCheckInView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001EC /* CompanionSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanionSelfTests.swift; sourceTree = "<group>"; };
+		A100000E00000000000001F0 /* MovementActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementActivity.swift; sourceTree = "<group>"; };
+		A100000E00000000000001F2 /* MovementLibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementLibraryStore.swift; sourceTree = "<group>"; };
+		A100000E00000000000001F4 /* MovementCompletionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementCompletionView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001F6 /* MovementWalkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementWalkView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001F8 /* SavedVideosView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedVideosView.swift; sourceTree = "<group>"; };
+		A100000E00000000000001FA /* MovementHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementHistoryView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000200 /* MovementChoiceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementChoiceView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000210 /* MovementReminder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementReminder.swift; sourceTree = "<group>"; };
+		A100000E0000000000000212 /* MovementReminderScheduling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementReminderScheduling.swift; sourceTree = "<group>"; };
+		A100000E0000000000000214 /* MovementRemindersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementRemindersView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000216 /* MovementReminderSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementReminderSelfTests.swift; sourceTree = "<group>"; };
+		A100000E0000000000000220 /* PilotMovement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PilotMovement.swift; sourceTree = "<group>"; };
+		A100000E0000000000000230 /* MovementCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementCatalog.swift; sourceTree = "<group>"; };
+		A100000E0000000000000232 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000242 /* EquipmentSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EquipmentSelector.swift; sourceTree = "<group>"; };
+		A100000E0000000000000234 /* MovementSessionScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementSessionScreens.swift; sourceTree = "<group>"; };
+		A100000E0000000000000236 /* MomentsDiaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MomentsDiaryView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000238 /* ExploreMovementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreMovementView.swift; sourceTree = "<group>"; };
+		A100000E0000000000000244 /* YourCirclePreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YourCirclePreview.swift; sourceTree = "<group>"; };
+		A100000E0000000000000240 /* BlueprintSelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlueprintSelfTests.swift; sourceTree = "<group>"; };
+		A100000E0000000000000222 /* PilotMovementFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PilotMovementFlow.swift; sourceTree = "<group>"; };
+		A100000E00000000000001FC /* MovementActivitySelfTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementActivitySelfTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -484,6 +514,14 @@
 				A100000E00000000000001F6 /* MovementWalkView.swift */,
 				A100000E00000000000001F8 /* SavedVideosView.swift */,
 				A100000E00000000000001FA /* MovementHistoryView.swift */,
+				A100000E0000000000000200 /* MovementChoiceView.swift */,
+				A100000E0000000000000222 /* PilotMovementFlow.swift */,
+				A100000E0000000000000232 /* TodayView.swift */,
+				A100000E0000000000000242 /* EquipmentSelector.swift */,
+				A100000E0000000000000234 /* MovementSessionScreens.swift */,
+				A100000E0000000000000236 /* MomentsDiaryView.swift */,
+				A100000E0000000000000238 /* ExploreMovementView.swift */,
+				A100000E0000000000000244 /* YourCirclePreview.swift */,
 				A100000200000000000000B3 /* MainTabView.swift */,
 				A100000200000000000000B4 /* WorkoutRoute.swift */,
 				A10000040000000000000009 /* Workouts */,
@@ -546,6 +584,9 @@
 				A100000E0000000000000161 /* OnboardingStore.swift */,
 				A100000E00000000000001B1 /* ResearchInvitationStore.swift */,
 				A100000E00000000000001C1 /* AnalyticsService.swift */,
+				A100000E0000000000000210 /* MovementReminder.swift */,
+				A100000E0000000000000212 /* MovementReminderScheduling.swift */,
+				A100000E0000000000000220 /* PilotMovement.swift */,
 				A100000E00000000000001E2 /* CompanionProfileStore.swift */,
 				A100000E00000000000001E4 /* MovementRecommendationEngine.swift */,
 				A100000E00000000000001F2 /* MovementLibraryStore.swift */,
@@ -601,6 +642,7 @@
 				A10000020000000000000040 /* SubscriptionPlan.swift */,
 				A10000020000000000000058 /* TrainingPreferences.swift */,
 				A100000E00000000000001E0 /* CompanionProfile.swift */,
+				A100000E0000000000000230 /* MovementCatalog.swift */,
 				A100000E00000000000001F0 /* MovementActivity.swift */,
 				A100000E0000000000000111 /* ConsultationConfig.swift */,
 				A100000E0000000000000113 /* ConsultationRequest.swift */,
@@ -654,6 +696,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000020000000000000035 /* SettingsView.swift */,
+				A100000E0000000000000214 /* MovementRemindersView.swift */,
 				A100000E000000000000016B /* BetaFeedbackView.swift */,
 				A100000E00000000000000E3 /* EraseLocalDataView.swift */,
 				A100000E0000000000000180 /* DeleteAccountView.swift */,
@@ -775,10 +818,12 @@
 				A100000E00000000000001C3 /* AnalyticsSelfTests.swift */,
 				A100000E00000000000001EC /* CompanionSelfTests.swift */,
 				A100000E00000000000001FC /* MovementActivitySelfTests.swift */,
+				A100000E0000000000000216 /* MovementReminderSelfTests.swift */,
 				A100000E0000000000000137 /* ExerciseProgressSeriesSelfTests.swift */,
 				A100000E0000000000000153 /* WeightIncrementRepairMigration.swift */,
 				A100000E0000000000000155 /* WeightProgressionSelfTests.swift */,
 				A100000E000000000000016D /* TestFlightPrepSelfTests.swift */,
+				A100000E0000000000000240 /* BlueprintSelfTests.swift */,
 				A100000E000000000000018A /* StrengthCalibrationSelfTests.swift */,
 				A100000E0000000000000170 /* AuthDataMinimizationMigration.swift */,
 				A100000E0000000000000172 /* AuthPrivacySelfTests.swift */,
@@ -927,6 +972,21 @@
 				A100000E00000000000001F7 /* MovementWalkView.swift in Sources */,
 				A100000E00000000000001F9 /* SavedVideosView.swift in Sources */,
 				A100000E00000000000001FB /* MovementHistoryView.swift in Sources */,
+				A100000E0000000000000201 /* MovementChoiceView.swift in Sources */,
+				A100000E0000000000000211 /* MovementReminder.swift in Sources */,
+				A100000E0000000000000213 /* MovementReminderScheduling.swift in Sources */,
+				A100000E0000000000000215 /* MovementRemindersView.swift in Sources */,
+				A100000E0000000000000217 /* MovementReminderSelfTests.swift in Sources */,
+				A100000E0000000000000221 /* PilotMovement.swift in Sources */,
+				A100000E0000000000000231 /* MovementCatalog.swift in Sources */,
+				A100000E0000000000000233 /* TodayView.swift in Sources */,
+				A100000E0000000000000243 /* EquipmentSelector.swift in Sources */,
+				A100000E0000000000000235 /* MovementSessionScreens.swift in Sources */,
+				A100000E0000000000000237 /* MomentsDiaryView.swift in Sources */,
+				A100000E0000000000000239 /* ExploreMovementView.swift in Sources */,
+				A100000E0000000000000245 /* YourCirclePreview.swift in Sources */,
+				A100000E0000000000000241 /* BlueprintSelfTests.swift in Sources */,
+				A100000E0000000000000223 /* PilotMovementFlow.swift in Sources */,
 				A100000E00000000000001FD /* MovementActivitySelfTests.swift in Sources */,
 				A10000010000000000000008 /* RootView.swift in Sources */,
 				A10000010000000000000009 /* AuthState.swift in Sources */,
@@ -1231,7 +1291,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = IronHer/IronHer.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 564T3XKJJB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1244,7 +1304,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = info.trenira.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -1262,7 +1322,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = IronHer/IronHer.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 564T3XKJJB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -1275,7 +1335,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = info.trenira.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
